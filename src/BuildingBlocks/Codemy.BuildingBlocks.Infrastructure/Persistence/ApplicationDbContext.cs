@@ -14,9 +14,8 @@ namespace Codemy.BuildingBlocks.Infrastructure.Persistence
             // Get all types from Domain assembly that inherit from BaseEntity
             _entityTypes = typeof(BaseEntity).Assembly
                 .GetTypes()
-                .Where(t => t is { IsAbstract: false, IsClass: true } &&
-                            (t.IsSubclassOf(typeof(BaseEntity)) ||
-                             t.GetInterfaces().Contains(typeof(BaseEntity))));
+                .Where(t => t is { IsAbstract: false, IsClass: true } && 
+                                    t.IsSubclassOf(typeof(BaseEntity)));
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

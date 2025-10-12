@@ -46,10 +46,5 @@ namespace Codemy.BuildingBlocks.Infrastructure.UnitOfWork
                 _transaction = null;
             }
         }
-
-        public void Dispose()
-        {
-            context.Dispose();
-        }
     }
 }
