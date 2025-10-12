@@ -103,6 +103,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Identity.UnitTests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Course.UnitTests", "tests\Codemy.Course.UnitTests\Codemy.Course.UnitTests.csproj", "{D78A03B1-8A9C-477B-8A14-856A158F59CB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.BuildingBlocks.Core", "src\BuildingBlocks\Core\Codemy.BuildingBlocks.Core.csproj", "{7D8E6F50-5923-4BF8-AA81-176AF29B6A7B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -257,6 +259,10 @@ Global
 		{D78A03B1-8A9C-477B-8A14-856A158F59CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D78A03B1-8A9C-477B-8A14-856A158F59CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D78A03B1-8A9C-477B-8A14-856A158F59CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D8E6F50-5923-4BF8-AA81-176AF29B6A7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D8E6F50-5923-4BF8-AA81-176AF29B6A7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D8E6F50-5923-4BF8-AA81-176AF29B6A7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D8E6F50-5923-4BF8-AA81-176AF29B6A7B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -310,6 +316,7 @@ Global
 		{ADDE3711-FFE4-4C9E-AC7D-618D66CE632B} = {1FD65424-EA29-4389-B71D-1031ECA31317}
 		{CC2FAD9F-6054-4BFB-A0AE-2B4C48F6F340} = {F5E98538-C58C-4781-BBCA-5D9444BB9092}
 		{D78A03B1-8A9C-477B-8A14-856A158F59CB} = {F5E98538-C58C-4781-BBCA-5D9444BB9092}
+		{7D8E6F50-5923-4BF8-AA81-176AF29B6A7B} = {1FD65424-EA29-4389-B71D-1031ECA31317}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4497A172-250C-4FB3-89F7-198EE405B52D}
