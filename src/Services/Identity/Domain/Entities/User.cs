@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Codemy.Identity.Domain.Enums;
+﻿using Codemy.Identity.Domain.Enums;
 
 namespace Codemy.Identity.Domain.Entities
 {
