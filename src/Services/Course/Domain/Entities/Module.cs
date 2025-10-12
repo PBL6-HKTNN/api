@@ -1,15 +1,10 @@
 ﻿using Codemy.BuildingBlocks.Domain;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Codemy.Course.Domain.Entities
 {
     internal class Module : BaseEntity
     {
-        public long courseId { get; set; }
+        public Guid courseId { get; set; }
         public string title { get; set; }
         public TimeSpan duration { get; set; }
         public int numberOfLessons { get; set; }
