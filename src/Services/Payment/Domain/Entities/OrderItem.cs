@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Codemy.BuildingBlocks.Domain;
+﻿using Codemy.BuildingBlocks.Domain;
 
 namespace Codemy.Payment.Domain.Entities
 {
     internal class OrderItem : BaseEntity
     {
-        public long orderId { get; set; }
-        public long courseId { get; set; }
+        public Guid orderId { get; set; }
+        public Guid courseId { get; set; }
         public decimal price { get; set; }
     }
 }

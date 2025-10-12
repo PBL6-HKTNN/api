@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Codemy.BuildingBlocks.Domain;
+﻿using Codemy.BuildingBlocks.Domain;
+using Codemy.Course.Domain.Enums;
 
 namespace Codemy.Course.Domain.Entities
 {
@@ -13,7 +9,7 @@ namespace Codemy.Course.Domain.Entities
         public string contentUrl { get; set; }
         public TimeSpan duration { get; set; }
         public int orderIndex { get; set; }
-        public long moduleId { get; set; }
+        public Guid moduleId { get; set; }
         public bool isPreview { get; set; }
         public LessonType lessonType { get; set; }
     }
