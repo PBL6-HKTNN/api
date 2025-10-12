@@ -1,6 +1,8 @@
-﻿namespace Codemy.Enrollment.Domain.Entities
+﻿using Codemy.BuildingBlocks.Domain;
+
+namespace Codemy.Enrollment.Domain.Entities
 {
-    internal class WishlistItem
+    internal class WishlistItem : BaseEntity
     {
         public Guid wishlistId { get; set; }
         public Guid courseId { get; set; }

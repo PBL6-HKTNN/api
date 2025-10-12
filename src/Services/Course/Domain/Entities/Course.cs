@@ -16,7 +16,7 @@ namespace Codemy.Course.Domain.Entities
         public Level level { get; set; }
         public Guid categoryId { get; set; }
         public string language { get; set; }
-        public long numberOfReviews { get; set; }
+        public int numberOfReviews { get; set; }
         public decimal averageRating { get; set; }
     }
 }

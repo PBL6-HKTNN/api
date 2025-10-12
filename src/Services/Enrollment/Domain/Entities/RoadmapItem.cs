@@ -6,6 +6,6 @@ namespace Codemy.Enrollment.Domain.Entities
     {
         public Guid roadmapId { get; set; }
         public int order { get; set; }
-        public int courseId { get; set; }
+        public Guid courseId { get; set; }
     }
 }

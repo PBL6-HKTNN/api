@@ -1,8 +1,9 @@
 ﻿using Codemy.Payment.Domain.Enums;
+using Codemy.BuildingBlocks.Domain;
 
 namespace Codemy.Payment.Domain.Entities
 {
-    internal class Order
+    internal class Order : BaseEntity
     {
         public Guid userId { get; set; }
         public decimal totalAmount { get; set; }
