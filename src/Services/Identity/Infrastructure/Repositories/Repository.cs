@@ -1,21 +1,23 @@
 ﻿using Codemy.BuildingBlocks.Core;
 using Codemy.BuildingBlocks.Infrastructure.Persistence;
+using Codemy.Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
+using System.Linq.Expressions; 
 
-
-namespace Codemy.BuildingBlocks.Infrastructure.Repositories
+namespace Codemy.Identity.Infrastructure
 {
-    internal class Repository<T>(ApplicationDbContext context) : IRepository<T> where T : class, IAuditableEntity
+    public class Repository<T> : IRepository<T> where T : class, IAuditableEntity
     {
-        private readonly DbSet<T> _dbSet = context.GetDbSet<T>();
+        private readonly IdentityDbContext _context;  // ← IdentityDbContext
+        private readonly DbSet<T> _dbSet;
+
+        public Repository(IdentityDbContext context)  // ← IdentityDbContext
+        {
+            _context = context;
+            _dbSet = context.GetDbSet<T>();
+        }
 
         public IQueryable<T> TableNoTracking => _dbSet.AsNoTracking();
-
-        public async Task<T?> GetByIdAsync(T id)
-        {
-            return await _dbSet.FindAsync(id);
-        }
 
         public async Task<IReadOnlyList<T>> GetAllAsync()
         {
@@ -34,7 +36,7 @@ namespace Codemy.BuildingBlocks.Infrastructure.Repositories
 
         public void Update(T entity)
         {
-            context.Entry(entity).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
         public void Delete(T entity)
@@ -45,6 +47,11 @@ namespace Codemy.BuildingBlocks.Infrastructure.Repositories
         public async Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
             return await _dbSet.Where(predicate).ToListAsync();
+        }
+
+        public async Task<T?> GetByIdAsync(Guid id)
+        {
+            return await _dbSet.FindAsync(id);
         }
     }
 }

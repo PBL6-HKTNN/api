@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Codemy.BuildingBlocks.Core.Extensions
+namespace Codemy.BuildingBlocks.Core
 {
     public static class ApiResponseExtensions
     {
