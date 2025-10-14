@@ -162,7 +162,7 @@ namespace Codemy.Identity.Application.Services
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Email, user.email),
-                new(ClaimTypes.Name, $"{user.name} "),  
+                new(ClaimTypes.Name, $"{user.name}"),  
                 new(ClaimTypes.Role, user.role.ToString()),
                 new("google_id", user.googleId), 
             };
