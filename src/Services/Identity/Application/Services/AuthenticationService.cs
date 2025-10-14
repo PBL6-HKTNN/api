@@ -69,9 +69,7 @@ namespace Codemy.Identity.Application.Services
                         Success = false,
                         Message = "Failed to create or retrieve user account"
                     };
-                } 
-                _userRepository.Update(user);
-                await _unitOfWork.SaveChangesAsync();
+                }  
 
                 // Generate JWT token
                 var jwtToken = GenerateJwtTokenAsync(user);
@@ -130,7 +128,7 @@ namespace Codemy.Identity.Application.Services
                     email = googleUserInfo.Email,
                     name = googleUserInfo.Name ?? googleUserInfo.Email.Split('@')[0],
                     googleId = googleUserInfo.Id,
-                    profilePicture = googleUserInfo.Picture ?? "https://example.com/default-avatar.png",
+                    profilePicture = googleUserInfo.Picture ?? "",
                     role = Role.Student,
                     status = UserStatus.Active,
                     emailVerified = googleUserInfo.EmailVerified,

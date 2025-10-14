@@ -49,7 +49,7 @@ namespace Codemy.Identity.Infrastructure
             return await _dbSet.Where(predicate).ToListAsync();
         }
 
-        public async Task<T?> GetByIdAsync(object id)
+        public async Task<T?> GetByIdAsync(Guid id)
         {
             return await _dbSet.FindAsync(id);
         }
