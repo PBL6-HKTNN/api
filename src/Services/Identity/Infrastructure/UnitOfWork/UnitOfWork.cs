@@ -1,28 +1,33 @@
-﻿using Codemy.BuildingBlocks.Core;
-using Codemy.BuildingBlocks.Infrastructure.Persistence;
+﻿using Codemy.BuildingBlocks.Core; 
+using Codemy.Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Codemy.BuildingBlocks.Infrastructure.UnitOfWork
+namespace Codemy.Identity.Infrastructure
 {
-    internal class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
+    public class UnitOfWork : IUnitOfWork
     {
+        private readonly IdentityDbContext _context;  // ← Must be IdentityDbContext, NOT ApplicationDbContext
         private IDbContextTransaction? _transaction;
 
+        public UnitOfWork(IdentityDbContext context)  // ← Must be IdentityDbContext
+        {
+            _context = context;
+        }
         public async Task<int> SaveChangesAsync()
         {
-            return await context.SaveChangesAsync();
+            return await _context.SaveChangesAsync();
         }
 
         public async Task BeginTransactionAsync()
         {
-            _transaction = await context.Database.BeginTransactionAsync();
+            _transaction = await _context.Database.BeginTransactionAsync();
         }
 
         public async Task CommitTransactionAsync()
         {
             try
             {
-                await context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 if (_transaction != null) await _transaction.CommitAsync();
             }
             catch

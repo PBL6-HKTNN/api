@@ -1,6 +1,6 @@
 ﻿namespace Codemy.Identity.Domain.Enums
 {
-    internal enum Role
+    public enum Role
     {
         Admin,
         Instructor,
