@@ -1,0 +1,22 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Codemy.NotificationProto";
+
+package notification;
+
+// The service definition
+service NotificationService {
+  rpc SendEmail (SendEmailRequest) returns (SendEmailResponse);
+}
+
+// The request message
+message SendEmailRequest {
+  string from = 1;
+  string to = 2;
+  string token = 3;
+}
+
+// The response message
+message SendEmailResponse {
+  bool success = 1;
+}

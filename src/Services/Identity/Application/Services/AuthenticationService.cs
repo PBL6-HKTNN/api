@@ -26,22 +26,27 @@ namespace Codemy.Identity.Application.Services
         private readonly string _jwtIssuer;
         private readonly int _jwtExpirationHours;
         private readonly PasswordHasher<string> _hasher = new();
+        private readonly EmailSender _emailSender;
+        private readonly string _email;
 
         public AuthenticationService(
             IConfiguration configuration,
             ILogger<AuthenticationService> logger,
             IRepository<User> userRepository, 
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            EmailSender emailSender)
         {
             _configuration = configuration;
             _logger = logger;
             _userRepository = userRepository; 
             _unitOfWork = unitOfWork;
+            _emailSender = emailSender;
 
             LogExtensions.LoadEnvFile(_logger);
 
             _jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? throw new ArgumentException("JWT Secret not configured");
             _jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? throw new ArgumentException("JWT Issuer not configured");
+            _email = Environment.GetEnvironmentVariable("SMTP_USER") ?? throw new ArgumentException("Email not configured");
             _jwtExpirationHours = Int32.Parse(Environment.GetEnvironmentVariable("JWT_EXPIRATION_HOURS")!);
         }
 
@@ -252,6 +257,7 @@ namespace Codemy.Identity.Application.Services
             };
 
             //send mail to verify email
+            await _emailSender.SendAsync(_email, user.email, user.emailVerificationToken);
 
             await _userRepository.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();

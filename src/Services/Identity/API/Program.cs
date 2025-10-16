@@ -1,6 +1,8 @@
 ﻿using Codemy.BuildingBlocks.Infrastructure;
-using Codemy.Identity.Infrastructure;
 using Codemy.Identity.Application;
+using Codemy.Identity.Application.Services;
+using Codemy.Identity.Infrastructure;
+using Codemy.NotificationProto;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(builder.Configuration);  // Infrastructure first
