@@ -20,5 +20,15 @@ namespace Codemy.Identity.Application.Services
                 Token = token
             });
         }
+
+        public async Task SendResetPasswordToken(string from, string to, string token)
+        {
+            await _client.SendResetPasswordTokenAsync(new SendEmailRequest
+            {
+                From = from,
+                To = to,
+                Token = token
+            });
+        }
     }
 }

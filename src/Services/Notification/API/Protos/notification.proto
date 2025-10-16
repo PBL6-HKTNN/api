@@ -7,13 +7,14 @@ package notification;
 // The service definition
 service NotificationService {
   rpc SendEmail (SendEmailRequest) returns (SendEmailResponse);
+  rpc SendResetPasswordToken (SendEmailRequest) returns (SendEmailResponse);
 }
 
 // The request message
 message SendEmailRequest {
   string from = 1;
   string to = 2;
-  string token = 3;
+  string token = 3;  
 }
 
 // The response message

@@ -13,6 +13,8 @@ namespace Codemy.Identity.Application.Interfaces
         Task<AuthenticationResult> LoginAsync(LoginRequest request);
         Task RevokeTokenAsync(Guid userId);
         Task<AuthenticationResult> verifyEmail(string Email, string token);
+        Task<SendResetPasswordResult> GetResetPasswordToken(string email);
+        Task<SendResetPasswordResult> ResetPassword(string email, string token, string newPassword);
     }
 
     public class AuthenticationResult
@@ -22,6 +24,12 @@ namespace Codemy.Identity.Application.Interfaces
         public string? Token { get; set; }
         public User? User { get; set; }
         public string? RefreshToken { get; set; }
+    }
+
+    public class SendResetPasswordResult
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
     }
 
     public class GoogleUserInfo

@@ -6,19 +6,20 @@ using Codemy.Identity.Domain.Entities;
 using Codemy.Identity.Domain.Enums;
 using DotNetEnv;
 using Google.Apis.Auth; 
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using PasswordVerificationResult = Microsoft.AspNetCore.Identity.PasswordVerificationResult;
 
 namespace Codemy.Identity.Application.Services
 {
     internal class AuthenticationService : IAuthenticationService 
-    {
-        private readonly IConfiguration _configuration;
+    { 
         private readonly ILogger<AuthenticationService> _logger;
         private readonly IRepository<User> _userRepository; 
         private readonly IUnitOfWork _unitOfWork;
@@ -29,14 +30,12 @@ namespace Codemy.Identity.Application.Services
         private readonly EmailSender _emailSender;
         private readonly string _email;
 
-        public AuthenticationService(
-            IConfiguration configuration,
+        public AuthenticationService( 
             ILogger<AuthenticationService> logger,
             IRepository<User> userRepository, 
             IUnitOfWork unitOfWork,
             EmailSender emailSender)
-        {
-            _configuration = configuration;
+        { 
             _logger = logger;
             _userRepository = userRepository; 
             _unitOfWork = unitOfWork;
@@ -343,6 +342,75 @@ namespace Codemy.Identity.Application.Services
             {
                 Success = false,
                 Message = "Invalid email"
+            };
+        }
+
+        public async Task<SendResetPasswordResult> GetResetPasswordToken(string email )
+        {
+            var usersByEmail = await _userRepository.FindAsync(u => u.email == email);
+            var user = usersByEmail.FirstOrDefault();
+            if (user == null)
+            {
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "Email not found. Please check and try again."
+                };
+            }
+            var token = Guid.NewGuid().ToString();
+            user.resetPasswordToken = token;
+            user.resetPasswordTokenExpiry = DateTime.UtcNow.AddMinutes(10);
+            _userRepository.Update(user);
+            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                await _emailSender.SendResetPasswordToken(_email, email, token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending reset password email to {Email}", email);
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "Failed to send reset password email. Please try again later."
+                };
+            }
+            return new SendResetPasswordResult
+            {
+                Success = true,
+                Message = "Reset password email sent successfully. Please check your inbox."
+            };
+        }
+
+        public async Task<SendResetPasswordResult> ResetPassword(string email, string token, string newPassword)
+        {
+            var usersByEmail = await _userRepository.FindAsync(u => u.email == email);
+            var user = usersByEmail.FirstOrDefault();
+            if (user == null)
+            {
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "Email not found. Please check and try again."
+                };
+            }
+            if (user.resetPasswordToken != token || user.resetPasswordTokenExpiry == null || user.resetPasswordTokenExpiry < DateTime.UtcNow)
+            {
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "Invalid or expired token. Please request a new password reset."
+                };
+            }
+            user.passwordHash = HashPassword(newPassword);
+            user.resetPasswordToken = null;
+            user.resetPasswordTokenExpiry = null;
+            _userRepository.Update(user);
+            await _unitOfWork.SaveChangesAsync();
+            return new SendResetPasswordResult
+            {
+                Success = true,
+                Message = "Password reset successful. You can now log in with your new password."
             };
         }
     }

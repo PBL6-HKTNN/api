@@ -13,7 +13,7 @@ namespace Codemy.Notification.Application.DTOs
         public required string From { get; set; }
         [EmailAddress]
         public required string To { get; set; }
-        public required string Token { get; set; }
+        public required string Token { get; set; } 
 
     }
 }

@@ -27,5 +27,15 @@ namespace Codemy.Notification.API.Controllers
             await _emailService.SendEmailAsync(content.From, content.To, content.Token); 
             return Ok();
         }
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] EmailContent content)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            await _emailService.SendResetPasswordToken(content.From, content.To, content.Token);
+            return Ok();
+        }
     }
 }

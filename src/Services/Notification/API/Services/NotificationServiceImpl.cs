@@ -14,8 +14,15 @@ namespace Codemy.Notification.API.Services
         }
 
         public override async Task<SendEmailResponse> SendEmail(SendEmailRequest request, ServerCallContext context)
-        {
+        { 
             await _emailService.SendEmailAsync(request.From, request.To, request.Token);
+
+            return new SendEmailResponse { Success = true }; 
+        }
+
+        public override async Task<SendEmailResponse> SendResetPasswordToken(SendEmailRequest request, ServerCallContext context)
+        {
+            await _emailService.SendResetPasswordToken(request.From, request.To, request.Token);
             return new SendEmailResponse { Success = true };
         }
     }

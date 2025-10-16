@@ -181,5 +181,71 @@ namespace API.Controllers
                 );
             }
         }
+        [HttpGet("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] RequestResetPassword request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _authenticationService.GetResetPasswordToken(request.Email);
+
+                if (!result.Success)
+                {
+                    return this.UnauthorizedResponse(result.Message ?? "Create password token failed");
+                }
+
+                return this.OkResponse(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing create password token request");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during register",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ValidateToken([FromBody] ResponseResetPassword response)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _authenticationService.ResetPassword(response.Email,response.Token,response.NewPassword);
+                if (!result.Success)
+                {
+                    return this.UnauthorizedResponse(result.Message ?? "Reset password failed");
+                }
+
+                return this.OkResponse(result); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reset password");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during token validation",
+                    ex.Message
+                );
+            }
+        }
     }
 }
