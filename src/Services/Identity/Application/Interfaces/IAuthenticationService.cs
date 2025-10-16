@@ -1,5 +1,5 @@
 ﻿using Codemy.Identity.Application.DTOs.Authentication;
-using Codemy.Identity.Domain.Entities; 
+using Codemy.Identity.Domain.Entities;
 
 namespace Codemy.Identity.Application.Interfaces
 {
@@ -7,10 +7,12 @@ namespace Codemy.Identity.Application.Interfaces
     {
         Task<AuthenticationResult> AuthenticateWithGoogleAsync(string googleToken);
         string GenerateJwtTokenAsync(User user);
-        bool ValidateJwtTokenAsync(string token);
-        Task RevokeTokenAsync(Guid userId);
+        bool ValidateJwtTokenAsync(string token); 
         Task<User?> GetUserFromJwtAsync(string token);
         Task<AuthenticationResult> CreateAccountAsync(Register request);
+        Task<AuthenticationResult> LoginAsync(LoginRequest request);
+        Task RevokeTokenAsync(Guid userId);
+        Task<AuthenticationResult> verifyEmail(string Email, string token);
     }
 
     public class AuthenticationResult

@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Core\Codemy.BuildingBlocks.Core.csproj" />
     <ProjectReference Include="..\Application\Codemy.Notification.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Codemy.Notification.Infrastructure.csproj" />
   </ItemGroup>

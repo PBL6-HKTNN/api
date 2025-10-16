@@ -12,9 +12,10 @@ namespace Codemy.Identity.Domain.Entities
         public string? passwordHash { get; set; }
         public Role role { get; set; }
         public UserStatus status { get; set; }
-        public string profilePicture { get; set; }
+        public string? profilePicture { get; set; }
         public string? bio { get; set; }
         public bool emailVerified { get; set; }
+        public string? emailVerificationToken { get; set; }
         public string? resetPasswordToken { get; set; }
         public DateTime? resetPasswordTokenExpiry { get; set; }
         public int totalCourses { get; set; }
