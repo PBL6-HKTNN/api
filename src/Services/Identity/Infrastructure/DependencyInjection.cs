@@ -1,4 +1,4 @@
-﻿using Codemy.BuildingBlocks.Core; 
+﻿using Codemy.BuildingBlocks.Core;
 using Codemy.BuildingBlocks.Core.Extensions;
 using Codemy.Identity.Infrastructure.Persistence;
 using DotNetEnv;
@@ -11,7 +11,7 @@ namespace Codemy.Identity.Infrastructure
     public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructure(
-            this IServiceCollection services, 
+            this IServiceCollection services,
             IConfiguration configuration)
         {
             LogExtensions.LoadEnvFile();
@@ -20,16 +20,17 @@ namespace Codemy.Identity.Infrastructure
             var dbUser = Environment.GetEnvironmentVariable("DB_USER");
             var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
             var dbName = Environment.GetEnvironmentVariable("DB_IDENTITY");
-              
-            var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword};Ssl Mode=Require;Trust Server Certificate=true;";
-             
+            var dbSsl = Environment.GetEnvironmentVariable("DB_SSL").Equals("true");
+
+            var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword};Ssl Mode={(dbSsl ? "Require" : "Disable")};Trust Server Certificate=true;";
+
             services.AddDbContext<IdentityDbContext>(options =>
-                options.UseNpgsql(connectionString)); 
+                options.UseNpgsql(connectionString));
             // Register repositories
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
             // Register UnitOfWork
-            services.AddScoped<IUnitOfWork, UnitOfWork>(); 
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
             return services;
