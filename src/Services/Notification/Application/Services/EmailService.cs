@@ -16,6 +16,7 @@ namespace Codemy.Notification.Application.Services
     private readonly string _client_url;
     public EmailService(ILogger<EmailService> logger)
     {
+      _logger = logger;
       LogExtensions.LoadEnvFile(_logger);
 
       _smtp_host = Environment.GetEnvironmentVariable("SMTP_HOST") ?? throw new ArgumentException("SMTP HOST not configured");

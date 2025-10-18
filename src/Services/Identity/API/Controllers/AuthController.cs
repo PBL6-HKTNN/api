@@ -181,7 +181,7 @@ namespace API.Controllers
                 );
             }
         }
-        [HttpGet("reset-password")]
+        [HttpPost("token-reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] RequestResetPassword request)
         {
             if (!ModelState.IsValid)
