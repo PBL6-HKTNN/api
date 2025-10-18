@@ -1,42 +1,64 @@
 ﻿using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Extensions;
 using Codemy.Identity.Application.DTOs.Authentication;
 using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Domain.Entities;
 using Codemy.Identity.Domain.Enums;
-using Google.Apis.Auth;
+using DotNetEnv;
+using Google.Apis.Auth; 
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using PasswordVerificationResult = Microsoft.AspNetCore.Identity.PasswordVerificationResult;
 
 namespace Codemy.Identity.Application.Services
 {
     internal class AuthenticationService : IAuthenticationService 
-    {
-        private readonly IConfiguration _configuration;
+    { 
         private readonly ILogger<AuthenticationService> _logger;
         private readonly IRepository<User> _userRepository; 
         private readonly IUnitOfWork _unitOfWork;
         private readonly string _jwtSecret;
         private readonly string _jwtIssuer;
-        private readonly int _jwtExpirationHours;  
+        private readonly int _jwtExpirationHours;
+        private readonly PasswordHasher<string> _hasher = new();
+        private readonly EmailSender _emailSender;
+        private readonly string _email;
 
-        public AuthenticationService(
-            IConfiguration configuration,
+        public AuthenticationService( 
             ILogger<AuthenticationService> logger,
             IRepository<User> userRepository, 
-            IUnitOfWork unitOfWork)
-        {
-            _configuration = configuration;
+            IUnitOfWork unitOfWork,
+            EmailSender emailSender)
+        { 
             _logger = logger;
             _userRepository = userRepository; 
             _unitOfWork = unitOfWork;
+            _emailSender = emailSender;
 
-            _jwtSecret = _configuration["Jwt:Secret"] ?? throw new ArgumentException("JWT Secret not configured");
-            _jwtIssuer = _configuration["Jwt:Issuer"] ?? throw new ArgumentException("JWT Issuer not configured");
-            _jwtExpirationHours = _configuration.GetValue<int>("Jwt:ExpirationHours"); 
+            LogExtensions.LoadEnvFile(_logger);
+
+            _jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? throw new ArgumentException("JWT Secret not configured");
+            _jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? throw new ArgumentException("JWT Issuer not configured");
+            _email = Environment.GetEnvironmentVariable("SMTP_USER") ?? throw new ArgumentException("Email not configured");
+            _jwtExpirationHours = Int32.Parse(Environment.GetEnvironmentVariable("JWT_EXPIRATION_HOURS")!);
+        }
+
+
+        public string HashPassword(string password)
+        {
+            return _hasher.HashPassword(null, password);
+        }
+
+        public bool VerifyPassword(string hashedPassword, string inputPassword)
+        {
+            var result = _hasher.VerifyHashedPassword(null, hashedPassword, inputPassword);
+            return result == PasswordVerificationResult.Success;
         }
         public async Task<AuthenticationResult> AuthenticateWithGoogleAsync(string googleToken)
         {
@@ -47,7 +69,7 @@ namespace Codemy.Identity.Application.Services
                 // Validate Google token
                 var payload = await GoogleJsonWebSignature.ValidateAsync(googleToken, new GoogleJsonWebSignature.ValidationSettings
                 {
-                    Audience = [_configuration["Authentication:Google:ClientId"]]
+                    Audience = [Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")]
                 });
 
                 _logger.LogInformation("Google token validated successfully for user: {Email}", payload.Email);
@@ -69,7 +91,7 @@ namespace Codemy.Identity.Application.Services
                         Success = false,
                         Message = "Failed to create or retrieve user account"
                     };
-                }  
+                }   
 
                 // Generate JWT token
                 var jwtToken = GenerateJwtTokenAsync(user);
@@ -116,6 +138,7 @@ namespace Codemy.Identity.Application.Services
 
                 if (user != null)
                 { 
+                    if(!user.emailVerified) user.emailVerified = googleUserInfo.EmailVerified;
                     user.googleId = googleUserInfo.Id;
                     user.profilePicture = googleUserInfo.Picture;
                     _userRepository.Update(user);
@@ -188,9 +211,15 @@ namespace Codemy.Identity.Application.Services
             throw new NotImplementedException();
         }
 
-        public Task RevokeTokenAsync(Guid userId)
+        public async Task RevokeTokenAsync(Guid userId)
         {
-            throw new NotImplementedException();
+            var users = await _userRepository.FindAsync(u => u.Id == userId);
+            var user = users.FirstOrDefault();
+            if (user != null)
+            { 
+                _userRepository.Update(user);
+                await _unitOfWork.SaveChangesAsync();
+            }
         }
 
         public bool ValidateJwtTokenAsync(string token)
@@ -198,9 +227,191 @@ namespace Codemy.Identity.Application.Services
             throw new NotImplementedException();
         } 
 
-        Task<AuthenticationResult> IAuthenticationService.CreateAccountAsync(Register request)
+        async Task<AuthenticationResult> IAuthenticationService.CreateAccountAsync(Register request)
         {
-            throw new NotImplementedException();
+            var usersByEmail = await _userRepository.FindAsync(u => u.email == request.email);
+            var user = usersByEmail.FirstOrDefault();
+            if (user != null)
+            {
+                return new AuthenticationResult
+                {
+                    Success = false,
+                    Message = "Email is already registered"
+                };
+            }
+
+            user = new User
+            {
+                email = request.email,
+                name = request.email.Split('@')[0],
+                googleId = "",
+                profilePicture = "",
+                role = Role.Student,
+                status = UserStatus.Active,
+                emailVerified = false,
+                CreatedAt = DateTime.UtcNow,
+                emailVerificationToken = Guid.NewGuid().ToString(),
+                passwordHash = HashPassword(request.password),
+                totalCourses = 0
+            };
+
+            //send mail to verify email
+            await _emailSender.SendAsync(_email, user.email, user.emailVerificationToken);
+
+            await _userRepository.AddAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Created new user account for: {Email}", request.email);
+
+            return new AuthenticationResult
+            {
+                Success = true,
+                Token = GenerateJwtTokenAsync(user),
+                User = user,
+                Message = "Register successful"
+            };
+        }
+
+        public async Task<AuthenticationResult> LoginAsync(LoginRequest request)
+        {
+            var usersByEmail = await _userRepository.FindAsync(u => u.email == request.email);
+            var user = usersByEmail.FirstOrDefault();
+            if (user != null)
+            {
+                if (!user.emailVerified)
+                {
+                    return new AuthenticationResult
+                    {
+                        Success = false,
+                        Message = "Your email address is not verified. Please check your inbox"
+                    };
+                }
+                if (VerifyPassword(user.passwordHash, request.password))
+                {
+                    return new AuthenticationResult
+                    {
+                        Success = true,
+                        Token = GenerateJwtTokenAsync(user),
+                        User = user,
+                        Message = "Login successful"
+                    };
+                }
+                return new AuthenticationResult
+                {
+                    Success = false,
+                    Message = "Invalid email or password. Please try again"
+                };
+            }
+            return new AuthenticationResult
+            {
+                Success = false,
+                Message = "Invalid email or password. Please try again"
+            };
+        }
+
+        public async Task<AuthenticationResult> verifyEmail(string Email, string token)
+        {
+            var usersByEmail = await _userRepository.FindAsync(u => u.email == Email);
+            var user = usersByEmail.FirstOrDefault();
+            if (user != null)
+            {
+                if (user.emailVerificationToken.Equals(token))
+                {
+                    user.emailVerified = true;
+                    user.emailVerificationToken = null;
+                    _userRepository.Update(user);
+                    await _unitOfWork.SaveChangesAsync();
+                    return new AuthenticationResult
+                    {
+                        Success = true,
+                        Token = GenerateJwtTokenAsync(user),
+                        User = user,
+                        Message = "Verify email successful"
+                    };
+                }
+                else
+                {
+                    return new AuthenticationResult
+                    {
+                        Success = false,
+                        Message = "Invalid token. Please try again"
+                    }; 
+                } 
+            }
+            return new AuthenticationResult
+            {
+                Success = false,
+                Message = "Invalid email"
+            };
+        }
+
+        public async Task<SendResetPasswordResult> GetResetPasswordToken(string email )
+        {
+            var usersByEmail = await _userRepository.FindAsync(u => u.email == email);
+            var user = usersByEmail.FirstOrDefault();
+            if (user == null)
+            {
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "Email not found. Please check and try again."
+                };
+            }
+            var token = Guid.NewGuid().ToString();
+            user.resetPasswordToken = token;
+            user.resetPasswordTokenExpiry = DateTime.UtcNow.AddMinutes(10);
+            _userRepository.Update(user);
+            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                await _emailSender.SendResetPasswordToken(_email, email, token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending reset password email to {Email}", email);
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "Failed to send reset password email. Please try again later."
+                };
+            }
+            return new SendResetPasswordResult
+            {
+                Success = true,
+                Message = "Reset password email sent successfully. Please check your inbox."
+            };
+        }
+
+        public async Task<SendResetPasswordResult> ResetPassword(string email, string token, string newPassword)
+        {
+            var usersByEmail = await _userRepository.FindAsync(u => u.email == email);
+            var user = usersByEmail.FirstOrDefault();
+            if (user == null)
+            {
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "Email not found. Please check and try again."
+                };
+            }
+            if (user.resetPasswordToken != token || user.resetPasswordTokenExpiry == null || user.resetPasswordTokenExpiry < DateTime.UtcNow)
+            {
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "Invalid or expired token. Please request a new password reset."
+                };
+            }
+            user.passwordHash = HashPassword(newPassword);
+            user.resetPasswordToken = null;
+            user.resetPasswordTokenExpiry = null;
+            _userRepository.Update(user);
+            await _unitOfWork.SaveChangesAsync();
+            return new SendResetPasswordResult
+            {
+                Success = true,
+                Message = "Password reset successful. You can now log in with your new password."
+            };
         }
     }
 }

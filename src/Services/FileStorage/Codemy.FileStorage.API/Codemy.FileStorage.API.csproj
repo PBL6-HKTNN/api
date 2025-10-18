@@ -1,10 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <OutputPath>bin\Debug\net9.0\$(MSBuildProjectName)</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,8 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Application\Codemy.Review.Application.csproj" />
-    <ProjectReference Include="..\Infrastructure\Codemy.Review.Infrastructure.csproj" />
+    <Folder Include="Controllers\" />
   </ItemGroup>
 
 </Project>
