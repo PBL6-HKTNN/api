@@ -64,7 +64,7 @@ namespace Codemy.Notification.Application.Services
                         <p>Use the following OTP to verify your email address:</p>
                         <h3 style='color:#007bff;'>{Token}</h3>
                         <p>Or click the link below to verify your email:</p>
-                        <p><a href='{_client_url}/auth/verify?token={Token}'>Verify Email</a></p>
+                        <p><a href='{_client_url}/auth/verify?token={Token}&email={To}'>Verify Email</a></p>
                         <p>From: <strong>Codemy</strong></p>
                       </body>
                     </html>";
