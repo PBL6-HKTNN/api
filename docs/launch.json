@@ -1,0 +1,67 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "C#: Identity Service Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/Services/Identity/API/Codemy.Identity.API.csproj"
+        },
+        {
+            "name": "C#: Notification Service Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/Services/Notification/API/Codemy.Notification.API.csproj"
+        },
+        {
+            "name": "C#: Course Service Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/Services/Course/API/Codemy.Course.API.csproj"
+        },
+        {
+            "name": "C#: Enrollment Service Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/Services/Enrollment/API/Codemy.Enrollment.API.csproj"
+        },
+        {
+            "name": "C#: Payment Service Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/Services/Payment/API/Codemy.Payment.API.csproj"
+        },
+        {
+            "name": "C#: Review Service Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/Services/Review/API/Codemy.Review.API.csproj"
+        },
+        {
+            "name": "C#: Search Service Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/Services/Search/API/Codemy.Search.API.csproj"
+        },
+        {
+            "name": "C#: Video Service Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/Services/Video/API/Codemy.Video.API.csproj"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug All Services",
+            "configurations": [
+                "C#: Identity Service Debug",
+                "C#: Notification Service Debug"
+                // Add other services here as needed
+            ],
+            "stopAll": true
+        }
+    ]
+}
