@@ -1,30 +1,63 @@
-﻿using Codemy.BuildingBlocks.Infrastructure;
-using Codemy.Identity.Application;
-using Codemy.Identity.Application.Services;
+﻿using Codemy.Identity.Application;
 using Codemy.Identity.Infrastructure;
-using Codemy.NotificationProto;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using DotNetEnv;
+
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddInfrastructure(builder.Configuration);  // Infrastructure first
+
+// Clear default claim type mappings to keep original claim names (e.g., "nameid")
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
+// Add authentication
+Env.Load();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+            ValidAudience = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET"))
+            ),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAuthorization();
+
 var app = builder.Build();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseCors(builder =>
+    app.UseCors(policy =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 }
+
 app.UseRouting();
-app.UseAuthentication();
+app.UseAuthentication(); 
 app.UseAuthorization();
+app.UsePathBase("/api");
 app.MapControllers();
 app.Run();

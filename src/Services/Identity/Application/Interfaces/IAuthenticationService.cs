@@ -15,6 +15,8 @@ namespace Codemy.Identity.Application.Interfaces
         Task<AuthenticationResult> verifyEmail(string Email, string token);
         Task<SendResetPasswordResult> GetResetPasswordToken(string email);
         Task<SendResetPasswordResult> ResetPassword(string email, string token, string newPassword);
+        Task<SendResetPasswordResult> ChangePasswordAsync(Guid userId, ChangePasswordRequest request);
+
     }
 
     public class AuthenticationResult

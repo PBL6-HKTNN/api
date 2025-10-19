@@ -183,7 +183,7 @@ namespace Codemy.Identity.Application.Services
         public string GenerateJwtTokenAsync(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_jwtSecret);
+            var key = Encoding.UTF8.GetBytes(_jwtSecret);
 
             var claims = new List<Claim>
             {
@@ -448,6 +448,70 @@ namespace Codemy.Identity.Application.Services
             {
                 Success = true,
                 Message = "Password reset successful. You can now log in with your new password."
+            };
+        }
+
+        public async Task<SendResetPasswordResult> ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
+        {
+            if (string.IsNullOrEmpty(request.CurrentPassword) || string.IsNullOrEmpty(request.NewPassword))
+            {
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "Password fields cannot be empty."
+                };
+            }
+
+            if (request.NewPassword != request.ConfirmPassword)
+            {
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "New password and confirm password do not match."
+                };
+            }
+
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "User not found."
+                };
+            }
+
+            if (string.IsNullOrEmpty(user.passwordHash))
+            {
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "This account doesn't have a password. Please set one via reset password."
+                };
+            }
+
+            var isCurrentPasswordValid = VerifyPassword(user.passwordHash, request.CurrentPassword);
+            if (!isCurrentPasswordValid)
+            {
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "Current password is incorrect."
+                };
+            }
+
+            user.passwordHash = HashPassword(request.NewPassword);
+
+            _userRepository.Update(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Password changed successfully for user {Email}", user.email);
+
+            return new SendResetPasswordResult
+            {
+                Success = true,
+                Message = "Password changed successfully."
             };
         }
     }

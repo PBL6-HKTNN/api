@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using Codemy.BuildingBlocks.Core;
 using Codemy.Identity.API.DTOs; 
 using Codemy.Identity.Application.DTOs.Authentication;
 using Codemy.Identity.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc; 
 
 namespace API.Controllers
@@ -239,13 +241,13 @@ namespace API.Controllers
             }
             try
             {
-                var result = await _authenticationService.ResetPassword(response.Email,response.Token,response.NewPassword);
+                var result = await _authenticationService.ResetPassword(response.Email, response.Token, response.NewPassword);
                 if (!result.Success)
                 {
                     return this.UnauthorizedResponse(result.Message ?? "Reset password failed");
                 }
 
-                return this.OkResponse(result); 
+                return this.OkResponse(result);
             }
             catch (Exception ex)
             {
@@ -255,6 +257,26 @@ namespace API.Controllers
                     ex.Message
                 );
             }
+        }
+        
+        [Authorize]
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                            User.FindFirst("nameid")?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim))
+                return this.UnauthorizedResponse("User ID not found in token.");
+
+            var userId = Guid.Parse(userIdClaim);
+
+            var result = await _authenticationService.ChangePasswordAsync(userId, request);
+
+            if (!result.Success)
+                return this.BadRequestResponse(result.Message);
+
+            return this.OkResponse(new { Message = result.Message });
         }
     }
 }
