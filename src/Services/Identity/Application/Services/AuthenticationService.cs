@@ -52,12 +52,12 @@ namespace Codemy.Identity.Application.Services
 
         public string HashPassword(string password)
         {
-            return _hasher.HashPassword(null, password);
+            return _hasher.HashPassword("", password);
         }
 
         public bool VerifyPassword(string hashedPassword, string inputPassword)
         {
-            var result = _hasher.VerifyHashedPassword(null, hashedPassword, inputPassword);
+            var result = _hasher.VerifyHashedPassword("", hashedPassword, inputPassword);
             return result == PasswordVerificationResult.Success;
         }
         public async Task<AuthenticationResult> AuthenticateWithGoogleAsync(string googleToken)
