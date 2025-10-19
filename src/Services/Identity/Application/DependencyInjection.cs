@@ -2,11 +2,6 @@
 using Codemy.Identity.Application.Services;
 using Codemy.NotificationProto;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Codemy.Identity.Application
 {
@@ -14,9 +9,12 @@ namespace Codemy.Identity.Application
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         { 
+            // Application-level services
             services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<UserService>();
             services.AddScoped<EmailSender>();
 
+            // gRPC client - Notification service
             services.AddGrpcClient<NotificationService.NotificationServiceClient>(options =>
             { 
                 options.Address = new Uri("https://localhost:7187");
