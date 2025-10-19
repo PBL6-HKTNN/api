@@ -13,7 +13,7 @@ namespace Codemy.FileStorage.Application.Services
             _fileService = fileService;
         }
 
-        public async Task<FileUploadResult> UploadFileAsync(IFormFile file, string type)
+        public async Task<FileUploadResponse> UploadFileAsync(IFormFile file, string type)
         {
             return type switch
             {

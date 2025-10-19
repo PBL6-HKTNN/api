@@ -5,9 +5,9 @@ namespace Codemy.FileStorage.Application.Interfaces
 {
     public interface IFileService
     {
-        Task<FileUploadResult> UploadImageAsync(IFormFile file);
-        Task<FileUploadResult> UploadVideoAsync(IFormFile file);
-        Task<FileUploadResult> UploadDocumentAsync(IFormFile file);
+        Task<FileUploadResponse> UploadImageAsync(IFormFile file);
+        Task<FileUploadResponse> UploadVideoAsync(IFormFile file);
+        Task<FileUploadResponse> UploadDocumentAsync(IFormFile file);
         Task DeleteFileAsync(string publicId);
     }
 }

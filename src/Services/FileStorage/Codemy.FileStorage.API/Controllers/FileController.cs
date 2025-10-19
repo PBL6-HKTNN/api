@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Codemy.FileStorage.Application.Services;
-using Codemy.FileStorage.API.DTOs;
+using Codemy.FileStorage.Application.DTOs;
+
+
+using Codemy.BuildingBlocks.Core;
 
 namespace Codemy.FileStorage.API.Controllers
 {
@@ -18,8 +21,11 @@ namespace Codemy.FileStorage.API.Controllers
         [HttpPost("{type}")]
         public async Task<IActionResult> UploadFile([FromRoute] string type, IFormFile file)
         {
+            if (file == null)
+                return this.BadRequestResponse("No file uploaded.");
+
             var result = await _fileAppService.UploadFileAsync(file, type);
-            return Ok(new FileUploadResponse
+            return this.OkResponse(new FileUploadResponse
             {
                 Url = result.Url,
                 PublicId = result.PublicId,

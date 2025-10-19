@@ -1,47 +1,45 @@
-using Codemy.FileService.Infrastructure.Cloudinary;
 using CloudinaryDotNet;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using DotNetEnv;
+using Codemy.BuildingBlocks.Core.Extensions;
+using Codemy.FileStorage.Infrastructure.Configurations;
+using Codemy.FileStorage.Application.Interfaces;
+using Codemy.FileStorage.Infrastructure.Cloudinary;
 
-namespace Codemy.FileService.Infrastructure
+namespace Codemy.FileStorage.Infrastructure
 {
     public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            // Load .env nếu chạy local
-            Env.Load();
+            LogExtensions.LoadEnvFile();
 
-            // Lấy biến môi trường
             var cloudName = Environment.GetEnvironmentVariable("CLOUDINARY_NAME");
             var apiKey = Environment.GetEnvironmentVariable("CLOUDINARY_API_KEY");
             var apiSecret = Environment.GetEnvironmentVariable("CLOUDINARY_API_SECRET");
 
-            // Kiểm tra lỗi
             if (string.IsNullOrEmpty(cloudName) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(apiSecret))
             {
                 throw new Exception("Missing Cloudinary environment variables");
             }
 
-            // Đăng ký CloudinarySettings
+            // CloudinarySettings
             var settings = new CloudinarySettings
             {
                 CloudName = cloudName!,
                 ApiKey = apiKey!,
                 ApiSecret = apiSecret!,
-                Folder = Environment.GetEnvironmentVariable("CLOUDINARY_FOLDER") ?? "codemy"
+                // Folder = Environment.GetEnvironmentVariable("CLOUDINARY_FOLDER") ?? "codemy"
             };
 
             services.AddSingleton(settings);
 
-            // Tạo Cloudinary client và inject
+            // Cloudinary instance
             var account = new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret);
-            var cloudinary = new Cloudinary(account);
+            var cloudinary = new CloudinaryDotNet.Cloudinary(account);
             services.AddSingleton(cloudinary);
 
-            // Đăng ký service
-            services.AddScoped<ICloudinaryService, CloudinaryService>();
+            // Register services
             services.AddScoped<IFileService, CloudinaryService>();
 
             return services;

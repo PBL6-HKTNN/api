@@ -49,7 +49,6 @@ namespace Codemy.Identity.Application.Services
             _jwtExpirationHours = Int32.Parse(Environment.GetEnvironmentVariable("JWT_EXPIRATION_HOURS")!);
         }
 
-
         public string HashPassword(string password)
         {
             return _hasher.HashPassword("", password);
