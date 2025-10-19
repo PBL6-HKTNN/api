@@ -55,9 +55,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UsePathBase("/api");
 app.UseRouting();
 app.UseAuthentication(); 
 app.UseAuthorization();
-app.UsePathBase("/api");
 app.MapControllers();
 app.Run();

@@ -1,4 +1,4 @@
-namespace Codemy.FileStorage.API.DTOs
+namespace Codemy.FileStorage.Application.DTOs
 {
     public class FileUploadResponse
     {

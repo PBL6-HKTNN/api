@@ -14,7 +14,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\Codemy.BuildingBlocks.Infrastructure\Codemy.BuildingBlocks.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\Core\Codemy.BuildingBlocks.Core.csproj" /> 
-	<ProjectReference Include="..\Domain\Codemy.Identity.Domain.csproj" />
+	<ProjectReference Include="..\Domain\Codemy.Identity.Domain.csproj" /> 
+	<ProjectReference Include="..\Application\Codemy.Identity.Application.csproj" />
   </ItemGroup>
 
 </Project>
