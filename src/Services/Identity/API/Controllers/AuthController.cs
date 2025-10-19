@@ -1,5 +1,5 @@
 using Codemy.BuildingBlocks.Core;
-using Codemy.Identity.API.DTOs;
+using Codemy.Identity.API.DTOs; 
 using Codemy.Identity.Application.DTOs.Authentication;
 using Codemy.Identity.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc; 
@@ -18,14 +18,42 @@ namespace API.Controllers
             _logger = logger;
         }
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            // Dummy authentication logic for demonstration purposes
-            if (request.Username == "user" && request.Password == "password")
-            { 
-                return this.OkResponse("login");
+            try
+            {
+                var result = await _authenticationService.LoginAsync(request);
+
+                if (!result.Success)
+                {
+                    if (result.Message != null && result.Message.Contains("Your email address is not verified. Please check your inbox"))
+                    {
+                        return this.OkResponse(new 
+                        {
+                            Success = false,
+                            Message = result.Message,
+                            RequiresEmailVerification = true
+                        });
+                    }
+                    return this.UnauthorizedResponse(result.Message ?? "Login failed");
+                }
+
+                var response = new LoginResponse
+                {
+                    Token = result.Token!,
+                    User = result.User!
+                };
+
+                return this.OkResponse(response);
             }
-            return Unauthorized();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing register request");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during register",
+                    ex.Message
+                );
+            }
         }
 
         [HttpPost("register")]
@@ -59,10 +87,27 @@ namespace API.Controllers
         }
 
         [HttpPost("logout")]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            // Dummy logout logic for demonstration purposes
-            return this.OkResponse("logout");
+            try
+            {
+                // Get user ID from JWT token
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+                {
+                    await _authenticationService.RevokeTokenAsync(userId);
+                }
+
+                return this.OkResponse(new LogoutResponse { Message = "Logged out successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during logout");
+                return this.InternalServerErrorResponse(
+                    "Error occurred during logout",
+                    ex.Message
+                );
+            }
         }
 
         [HttpPost("google-login")]
@@ -101,6 +146,112 @@ namespace API.Controllers
                 _logger.LogError(ex, "Error processing Google login request");
                 return this.InternalServerErrorResponse(
                     "Internal server error occurred during authentication",
+                    ex.Message
+                );
+            }
+        }
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyToken token)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+
+            try
+            {
+                var result = await _authenticationService.verifyEmail(token.Email,token.Token);
+
+                if (!result.Success)
+                {
+                    return this.UnauthorizedResponse(result.Message ?? "Verify email failed");
+                }
+
+                var response = new LoginResponse
+                {
+                    Token = result.Token!,
+                    User = result.User!
+                };
+
+                return this.OkResponse(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error verify email");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during authentication",
+                    ex.Message
+                );
+            }
+        }
+        [HttpPost("token-reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] RequestResetPassword request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _authenticationService.GetResetPasswordToken(request.Email);
+
+                if (!result.Success)
+                {
+                    return this.UnauthorizedResponse(result.Message ?? "Create password token failed");
+                }
+
+                return this.OkResponse(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing create password token request");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during register",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ValidateToken([FromBody] ResponseResetPassword response)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _authenticationService.ResetPassword(response.Email,response.Token,response.NewPassword);
+                if (!result.Success)
+                {
+                    return this.UnauthorizedResponse(result.Message ?? "Reset password failed");
+                }
+
+                return this.OkResponse(result); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reset password");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during token validation",
                     ex.Message
                 );
             }
