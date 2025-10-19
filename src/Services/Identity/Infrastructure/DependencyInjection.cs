@@ -1,13 +1,11 @@
 ﻿using Codemy.BuildingBlocks.Core;
 using Codemy.BuildingBlocks.Core.Extensions;
 using Codemy.Identity.Infrastructure.Persistence;
-using Codemy.Identity.Infrastructure.Repositories;
-using Codemy.Identity.Application.Interfaces;
-using Codemy.Identity.Infrastructure.Cloudinary;
-using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Codemy.Identity.Infrastructure.Clients;
+using Codemy.Identity.Application.Interfaces;
 
 namespace Codemy.Identity.Infrastructure
 {
@@ -31,22 +29,19 @@ namespace Codemy.Identity.Infrastructure
                 $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword};Ssl Mode={(dbSsl ? "Require" : "Disable")};Trust Server Certificate=true;";
 
             services.AddDbContext<IdentityDbContext>(options =>
-                options.UseNpgsql(connectionString)); 
+                options.UseNpgsql(connectionString));
 
-            // Register repositories
+            // Repository + UnitOfWork
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<IUserRepository, UserRepository>();
-
-            // Register Cloudinary
-            services.AddScoped<ICloudinaryService, CloudinaryService>();
-
-            // Register UnitOfWork
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            services.AddHttpClient<FileStorageClient>(client =>
+            // Http Clients
+            services.AddHttpClient<IFileStorageClient, FileStorageClient>(client =>
             {
+                // Configure the base address and other settings
                 client.BaseAddress = new Uri(configuration["Services:FileStorage:BaseUrl"]
-                    ?? "https://filestorage-service:5001");
+                    ?? "http://localhost:5164");
+                client.Timeout = TimeSpan.FromMinutes(10);
             });
 
             return services;

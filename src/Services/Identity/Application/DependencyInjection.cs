@@ -8,10 +8,10 @@ namespace Codemy.Identity.Application
     public static class DependencyInjection
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
-        { 
+        {
             // Application-level services
             services.AddScoped<IAuthenticationService, AuthenticationService>();
-            services.AddScoped<UserService>();
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<EmailSender>();
 
             // gRPC client - Notification service
