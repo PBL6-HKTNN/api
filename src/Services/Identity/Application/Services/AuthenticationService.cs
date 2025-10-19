@@ -284,15 +284,6 @@ namespace Codemy.Identity.Application.Services
             var user = usersByEmail.FirstOrDefault();
             if (user != null)
             {
-                if (!user.emailVerified)
-                {
-                    return new AuthenticationResult
-                    {
-                        Success = false,
-                        Message = "Your email address is not verified. Please check your inbox",
-                        User = user
-                    };
-                }
                 if(user.totalLoginFailures >= 5)
                 {
                     if (user.resetPasswordTokenExpiry == null || user.resetPasswordTokenExpiry < DateTime.UtcNow)
@@ -316,6 +307,15 @@ namespace Codemy.Identity.Application.Services
                 }
                 if (user.passwordHash != null && VerifyPassword(user.passwordHash, request.password))
                 {
+                    if (!user.emailVerified)
+                    {
+                        return new AuthenticationResult
+                        {
+                            Success = false,
+                            Message = "Your email address is not verified. Please check your inbox",
+                            User = user
+                        };
+                    }
                     return new AuthenticationResult
                     {
                         Success = true,
@@ -432,6 +432,11 @@ namespace Codemy.Identity.Application.Services
                     Success = false,
                     Message = "Invalid or expired token. Please request a new password reset."
                 };
+            }
+            if (user.emailVerified == false)
+            {
+                user.emailVerified = true;
+                user.emailVerificationToken = null;
             }
             user.passwordHash = HashPassword(newPassword);
             user.resetPasswordToken = null;
