@@ -1,6 +1,9 @@
-var builder = WebApplication.CreateBuilder(args);
+using Codemy.FileStorage.Application.Interfaces;
+using Codemy.FileStorage.Application.Services;
+using Codemy.FileStorage.Infrastructure.Cloudinary;
+using Codemy.FileStorage.Infrastructure.Configurations;
 
-// Add services to the container.
+var builder = WebApplication.CreateBuilder(args);
 
 // Add Cloudinary config
 builder.Services.Configure<CloudinarySettings>(
@@ -11,21 +14,7 @@ builder.Services.AddScoped<IFileService, CloudinaryService>();
 builder.Services.AddScoped<FileStorageAppService>();
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
