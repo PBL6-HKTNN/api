@@ -20,5 +20,7 @@ namespace Codemy.Identity.Domain.Entities
         public DateTime? resetPasswordTokenExpiry { get; set; }
         public int totalCourses { get; set; }
         public decimal? rating { get; set; }
+        public int totalLoginFailures { get; set; }
+
     }
 }

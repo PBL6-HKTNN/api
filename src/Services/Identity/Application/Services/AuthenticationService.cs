@@ -141,6 +141,9 @@ namespace Codemy.Identity.Application.Services
                     if(!user.emailVerified) user.emailVerified = googleUserInfo.EmailVerified;
                     user.googleId = googleUserInfo.Id;
                     user.profilePicture = googleUserInfo.Picture;
+                    user.totalLoginFailures = 0;
+                    user.resetPasswordToken = null;
+                    user.resetPasswordTokenExpiry = null; 
                     _userRepository.Update(user);
                     await _unitOfWork.SaveChangesAsync();
                     return user;
@@ -166,7 +169,10 @@ namespace Codemy.Identity.Application.Services
             }
             else
             { 
-                user.profilePicture = googleUserInfo.Picture; 
+                user.profilePicture = googleUserInfo.Picture;
+                user.resetPasswordToken = null;
+                user.resetPasswordTokenExpiry = null;
+                user.totalLoginFailures = 0; 
                 _userRepository.Update(user);
                 await _unitOfWork.SaveChangesAsync();
             }
@@ -283,10 +289,32 @@ namespace Codemy.Identity.Application.Services
                     return new AuthenticationResult
                     {
                         Success = false,
-                        Message = "Your email address is not verified. Please check your inbox"
+                        Message = "Your email address is not verified. Please check your inbox",
+                        User = user
                     };
                 }
-                if (VerifyPassword(user.passwordHash, request.password))
+                if(user.totalLoginFailures >= 5)
+                {
+                    if (user.resetPasswordTokenExpiry == null || user.resetPasswordTokenExpiry < DateTime.UtcNow)
+                    {
+                        var sendToken = await GetResetPasswordToken(user.email);
+                        if (!sendToken.Success)
+                        {
+                            _logger.LogError("Failed to send reset password token to locked user {Email}", user.email);
+                        }
+                        else {
+                            _logger.LogInformation("Sent reset password token to locked user {Email}", user.email);
+                        }
+                    } else {
+                        _logger.LogInformation("User {Email} account is locked. Reset password token already sent.", user.email);
+                    }
+                    return new AuthenticationResult
+                    {
+                        Success = false,
+                        Message = "Your account is locked due to multiple failed login attempts. Please check your email to reset password."
+                    };
+                }
+                if (user.passwordHash != null && VerifyPassword(user.passwordHash, request.password))
                 {
                     return new AuthenticationResult
                     {
@@ -296,6 +324,9 @@ namespace Codemy.Identity.Application.Services
                         Message = "Login successful"
                     };
                 }
+                user.totalLoginFailures++;
+                _userRepository.Update(user);
+                await _unitOfWork.SaveChangesAsync();
                 return new AuthenticationResult
                 {
                     Success = false,
@@ -315,7 +346,7 @@ namespace Codemy.Identity.Application.Services
             var user = usersByEmail.FirstOrDefault();
             if (user != null)
             {
-                if (user.emailVerificationToken.Equals(token))
+                if (user.emailVerificationToken != null && user.emailVerificationToken.Equals(token))
                 {
                     user.emailVerified = true;
                     user.emailVerificationToken = null;
@@ -357,7 +388,7 @@ namespace Codemy.Identity.Application.Services
                     Message = "Email not found. Please check and try again."
                 };
             }
-            var token = Guid.NewGuid().ToString();
+            var token = Guid.NewGuid().ToString("N").Substring(0, 8);
             user.resetPasswordToken = token;
             user.resetPasswordTokenExpiry = DateTime.UtcNow.AddMinutes(10);
             _userRepository.Update(user);
@@ -405,6 +436,7 @@ namespace Codemy.Identity.Application.Services
             user.passwordHash = HashPassword(newPassword);
             user.resetPasswordToken = null;
             user.resetPasswordTokenExpiry = null;
+            user.totalLoginFailures = 0;
             _userRepository.Update(user);
             await _unitOfWork.SaveChangesAsync();
             return new SendResetPasswordResult

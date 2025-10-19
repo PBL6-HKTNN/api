@@ -26,6 +26,15 @@ namespace API.Controllers
 
                 if (!result.Success)
                 {
+                    if (result.Message != null && result.Message.Contains("Your email address is not verified. Please check your inbox"))
+                    {
+                        return this.OkResponse(new 
+                        {
+                            Success = false,
+                            Message = result.Message,
+                            RequiresEmailVerification = true
+                        });
+                    }
                     return this.UnauthorizedResponse(result.Message ?? "Login failed");
                 }
 
