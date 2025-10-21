@@ -1,5 +1,5 @@
 ﻿using Codemy.BuildingBlocks.Domain;
-namespace Codemy.Course.Domain.Entities
+namespace Codemy.Courses.Domain.Entities
 {
     internal class Quiz : BaseEntity
     {

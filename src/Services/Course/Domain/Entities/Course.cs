@@ -1,10 +1,9 @@
-﻿using Codemy.BuildingBlocks.Domain;
-using Codemy.Course.Domain.Enum;
-using Codemy.Course.Domain.Enums;
+﻿using Codemy.BuildingBlocks.Domain; 
+using Codemy.Courses.Domain.Enums;
 
-namespace Codemy.Course.Domain.Entities
+namespace Codemy.Courses.Domain.Entities
 {
-    internal class Course : BaseEntity
+    public class Course : BaseEntity
     {
         public Guid instructorId { get; set; }
         public string title { get; set; }

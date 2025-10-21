@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{6F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{F91DC6BF-EC83-49AE-AEC3-D24AA641E8BE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Course", "Course", "{08340AF5-7E03-4D69-8700-1EB5F4B27CEB}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Courses", "Courses", "{08340AF5-7E03-4D69-8700-1EB5F4B27CEB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Video", "Video", "{56283B81-EABB-47EC-9644-4CD6D05E0F18}"
 EndProject
@@ -37,13 +37,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Identity.Infrastruct
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Identity.API", "src\Services\Identity\API\Codemy.Identity.API.csproj", "{9F3AAD31-DD4F-4A8E-974E-75AD808E6B33}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Course.Domain", "src\Services\Course\Domain\Codemy.Course.Domain.csproj", "{4838E7FB-E5F5-4C63-8829-C8EE86B9D255}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Courses.Domain", "src\Services\Course\Domain\Codemy.Courses.Domain.csproj", "{4838E7FB-E5F5-4C63-8829-C8EE86B9D255}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Course.Application", "src\Services\Course\Application\Codemy.Course.Application.csproj", "{F68D4941-47EE-40D9-903E-BB306C928E4E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Courses.Application", "src\Services\Course\Application\Codemy.Courses.Application.csproj", "{F68D4941-47EE-40D9-903E-BB306C928E4E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Course.Infrastructure", "src\Services\Course\Infrastructure\Codemy.Course.Infrastructure.csproj", "{948DB332-28B0-4040-A826-C527F7E08EC5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Courses.Infrastructure", "src\Services\Course\Infrastructure\Codemy.Courses.Infrastructure.csproj", "{948DB332-28B0-4040-A826-C527F7E08EC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Course.API", "src\Services\Course\API\Codemy.Course.API.csproj", "{A741B92E-29B8-4A0E-B965-BFFD64EB64C5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Courses.API", "src\Services\Course\API\Codemy.Courses.API.csproj", "{A741B92E-29B8-4A0E-B965-BFFD64EB64C5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codemy.Video.Domain", "src\Services\Video\Domain\Codemy.Video.Domain.csproj", "{433CF4B4-FDEE-48F1-883C-D836E3F52D42}"
 EndProject

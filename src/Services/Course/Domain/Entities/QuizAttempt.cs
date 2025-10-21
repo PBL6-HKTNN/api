@@ -1,7 +1,7 @@
 ﻿using Codemy.BuildingBlocks.Domain;
-using Codemy.Course.Domain.Enum;
+using Codemy.Courses.Domain.Enums;
 
-namespace Codemy.Course.Domain.Entities
+namespace Codemy.Courses.Domain.Entities
 {
     internal class QuizAttempt : BaseEntity
     {

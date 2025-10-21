@@ -1,6 +1,6 @@
-﻿namespace Codemy.Course.Domain.Enums
+﻿namespace Codemy.Courses.Domain.Enums
 {
-    internal enum Level
+    public enum Level
     {
         Beginner,
         Intermediate,
