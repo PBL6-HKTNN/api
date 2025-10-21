@@ -1,13 +1,13 @@
-﻿namespace Codemy.Course.Domain.Enum
+﻿namespace Codemy.Courses.Domain.Enums
 {
-    internal enum Status
+    public enum Status
     {
         Draft,
         Published,
         Archived
     }
 
-    internal enum QuizAttemptStatus
+    public enum QuizAttemptStatus
     {
         InProgress,
         Completed,

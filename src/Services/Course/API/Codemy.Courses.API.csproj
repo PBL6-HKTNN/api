@@ -12,8 +12,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Application\Codemy.Course.Application.csproj" />
-    <ProjectReference Include="..\Infrastructure\Codemy.Course.Infrastructure.csproj" />
+    <ProjectReference Include="..\Application\Codemy.Courses.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\Codemy.Courses.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\" />
   </ItemGroup>
 
 </Project>

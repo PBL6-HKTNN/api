@@ -1,4 +1,4 @@
-﻿namespace Codemy.Course.Domain.Enums
+﻿namespace Codemy.Courses.Domain.Enums
 {
     internal enum QuestionType
     {

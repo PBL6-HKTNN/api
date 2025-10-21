@@ -2,10 +2,9 @@
 
 namespace Codemy.Enrollment.Domain.Entities
 {
-    internal class WishlistItem : BaseEntity
+    public class WishlistItem : BaseEntity
     {
-        public Guid wishlistId { get; set; }
-        public Guid courseId { get; set; }
-        public DateTime addedAt { get; set; }
+        public Guid userId { get; set; } 
+        public Guid courseId { get; set; } 
     }
 }
