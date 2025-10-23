@@ -1,10 +1,13 @@
-﻿using Codemy.Identity.Application;
+﻿using Codemy.Identity.API.Services;
+using Codemy.Identity.Application;
 using Codemy.Identity.Infrastructure;
+using Codemy.Notification.API.Services;
+using DotNetEnv;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using DotNetEnv;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,8 +38,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5197, o => o.Protocols = HttpProtocols.Http1AndHttp2);
+    options.ListenAnyIP(7046, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
+});
 builder.Services.AddApplication();
 builder.Services.AddControllers();
+builder.Services.AddGrpc();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAuthorization();
@@ -59,5 +69,6 @@ app.UseRouting();
 app.UseAuthentication(); 
 app.UseAuthorization();
 app.UsePathBase("/api");
+app.MapGrpcService<IdentityGrpcService>();
 app.MapControllers();
 app.Run();

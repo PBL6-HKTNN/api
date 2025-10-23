@@ -1,7 +1,7 @@
 ﻿using Codemy.BuildingBlocks.Core;
-using Codemy.Enrollment.Application.Interfaces;
-using Codemy.Enrollment.Domain.Entities;
 using Codemy.Courses.Domain.Entities;
+using Codemy.Enrollment.Application.Interfaces;
+using Codemy.Enrollment.Domain.Entities; 
 using Codemy.Identity.Domain.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -17,11 +17,14 @@ namespace Codemy.Enrollment.Application.Services
 
         public WishlistService(
             ILogger<WishlistService> logger,
-            IRepository<WishlistItem> userRepository,
-            IUnitOfWork unitOfWork )
+            IRepository<WishlistItem> wishlistRepository,
+            IUnitOfWork unitOfWork,
+            IRepository<User> userRepository
+            )
         {
             _logger = logger;
-            _wishlistRepository = userRepository;
+            _wishlistRepository = wishlistRepository;
+            _userRepository = userRepository;
             _unitOfWork = unitOfWork; 
         }
 

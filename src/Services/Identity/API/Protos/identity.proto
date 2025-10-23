@@ -1,0 +1,22 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Codemy.IdentityProto";
+
+package identity;
+
+service IdentityService {
+  rpc GetUserById (GetUserByIdRequest) returns (GetUserByIdResponse);
+}
+
+// Request
+message GetUserByIdRequest {
+  string userId = 1;
+}
+
+// Response
+message GetUserByIdResponse {
+  bool exists = 1;
+  string userId = 2;
+  string name = 3;
+  string email = 4;
+}
