@@ -510,5 +510,10 @@ namespace Codemy.Identity.Application.Services
                 Message = "Password changed successfully."
             };
         }
+
+        public Task<User?> GetUserById(string userId)
+        {
+            return _userRepository.GetByIdAsync(Guid.Parse(userId));
+        }
     }
 }
