@@ -17,20 +17,25 @@ builder.Services.Configure<CloudinarySettings>(
 builder.Services.AddScoped<IFileService, CloudinaryService>();
 builder.Services.AddScoped<FileStorageAppService>();
 
-
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
+// Add Swagger services
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.EnableAnnotations();
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure Swagger middleware
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
