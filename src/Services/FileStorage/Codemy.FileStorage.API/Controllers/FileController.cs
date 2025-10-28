@@ -4,6 +4,7 @@ using Codemy.FileStorage.Application.DTOs;
 
 
 using Codemy.BuildingBlocks.Core;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Codemy.FileStorage.API.Controllers
 {
@@ -19,7 +20,11 @@ namespace Codemy.FileStorage.API.Controllers
         }
 
         [HttpPost("{type}")]
-        public async Task<IActionResult> UploadFile([FromRoute] string type, IFormFile file)
+        [SwaggerOperation(Summary = "Upload file", Description = "Upload a file to Cloudinary")]
+        public async Task<IActionResult> UploadFile(
+            [SwaggerParameter("File type (Ex: image, document, video)")]
+            [FromRoute] string type,
+            IFormFile file)
         {
             if (file == null)
                 return this.BadRequestResponse("No file uploaded.");
@@ -34,7 +39,10 @@ namespace Codemy.FileStorage.API.Controllers
         }
 
         [HttpDelete("{publicId}")]
-        public async Task<IActionResult> DeleteFile(string publicId)
+        [SwaggerOperation(Summary = "Delete file", Description = "Delete a file from Cloudinary by its public ID")]
+        public async Task<IActionResult> DeleteFile(
+            [SwaggerParameter("The public ID of the file to delete")]
+            string publicId)
         {
             await _fileAppService.DeleteFileAsync(publicId);
             return NoContent();
