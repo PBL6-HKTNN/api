@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Codemy.Identity.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddUserTable : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,6 +30,7 @@ namespace Codemy.Identity.Infrastructure.Migrations
                     resetPasswordTokenExpiry = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     totalCourses = table.Column<int>(type: "integer", nullable: false),
                     rating = table.Column<decimal>(type: "numeric", nullable: true),
+                    totalLoginFailures = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedBy = table.Column<Guid>(type: "uuid", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),

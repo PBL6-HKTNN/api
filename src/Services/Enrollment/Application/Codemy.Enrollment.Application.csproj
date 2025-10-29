@@ -25,6 +25,6 @@
 
 	<ItemGroup>
 		<Protobuf Include="..\..\Identity\API\Protos\identity.proto" GrpcServices="Client" />
-	    <Protobuf Include="..\..\Courses\API\Protos\courses.proto" GrpcServices="Client" />
+	  <Protobuf Include="..\..\Courses\API\Protos\courses.proto" GrpcServices="Client" />
 	</ItemGroup>
 </Project>

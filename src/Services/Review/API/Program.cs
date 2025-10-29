@@ -37,8 +37,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddInfrastructure();
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5079, o => o.Protocols = HttpProtocols.Http1AndHttp2);
-    options.ListenAnyIP(7024, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
+    options.ListenAnyIP(5041, o => o.Protocols = HttpProtocols.Http1AndHttp2);
+    options.ListenAnyIP(7048, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
 });
 builder.Services.AddApplication();
 builder.Services.AddControllers();

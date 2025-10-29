@@ -36,7 +36,8 @@ namespace Codemy.Courses.API.Services
 
         public override async Task<GetValidateResponse> ValidateCourseAsync(GetValidateRequest request, Grpc.Core.ServerCallContext context)
         {
-            ValidateCourseRequest validateCourseRequest = new ValidateCourseRequest {
+            ValidateCourseRequest validateCourseRequest = new ValidateCourseRequest
+            {
                 CourseId = Guid.Parse(request.CourseId),
                 LessonId = Guid.Parse(request.LessonId)
             };
@@ -46,6 +47,31 @@ namespace Codemy.Courses.API.Services
                 return new GetValidateResponse { Validate = true };
             }
             return new GetValidateResponse { Validate = false };
+        }
+
+        public override async Task<GetAllCoursesForIndexingResponse> GetAllCoursesForIndexing(Google.Protobuf.WellKnownTypes.Empty request, Grpc.Core.ServerCallContext context)
+        {
+            var courses = await _courseService.GetCoursesAsync();
+            var response = new GetAllCoursesForIndexingResponse();
+            response.Courses.AddRange(courses.Select(course => new CourseIndexDto
+            {
+                Id = course.Id.ToString(),
+                InstructorId = course.instructorId.ToString(),
+                Title = course.title,
+                Description = course.description,
+                Thumbnail = course.thumbnail,
+                Status = (int)course.status,
+                DurationTicks = course.duration.Ticks,
+                Price = course.price.ToString(),
+                Level = (int)course.level,
+                NumberOfModules = course.numberOfModules,
+                CategoryId = course.categoryId.ToString(),
+                Language = course.language,
+                NumberOfReviews = course.numberOfReviews,
+                AverageRating = course.averageRating.ToString()
+            }));
+
+            return response;
         }
     }
 }

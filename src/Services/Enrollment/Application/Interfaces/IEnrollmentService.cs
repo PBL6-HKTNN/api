@@ -14,12 +14,20 @@ namespace Codemy.Enrollment.Application.Interfaces
         Task<EnrollmentResponse> EnrollInCourseAsync(Guid courseId, Guid userId);
         Task<EnrollmentResponse> UpdateEnrollmentStatusAsync(UpdateEnrollmentRequest request);
         Task<Response> GetCourseAsync(Guid courseId);
-    } 
+        Task<CoursesResponse> GetMyCoursesAsync(Guid userId, int page, int pageSize);
+    }
 
     public class EnrollmentResponse
     {
         public bool Success { get; set; }
         public string? Message { get; set; }
         public Enrollments? Enrollment { get; set; }
+    }
+
+    public class CoursesResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<CourseDto>? Courses { get; set; }
     }
 }
