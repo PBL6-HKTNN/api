@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Codemy.Identity.Infrastructure.Migrations
 {
     [DbContext(typeof(IdentityDbContext))]
-    [Migration("20251015145918_AddUserTable")]
-    partial class AddUserTable
+    [Migration("20251113170214_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -95,6 +95,9 @@ namespace Codemy.Identity.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int>("totalCourses")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("totalLoginFailures")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");

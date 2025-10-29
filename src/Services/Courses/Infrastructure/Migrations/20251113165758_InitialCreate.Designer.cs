@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Codemy.Courses.Infrastructure.Migrations
 {
     [DbContext(typeof(CourseDbContext))]
-    [Migration("20251105125653_AddTableQuizAttempt")]
-    partial class AddTableQuizAttempt
+    [Migration("20251113165758_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -456,14 +456,14 @@ namespace Codemy.Courses.Infrastructure.Migrations
                     b.Property<Guid?>("UpdatedBy")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("answerId")
+                    b.Property<Guid?>("answerId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("answerText")
+                        .HasColumnType("text");
 
                     b.Property<Guid>("attemptId")
                         .HasColumnType("uuid");
-
-                    b.Property<int>("marksObtained")
-                        .HasColumnType("integer");
 
                     b.Property<Guid>("questionId")
                         .HasColumnType("uuid");

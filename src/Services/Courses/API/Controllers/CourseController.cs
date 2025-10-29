@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using Codemy.BuildingBlocks.EventBus.Events;
+using Codemy.BuildingBlocks.EventBus.RabbitMQ;
 
 namespace Codemy.Courses.API.Controllers
 {
@@ -167,6 +169,25 @@ namespace Codemy.Courses.API.Controllers
                         result.Message ?? "Failed to create course."
                     );
                 }
+                // var publisher = new RabbitMqPublisher();
+                // publisher.Publish(new CourseCreatedEvent
+                // {
+                //     Id = result.Course!.Id,
+                //     InstructorId = result.Course!.instructorId,
+                //     Title = result.Course!.title,
+                //     Description = result.Course!.description,
+                //     Thumbnail = result.Course!.thumbnail,
+                //     Status = (int)result.Course!.status,
+                //     Duration = result.Course!.duration,
+                //     Price = result.Course!.price,
+                //     Level = (int)result.Course!.level,
+                //     NumberOfModules = result.Course!.numberOfModules,
+                //     CategoryId = result.Course!.categoryId,
+                //     Language = result.Course!.language,
+                //     NumberOfReviews = result.Course!.numberOfReviews,
+                //     AverageRating = result.Course!.averageRating
+                // }, "course_created");
+
                 return this.CreatedResponse(result.Course!, $"/course/get/{result.Course!.Id}");
             }
             catch (Exception ex)

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Codemy.Enrollment.Infrastructure.Migrations
 {
     [DbContext(typeof(EnrollmentDbContext))]
-    [Migration("20251109142908_AddTableEnrollment")]
-    partial class AddTableEnrollment
+    [Migration("20251113170749_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -238,7 +238,7 @@ namespace Codemy.Enrollment.Application.Services
             var enrollment = await _enrollmentRepository.GetByIdAsync(request.EnrollmentId);
 
             if (enrollment == null)
-                {
+            {
                 return new EnrollmentResponse
                 {
                     Success = false,
@@ -300,5 +300,71 @@ namespace Codemy.Enrollment.Application.Services
                 Enrollment = enrollment
             };
         }
+
+        public async Task<CoursesResponse> GetMyCoursesAsync(Guid userId, int page = 1, int pageSize = 10)
+        {
+            if (userId == Guid.Empty)
+            {
+                return new CoursesResponse
+                {
+                    Success = false,
+                    Message = "Invalid user ID."
+                };
+            }
+
+            var enrollments = await _enrollmentRepository
+                .FindAsync(e => e.studentId == userId);
+
+            var courseIds = enrollments.Select(e => e.courseId).ToList();
+            if (!courseIds.Any())
+            {
+                return new CoursesResponse
+                {
+                    Success = true,
+                    Courses = new List<CourseDto>()
+                };
+            }
+
+            var pagedCourseIds = courseIds
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var courses = new List<CourseDto>();
+
+            foreach (var courseId in pagedCourseIds)
+            {
+                try
+                {
+                    var courseResponse = await _courseClient.GetCourseByIdAsync(
+                        new GetCourseByIdRequest { CourseId = courseId.ToString() }
+                    );
+
+                    if (courseResponse.Exists && courseResponse.CourseId != null)
+                    {
+                        courses.Add(new CourseDto
+                        {
+                            Id = Guid.Parse(courseResponse.CourseId),
+                            InstructorId = Guid.Parse(courseResponse.InstructorId),
+                            Title = courseResponse.Title,
+                            Thumbnail = courseResponse.Thumbnail,
+                            Description = courseResponse.Description,
+                            Price = decimal.TryParse(courseResponse.Price, out var price) ? price : 0
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error fetching course {CourseId}", courseId);
+                }
+            }
+
+            return new CoursesResponse
+            {
+                Success = true,
+                Courses = courses
+            };
+        }
+
     }
 }

@@ -4,9 +4,14 @@ option csharp_namespace = "Codemy.CoursesProto";
 
 package courses;
 
+import "google/protobuf/empty.proto";
+
 service CoursesService {
   rpc GetCourseById (GetCourseByIdRequest) returns (GetCourseByIdResponse);
   rpc ValidateCourseAsync (GetValidateRequest) returns (GetValidateResponse);
+
+  // RPC mới để lấy tất cả course cho search index
+  rpc GetAllCoursesForIndexing (google.protobuf.Empty) returns (GetAllCoursesForIndexingResponse);
 }
 
 // Request
@@ -15,8 +20,8 @@ message GetCourseByIdRequest {
 }
 
 message GetValidateRequest {
-	string courseId = 1;
-	string lessonId = 2;
+  string courseId = 1;
+  string lessonId = 2;
 }
 
 // Response
@@ -31,5 +36,27 @@ message GetCourseByIdResponse {
 }
 
 message GetValidateResponse {
-	bool validate = 1;
+  bool validate = 1;
+}
+
+// Response cho GetAllCoursesForIndexing
+message CourseIndexDto {
+  string id = 1;
+  string instructorId = 2;
+  string title = 3;
+  string description = 4;
+  string thumbnail = 5;
+  int32 status = 6;
+  int64 durationTicks = 7;
+  string price = 8;
+  int32 level = 9;
+  int32 numberOfModules = 10;
+  string categoryId = 11;
+  string language = 12;
+  int32 numberOfReviews = 13;
+  string averageRating = 14;
+}
+
+message GetAllCoursesForIndexingResponse {
+  repeated CourseIndexDto courses = 1;
 }

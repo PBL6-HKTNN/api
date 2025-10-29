@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Codemy.BuildingBlocks.EventBus\Codemy.BuildingBlocks.EventBus.csproj" />
     <ProjectReference Include="..\Application\Codemy.Courses.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Codemy.Courses.Infrastructure.csproj" />
   </ItemGroup>
