@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Application\Codemy.Search.Application.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -9,11 +9,14 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Application\Codemy.Search.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Codemy.Search.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Core\Codemy.BuildingBlocks.Core.csproj" />
   </ItemGroup>
 
 </Project>
