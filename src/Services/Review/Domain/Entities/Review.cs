@@ -2,7 +2,7 @@
 
 namespace Codemy.Review.Domain.Entities
 {
-    internal class Review : BaseEntity
+    public class Review : BaseEntity
     {
         public Guid courseId { get; set; }
         public Guid userId { get; set; }
