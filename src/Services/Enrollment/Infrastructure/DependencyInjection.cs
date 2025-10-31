@@ -4,6 +4,7 @@ using Codemy.Enrollment.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Codemy.Enrollment.Infrastructure.Clients;
 
 
 namespace Codemy.Enrollment.Infrastructure
@@ -32,6 +33,10 @@ namespace Codemy.Enrollment.Infrastructure
             // Register UnitOfWork
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+            services.AddHttpClient<CourseClient>(client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7024"); // địa chỉ CourseService
+            });
 
             return services;
         }

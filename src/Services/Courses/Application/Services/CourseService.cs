@@ -6,6 +6,7 @@ using Codemy.Courses.Domain.Enums;
 using Codemy.Identity.Domain.Entities;
 using Codemy.IdentityProto;
 using Microsoft.AspNetCore.Http;
+using Codemy.IdentityProto;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
@@ -34,7 +35,8 @@ namespace Codemy.Courses.Application.Services
             IRepository<Lesson> lessonRepository,
             IRepository<Category> categoryRepository,
             IUnitOfWork unitOfWork,
-            IdentityService.IdentityServiceClient client)
+            IdentityService.IdentityServiceClient client
+        )
         {
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;

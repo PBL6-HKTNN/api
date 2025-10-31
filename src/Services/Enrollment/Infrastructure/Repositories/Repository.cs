@@ -37,6 +37,11 @@ namespace Codemy.Enrollment.Infrastructure
         {
             _context.Entry(entity).State = EntityState.Modified;
         }
+        
+        public async Task UpdateAsync(T entity)
+        {
+            _context.Set<T>().Update(entity);
+        }
 
         public void Delete(T entity)
         {
@@ -53,10 +58,9 @@ namespace Codemy.Enrollment.Infrastructure
             return await _dbSet.FindAsync(id);
         }
 
-        public Task UpdateAsync(T entity)
+        public IQueryable<T> Query()
         {
-            _context.Entry(entity).State = EntityState.Modified;
-            return Task.CompletedTask;
+            return _dbSet.AsQueryable();
         }
     }
 }
