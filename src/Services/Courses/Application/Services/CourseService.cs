@@ -2,9 +2,11 @@
 using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
 using Codemy.Courses.Domain.Entities;
+using Codemy.Courses.Domain.Enums;
 using Codemy.Identity.Domain.Entities;
 using Codemy.IdentityProto;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace Codemy.Courses.Application.Services
 {
@@ -93,6 +95,53 @@ namespace Codemy.Courses.Application.Services
         public Task<CourseReponse> GetCourseByIdAsync(Guid courseId)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<CourseDto>> GetCoursesAsync(
+            Guid? categoryId = null,
+            string? language = null,
+            string? level = null,
+            string? sortBy = null,
+            int page = 1,
+            int pageSize = 10)
+        {
+            var query = _courseRepository.Query();
+
+            if (categoryId.HasValue)
+                query = query.Where(c => c.categoryId == categoryId.Value);
+
+            if (!string.IsNullOrEmpty(language))
+                query = query.Where(c => c.language == language);
+
+            if (!string.IsNullOrEmpty(level) && Enum.TryParse(level, out Level parsedLevel))
+                query = query.Where(c => c.level == parsedLevel);
+
+            query = sortBy switch
+            {
+                "price" => query.OrderBy(c => c.price),
+                "rating" => query.OrderByDescending(c => c.averageRating),
+                _ => query.OrderByDescending(c => c.CreatedAt)
+            };
+
+            var skip = (page - 1) * pageSize;
+            query = query.Skip(skip).Take(pageSize);
+
+            var courses = await query
+                .Select(c => new CourseDto
+                {
+                    Id = c.Id,
+                    Title = c.title,
+                    Description = c.description,
+                    Thumbnail = c.thumbnail,
+                    Price = c.price,
+                    Language = c.language,
+                    Level = c.level.ToString(),
+                    AverageRating = c.averageRating,
+                    NumberOfReviews = c.numberOfReviews
+                })
+                .ToListAsync();
+
+            return courses;
         }
     }
 }

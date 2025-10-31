@@ -13,5 +13,6 @@ namespace Codemy.BuildingBlocks.Core
         void Delete(T entity);
         Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate);
         IQueryable<T> TableNoTracking { get; }
+        IQueryable<T> Query();
     }
 }

@@ -13,6 +13,13 @@ namespace Codemy.Courses.Application.Interfaces
     {
         Task<CourseReponse> CreateCourseAsync(CreateCourseRequest request);
         Task<CourseReponse> GetCourseByIdAsync(Guid courseId);
+        Task<IEnumerable<CourseDto>> GetCoursesAsync(
+            Guid? categoryId = null,
+            string? language = null,
+            string? level = null,
+            string? sortBy = null,
+            int page = 1,
+            int pageSize = 10);
     }
 
     public class CourseReponse
