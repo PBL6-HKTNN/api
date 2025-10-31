@@ -18,6 +18,8 @@ namespace Codemy.Courses.Infrastructure.Persistence
         }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Course> Courses { get; set; }
+        public DbSet<Module> Modules { get; set; }
+        public DbSet<Lesson> Lessons { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

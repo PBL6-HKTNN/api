@@ -1,6 +1,6 @@
 ﻿namespace Codemy.Courses.Domain.Enums
 {
-    internal enum LessonType
+    public enum LessonType
     {
         Video,
         Article,

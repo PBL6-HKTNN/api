@@ -30,6 +30,7 @@ namespace Codemy.Courses.Application.Services
             _unitOfWork = unitOfWork;}
         public async Task<CategoryReponse> CreateCategoryAsync(CreateCategoryRequest request)
         {
+            //CREATED BY, UPDATED BY
             var categorys = await _categoryRepository.FindAsync(c => c.name == request.Name);
             if (categorys.Any())
             {

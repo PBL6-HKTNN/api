@@ -47,6 +47,35 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
+        [HttpGet("getModules/{courseId}")]
+        public async Task<IActionResult> GetModuleByCourseIdAsync(Guid courseId)
+        {
+            if (courseId == Guid.Empty)
+            {
+                return BadRequest("Invalid course ID.");
+            }
+            try
+            {
+                var modules = await _courseService.GetModuleByCourseIdAsync(courseId);
+                if (modules.Modules == null || !modules.Modules.Any())
+                {
+                    return this.NotFoundResponse(
+                        "Modules not found",
+                        "No modules found for the specified course."
+                    );
+                }
+                return this.OkResponse(modules);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving modules."); 
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during module retrieval",
+                    ex.Message
+                );
+            }
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> CreateCourse([FromBody] CreateCourseRequest request)
         {

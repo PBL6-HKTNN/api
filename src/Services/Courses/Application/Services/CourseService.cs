@@ -12,18 +12,21 @@ namespace Codemy.Courses.Application.Services
     {
         private readonly ILogger<CourseService> _logger;
         private readonly IRepository<Course> _courseRepository;
+        private readonly IRepository<Module> _moduleRepository;
         private readonly IRepository<Category> _categoryRepository;
         private readonly IUnitOfWork _unitOfWork; 
         private readonly IdentityService.IdentityServiceClient _client;
         public CourseService(
             ILogger<CourseService> logger,
             IRepository<Course> courseRepository,
+            IRepository<Module> moduleRepository,
             IRepository<Category> categoryRepository,
             IUnitOfWork unitOfWork,
             IdentityService.IdentityServiceClient client)
         {
             _logger = logger;
             _courseRepository = courseRepository;
+            _moduleRepository = moduleRepository;
             _unitOfWork = unitOfWork;
             _categoryRepository = categoryRepository;
             _client = client;
@@ -90,9 +93,50 @@ namespace Codemy.Courses.Application.Services
             };
         }
 
-        public Task<CourseReponse> GetCourseByIdAsync(Guid courseId)
+        public async Task<CourseReponse> GetCourseByIdAsync(Guid courseId)
         {
-            throw new NotImplementedException();
+            var course = await _courseRepository.GetByIdAsync(courseId);
+            if (course == null)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+            return new CourseReponse
+            {
+                Success = true,
+                Message = "Course retrieved successfully.",
+                Course = course
+            };
         }
+
+        public async Task<ModuleListResponse> GetModuleByCourseIdAsync(Guid courseId)
+        {
+            var course = await _courseRepository.GetByIdAsync(courseId);
+
+            if (course == null)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
+                return new ModuleListResponse
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+
+            var modules = await _moduleRepository.GetAllAsync(m => m.courseId == courseId);
+
+            return new ModuleListResponse
+            {
+                Success = true,
+                Message = "Course retrieved successfully.",
+                Modules = modules.ToList()
+            };
+        }
+
+
     }
 }

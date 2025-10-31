@@ -2,7 +2,7 @@
 
 namespace Codemy.Courses.Domain.Entities
 {
-    internal class Module : BaseEntity
+    public class Module : BaseEntity
     {
         public Guid courseId { get; set; }
         public string title { get; set; }

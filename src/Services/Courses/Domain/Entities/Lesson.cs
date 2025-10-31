@@ -3,7 +3,7 @@ using Codemy.Courses.Domain.Enums;
 
 namespace Codemy.Courses.Domain.Entities
 {
-    internal class Lesson : BaseEntity
+    public class Lesson : BaseEntity
     { 
         public string title { get; set; }
         public string contentUrl { get; set; }
