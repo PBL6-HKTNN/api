@@ -1,11 +1,5 @@
 ﻿using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Domain.Entities;
-using Codemy.Identity.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Codemy.Courses.Application.Interfaces
 {
@@ -13,6 +7,7 @@ namespace Codemy.Courses.Application.Interfaces
     {
         Task<CourseReponse> CreateCourseAsync(CreateCourseRequest request);
         Task<CourseReponse> GetCourseByIdAsync(Guid courseId);
+        Task<IEnumerable<MyCourseDto>> GetMyCoursesAsync(Guid studentId, int page = 1, int pageSize = 10);
     }
 
     public class CourseReponse

@@ -38,6 +38,11 @@ namespace Codemy.Courses.Infrastructure
             _context.Entry(entity).State = EntityState.Modified;
         }
 
+        public async Task UpdateAsync(T entity)
+        {
+            _context.Set<T>().Update(entity);
+        }
+
         public void Delete(T entity)
         {
             _dbSet.Remove(entity);
@@ -51,6 +56,11 @@ namespace Codemy.Courses.Infrastructure
         public async Task<T?> GetByIdAsync(Guid id)
         {
             return await _dbSet.FindAsync(id);
+        }
+
+        public IQueryable<T> Query()
+        {
+            return _dbSet.AsQueryable();
         }
     }
 }

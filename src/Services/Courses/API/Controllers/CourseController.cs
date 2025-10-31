@@ -1,6 +1,8 @@
-﻿using Codemy.BuildingBlocks.Core;
+﻿using System.Security.Claims;
+using Codemy.BuildingBlocks.Core;
 using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
@@ -79,6 +81,15 @@ namespace Codemy.Courses.API.Controllers
                     ex.Message
                 );
             }
+        }
+
+        [Authorize]
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyCourses([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var result = await _courseService.GetMyCoursesAsync(userId, page, pageSize);
+            return this.OkResponse(result);
         }
     }
 }

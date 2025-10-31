@@ -58,5 +58,10 @@ namespace Codemy.Identity.Infrastructure
         {
             return await _dbSet.FindAsync(id);
         }
+
+        public IQueryable<T> Query()
+        {
+            return _dbSet.AsQueryable();
+        }
     }
 }

@@ -2,8 +2,8 @@
 using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
 using Codemy.Courses.Domain.Entities;
-using Codemy.Identity.Domain.Entities;
 using Codemy.IdentityProto;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Codemy.Courses.Application.Services
@@ -13,6 +13,7 @@ namespace Codemy.Courses.Application.Services
         private readonly ILogger<CourseService> _logger;
         private readonly IRepository<Course> _courseRepository;
         private readonly IRepository<Category> _categoryRepository;
+        private readonly IRepository<Enrollment> _enrollmentRepository;
         private readonly IUnitOfWork _unitOfWork; 
         private readonly IdentityService.IdentityServiceClient _client;
         public CourseService(
@@ -20,12 +21,14 @@ namespace Codemy.Courses.Application.Services
             IRepository<Course> courseRepository,
             IRepository<Category> categoryRepository,
             IUnitOfWork unitOfWork,
-            IdentityService.IdentityServiceClient client)
+            IdentityService.IdentityServiceClient client,
+            IRepository<Enrollment> enrollmentRepository)
         {
             _logger = logger;
             _courseRepository = courseRepository;
             _unitOfWork = unitOfWork;
             _categoryRepository = categoryRepository;
+            _enrollmentRepository = enrollmentRepository;
             _client = client;
         }
 
@@ -93,6 +96,32 @@ namespace Codemy.Courses.Application.Services
         public Task<CourseReponse> GetCourseByIdAsync(Guid courseId)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<MyCourseDto>> GetMyCoursesAsync(Guid userId, int page = 1, int pageSize = 10)
+        {
+            var query = _enrollmentRepository
+                .Query()
+                .Include(e => e.Course) 
+                .Where(e => e.UserId == userId)
+                .OrderByDescending(e => e.EnrolledAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(e => new MyCourseDto
+                {
+                    Id = e.Course.Id,
+                    Title = e.Course.title,
+                    Thumbnail = e.Course.thumbnail,
+                    Level = e.Course.level.ToString(),
+                    Price = e.Course.price,
+                    AverageRating = e.Course.averageRating,
+                    Language = e.Course.language,
+                    Progress = e.Progress.ToString(),
+                    Status = e.Status.ToString(),
+                    EnrolledAt = e.EnrolledAt
+                });
+
+            return await query.ToListAsync();
         }
     }
 }
