@@ -172,5 +172,19 @@ namespace Codemy.Courses.API.Controllers
                 );
             }
         }
+        
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetCourses(
+            [FromQuery] Guid? categoryId,
+            [FromQuery] string? language,
+            [FromQuery] string? level,
+            [FromQuery] string? sortBy,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var result = await _courseService.GetCoursesAsync(categoryId, language, level, sortBy, page, pageSize);
+            return this.OkResponse(result);
+        }
     }
 }
