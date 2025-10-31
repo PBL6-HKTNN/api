@@ -131,7 +131,7 @@ namespace Codemy.Courses.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("courses");
+                    b.ToTable("Courses");
                 });
 #pragma warning restore 612, 618
         }

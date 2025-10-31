@@ -17,7 +17,7 @@ namespace Codemy.Courses.Infrastructure.Persistence
                 .Where(t => t is { IsAbstract: false, IsClass: true } && t.IsSubclassOf(typeof(BaseEntity)));
         }
         public DbSet<Category> Categories { get; set; }
-        public DbSet<Course> courses { get; set; }
+        public DbSet<Course> Courses { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
