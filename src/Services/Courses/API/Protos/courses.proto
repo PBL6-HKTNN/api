@@ -1,0 +1,22 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Codemy.CoursesProto";
+
+package courses;
+
+service CoursesService {
+  rpc GetCourseById (GetCourseByIdRequest) returns (GetCourseByIdResponse);
+}
+
+// Request
+message GetCourseByIdRequest {
+  string courseId = 1;
+}
+
+// Response
+message GetCourseByIdResponse {
+  bool exists = 1;
+  string courseId = 2;
+  string instructorId = 3;
+  string title = 4;
+}

@@ -4,11 +4,8 @@ using Codemy.Identity.Application.DTOs.Authentication;
 using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Domain.Entities;
 using Codemy.Identity.Domain.Enums;
-using DotNetEnv;
-using Google.Apis.Auth; 
-using Microsoft.AspNet.Identity;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -512,6 +509,17 @@ namespace Codemy.Identity.Application.Services
                 Success = true,
                 Message = "Password changed successfully."
             };
+        }
+
+        public Task<User?> GetUserById(string userId)
+        {
+            if (!Guid.TryParse(userId, out var guid))
+            {
+                _logger.LogWarning("Invalid GUID format for userId: {UserId}", userId);
+                Console.WriteLine($"Invalid GUID format for userId: {userId}");
+                return null;
+            }
+            return _userRepository.GetByIdAsync(Guid.Parse(userId));
         }
     }
 }

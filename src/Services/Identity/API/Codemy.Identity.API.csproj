@@ -34,5 +34,6 @@
 
 	<ItemGroup>
 		<Protobuf Include="..\..\Notification\API\Protos\notification.proto" GrpcServices="Client" />
-	</ItemGroup>
+		<Protobuf Include="Protos\identity.proto" GrpcServices="Server" />
+	</ItemGroup> 
 </Project>

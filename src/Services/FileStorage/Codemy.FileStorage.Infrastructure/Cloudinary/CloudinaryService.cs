@@ -13,9 +13,26 @@ namespace Codemy.FileStorage.Infrastructure.Cloudinary
         public CloudinaryService(CloudinaryDotNet.Cloudinary cloudinary)
         {
             _cloudinary = cloudinary ?? throw new ArgumentNullException(nameof(cloudinary));
-        }
+        } 
 
-        public async Task<FileUploadResponse> UploadImageAsync(IFormFile file)
+        //public async Task<double> GetVideoDurationFromCloudinary(string publicId)
+        //{
+        //    var account = new Account(
+        //        "your_cloud_name",
+        //        "your_api_key",
+        //        "your_api_secret"
+        //    );
+
+        //    var cloudinary = new Cloudinary(account);
+        //    var result = await cloudinary.GetResourceAsync(new GetResourceParams(publicId)
+        //    {
+        //        ResourceType = ResourceType.Video
+        //    });
+
+        //    return result.Duration; // tính bằng giây
+        //}
+
+    public async Task<FileUploadResponse> UploadImageAsync(IFormFile file)
         {
             if (file == null)
                 throw new ArgumentNullException(nameof(file), "File cannot be null");
