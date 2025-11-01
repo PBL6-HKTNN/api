@@ -16,13 +16,11 @@ namespace Codemy.Courses.API.Services
             var course = await _courseService.GetCourseByIdAsync(Guid.Parse(request.CourseId));
             if (!course.Success)
             {
-                Console.WriteLine($"Course {request.CourseId} không tồn tại");
                 return new GetCourseByIdResponse
                 {
                     Exists = false
                 };
             }
-            Console.WriteLine($"Course found: {course.Course.title} ({course.Course.description})");
             return new GetCourseByIdResponse
             {
                 Exists = true,

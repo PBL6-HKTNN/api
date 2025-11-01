@@ -7,7 +7,7 @@ namespace Codemy.Enrollment.API.Controllers
     [Route("[controller]")]
     public class WishlistController : ControllerBase
     {
-        private IWishlistService _wishlistService;
+        private readonly IWishlistService _wishlistService;
         private readonly ILogger<WishlistController> _logger;
 
         public WishlistController(IWishlistService wishlistService, ILogger<WishlistController> logger)

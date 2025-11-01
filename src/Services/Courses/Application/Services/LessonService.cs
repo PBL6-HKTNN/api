@@ -91,10 +91,6 @@ namespace Codemy.Courses.Application.Services
             }
             if (userId != course.instructorId)
             {
-                Console.WriteLine("instructorId");
-                Console.WriteLine(course.instructorId);
-                Console.WriteLine("userId");
-                Console.WriteLine(userId);
                 _logger.LogError("User with ID {UserId} is not authorized to create lesson for module ID {ModuleId}.", userId, request.moduleId);
                 return new LessonResponse
                 {
@@ -121,10 +117,8 @@ namespace Codemy.Courses.Application.Services
                 case (int)LessonType.Article: 
                     durationInMinutes = 5; 
                     break;
-                case (int)LessonType.Video: 
+                case (int)LessonType.Video:
                     durationInMinutes = await GetVideoDurationInMinutes(request.contentUrl);
-                    Console.WriteLine("durationInMinutes");
-                    Console.WriteLine(durationInMinutes);
                     break;
                 default:
                     durationInMinutes = 5;

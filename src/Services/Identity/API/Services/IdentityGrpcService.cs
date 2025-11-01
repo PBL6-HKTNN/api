@@ -17,7 +17,6 @@ namespace Codemy.Identity.API.Services
             var result = await _authenticationService.GetUserById(request.UserId);
             if (result == null)
             {
-                Console.WriteLine($"User {request.UserId} không tồn tại");
                 return new GetUserByIdResponse
                 {
                     Exists = false

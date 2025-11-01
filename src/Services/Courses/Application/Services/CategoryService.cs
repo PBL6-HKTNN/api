@@ -27,7 +27,8 @@ namespace Codemy.Courses.Application.Services
         {
             _logger = logger;
             _categoryRepository = categoryRepository;
-            _unitOfWork = unitOfWork;}
+            _unitOfWork = unitOfWork;
+        }
         public async Task<CategoryReponse> CreateCategoryAsync(CreateCategoryRequest request)
         {
             //CREATED BY, UPDATED BY

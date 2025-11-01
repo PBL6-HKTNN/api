@@ -1,7 +1,6 @@
 ﻿using Codemy.Identity.API.Services;
 using Codemy.Identity.Application;
 using Codemy.Identity.Infrastructure;
-using Codemy.Notification.API.Services;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Server.Kestrel.Core;

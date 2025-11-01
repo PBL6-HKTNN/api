@@ -219,7 +219,7 @@ namespace Codemy.Enrollment.Application.Services
                 return new Response
                 {
                     Success = false,
-                    Message = "Course is not already in the wishlist."
+                    Message = "Course does not exist in the wishlist."
                 };
             } 
             var wishlistItem = existingWishlistItem.First();
