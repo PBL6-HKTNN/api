@@ -11,6 +11,7 @@ namespace Codemy.Courses.Application.Interfaces
     public interface ILessonService
     {
         Task<LessonResponse> CreateLessonAsync(CreateLessonRequest request);
+        Task<LessonResponse> GetLessonById(Guid lessonId);
         Task<LessonListResponse> GetLessons();
     }
 

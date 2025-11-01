@@ -75,5 +75,27 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
+        [HttpGet("get/{lessonId}")]
+        public async Task<IActionResult> GetLessonById(Guid lessonId)
+        {
+            try
+            {
+                var result = await _lessonService.GetLessonById(lessonId);
+                if (!result.Success)
+                {
+                    return this.NotFoundResponse(
+                        result.Message ?? "Lesson not found.",
+                        "The specified lesson does not exist."
+                    );
+                }
+                return this.OkResponse(result.Lesson);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving lesson by ID.");
+                return StatusCode(500, "Internal server error.");
+            }
+
+        }
     }
 }

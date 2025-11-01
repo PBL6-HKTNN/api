@@ -96,5 +96,26 @@ namespace Codemy.Courses.API.Controllers
                 return StatusCode(500, "Internal server error.");
             }
         }
+        [HttpGet("get/{moduleId}")]
+        public async Task<IActionResult> GetModuleById(Guid moduleId)
+        {
+            try
+            {
+                var result = await _moduleService.GetModuleById(moduleId);
+                if (!result.Success)
+                {
+                    return this.NotFoundResponse(
+                        result.Message ?? "Module not found.",
+                        "The specified module does not exist."
+                    );
+                }
+                return this.OkResponse(result.Module);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting Module by ID.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
     }
 }

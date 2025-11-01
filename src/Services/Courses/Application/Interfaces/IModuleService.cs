@@ -10,6 +10,7 @@ namespace Codemy.Courses.Application.Interfaces
     {
         Task<ModuleResponse> CreateModuleAsync(CreateModuleRequest request);
         Task<LessonListResponse> GetLessonByModuleId(Guid moduleId);
+        Task<ModuleResponse> GetModuleById(Guid moduleId);
         Task<ModuleListResponse> GetModules();
     }
     

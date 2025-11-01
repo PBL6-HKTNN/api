@@ -210,5 +210,25 @@ namespace Codemy.Courses.Application.Services
                 };
             }
         }
+
+        public async Task<LessonResponse> GetLessonById(Guid lessonId)
+        {
+            var lesson = await _lessonRepository.GetByIdAsync(lessonId);
+            if (lesson == null)
+            {
+                _logger.LogError("Lesson with ID {LessonId} does not exist.", lessonId);
+                return new LessonResponse
+                {
+                    Success = false,
+                    Message = "Lesson does not exist."
+                };
+            }
+            return new LessonResponse
+            {
+                Success = true,
+                Message = "Lesson retrieved successfully.",
+                Lesson = lesson
+            };
+        }
     }
 }

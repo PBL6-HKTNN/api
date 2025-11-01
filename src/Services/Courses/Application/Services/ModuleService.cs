@@ -49,7 +49,7 @@ namespace Codemy.Courses.Application.Services
             }
 
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                           ?? user.FindFirst("sub")?.Value 
+                           ?? user.FindFirst("sub")?.Value
                            ?? user.FindFirst("userId")?.Value;
 
             var userId = Guid.Parse(userIdClaim);
@@ -59,7 +59,7 @@ namespace Codemy.Courses.Application.Services
 
             if (!userExists.Exists)
             {
-                _logger.LogError("Instructor with ID {InstructorId} does not exist.",userId);
+                _logger.LogError("Instructor with ID {InstructorId} does not exist.", userId);
                 return new ModuleResponse
                 {
                     Success = false,
@@ -188,6 +188,37 @@ namespace Codemy.Courses.Application.Services
                     Success = false,
                     Message = e.Message,
                     Lessons = new List<Lesson>()
+                };
+            }
+        }
+
+        public async Task<ModuleResponse> GetModuleById(Guid moduleId)
+        {
+            try
+            {
+                var result = await _moduleRepository.GetByIdAsync(moduleId);
+                if (result == null)
+                {
+                    _logger.LogError("Module with ID {ModuleId} does not exist.", moduleId);
+                    return new ModuleResponse
+                    {
+                        Success = false,
+                        Message = "Module does not exist."
+                    };
+                }
+                return new ModuleResponse
+                {
+                    Success = true,
+                    Message = "Module retrieved successfully.",
+                    Module = result
+                };
+            }
+            catch (Exception e)
+            {
+                return new ModuleResponse
+                {
+                    Success = false,
+                    Message = e.Message
                 };
             }
         }
