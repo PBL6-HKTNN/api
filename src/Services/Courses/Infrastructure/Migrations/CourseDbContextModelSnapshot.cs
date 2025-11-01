@@ -112,6 +112,9 @@ namespace Codemy.Courses.Infrastructure.Migrations
                     b.Property<int>("level")
                         .HasColumnType("integer");
 
+                    b.Property<int>("numberOfModules")
+                        .HasColumnType("integer");
+
                     b.Property<int>("numberOfReviews")
                         .HasColumnType("integer");
 

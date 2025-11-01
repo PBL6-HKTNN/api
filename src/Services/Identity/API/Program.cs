@@ -65,10 +65,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UsePathBase("/api");
 app.UseRouting();
 app.UseAuthentication(); 
-app.UseAuthorization();
-app.UsePathBase("/api");
+app.UseAuthorization(); 
 app.MapGrpcService<IdentityGrpcService>();
 app.MapControllers();
 app.Run();

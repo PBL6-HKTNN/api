@@ -7,11 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Controllers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Codemy.FileStorage.Application\Codemy.FileStorage.Application.csproj" />
+    <ProjectReference Include="..\Codemy.FileStorage.Infrastructure\Codemy.FileStorage.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Core\Codemy.BuildingBlocks.Core.csproj" />
   </ItemGroup>
 
 </Project>

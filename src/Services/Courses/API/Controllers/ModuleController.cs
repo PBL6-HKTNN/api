@@ -2,10 +2,11 @@
 using Codemy.Courses.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Codemy.BuildingBlocks.Core;
-
+using Microsoft.AspNetCore.Authorization;
 
 namespace Codemy.Courses.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class ModuleController : ControllerBase
@@ -31,6 +32,7 @@ namespace Codemy.Courses.API.Controllers
                     );
                 return this.ValidationErrorResponse(validationErrors);
             }
+
             try
             {
                 var result = await _moduleService.CreateModuleAsync(request);
@@ -69,6 +71,28 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error get Module.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+        [HttpGet("{moduleId}")]
+        public async Task<IActionResult> GetLessonByModuleId(Guid moduleId)
+        {
+            try
+            {
+                var result = await _moduleService.GetLessonByModuleId(moduleId);
+                if (!result.Success)
+                {
+                    return this.BadRequest(result.Message ?? "Failed to get lessons by moduleId");
+                }
+                else if (result.Lessons.Count == 0)
+                {
+                    return this.NotFoundResponse(result.Message ?? "No lessons available in this module");
+                }
+                return this.OkResponse(result.Lessons);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error get Lesson.");
                 return StatusCode(500, "Internal server error.");
             }
         }

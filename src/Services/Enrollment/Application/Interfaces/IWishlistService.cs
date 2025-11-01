@@ -10,14 +10,22 @@ namespace Codemy.Enrollment.Application.Interfaces
 {
     public interface IWishlistService
     {
-        Task<Response> AddToWishlistAsync(Guid userId, Guid courseId);
-        Task<List<WishlistItem>> GetWishlistAsync(Guid userId);
-        Task<Response> RemoveFromWishlistAsync(Guid userId, Guid courseId);
+        Task<Response> AddToWishlistAsync(Guid courseId);
+        Task<WishListResponse> GetWishlistAsync();
+        Task<Response> RemoveFromWishlistAsync(Guid courseId);
+    }
+
+    public class WishListResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<WishlistItem>? WishlistItems { get; set; }
     }
 
     public class Response
     {
         public bool Success { get; set; }
         public string? Message { get; set; }
+        public WishlistItem? WishlistItem { get; set; }
     }
 }

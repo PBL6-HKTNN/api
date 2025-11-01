@@ -1,58 +1,85 @@
 ﻿using Codemy.BuildingBlocks.Core;
 using Codemy.Courses.Domain.Entities;
 using Codemy.Enrollment.Application.Interfaces;
-using Codemy.Enrollment.Domain.Entities; 
-using Codemy.Identity.Domain.Entities;
+using Codemy.Enrollment.Domain.Entities;
+using Codemy.CoursesProto;
+using Codemy.IdentityProto;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace Codemy.Enrollment.Application.Services
 {
     internal class WishlistService : IWishlistService
     {
         private readonly ILogger<WishlistService> _logger;
-        private readonly IRepository<WishlistItem> _wishlistRepository;
-        private readonly IRepository<User> _userRepository;
-        private readonly IRepository<Course> _courseRepository; 
-        private readonly IUnitOfWork _unitOfWork; 
+        private readonly IRepository<WishlistItem> _wishlistItemRepository;
+        private readonly IdentityService.IdentityServiceClient _client;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly CoursesService.CoursesServiceClient _courseClient;
 
         public WishlistService(
             ILogger<WishlistService> logger,
-            IRepository<WishlistItem> wishlistRepository,
+            IRepository<WishlistItem> wishlistItemRepository,
             IUnitOfWork unitOfWork,
-            IRepository<User> userRepository
+            IdentityService.IdentityServiceClient client,
+            CoursesService.CoursesServiceClient courseClient,
+            IHttpContextAccessor httpContextAccessor
             )
         {
             _logger = logger;
-            _wishlistRepository = wishlistRepository;
-            _userRepository = userRepository;
+            _wishlistItemRepository = wishlistItemRepository;
+            _client = client;
+            _courseClient = courseClient;
             _unitOfWork = unitOfWork; 
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        async Task<Response> IWishlistService.AddToWishlistAsync(Guid userId, Guid courseId)
+        async Task<Response> IWishlistService.AddToWishlistAsync(Guid courseId)
         {
-            var usersById = await _userRepository.FindAsync(u => u.Id == userId);
-            var user = usersById.FirstOrDefault();
-
-            if (user == null)
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
             {
                 return new Response
                 {
                     Success = false,
-                    Message = "User not found."
-                };
-            } 
-            var courseById = await _courseRepository.FindAsync(c => c.Id == courseId);
-            var course = courseById.FirstOrDefault();
-            if (course == null)
-            {
-                return new Response
-                {
-                    Success = false,
-                    Message = "Course not found."
+                    Message = "User not authenticated or token missing."
                 };
             }
 
-            var existingWishlistItem = await _wishlistRepository.FindAsync(w => w.userId == userId && w.courseId == courseId);
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = UserId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", UserId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+            var courseExists = await _courseClient.GetCourseByIdAsync(
+                new GetCourseByIdRequest { CourseId = courseId.ToString() }
+            );
+            if (!courseExists.Exists)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            } 
+
+            var existingWishlistItem = await _wishlistItemRepository.FindAsync(w => w.userId == UserId && w.courseId == courseId);
             if (existingWishlistItem.Any())
             {
                 return new Response
@@ -65,21 +92,22 @@ namespace Codemy.Enrollment.Application.Services
             // Create a new wishlist item
             var wishlistItem = new WishlistItem
             {
-                userId = userId,
+                userId = UserId,
                 courseId = courseId,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = userId,
+                CreatedBy = UserId,
                 UpdatedAt = DateTime.UtcNow,
-                UpdatedBy = userId
+                UpdatedBy = UserId
             };
-            await _wishlistRepository.AddAsync(wishlistItem);
+            await _wishlistItemRepository.AddAsync(wishlistItem);
             try
             {
                 await _unitOfWork.SaveChangesAsync();
                 return new Response
                 {
                     Success = true,
-                    Message = "Course added to wishlist successfully."
+                    Message = "Course added to wishlist successfully.",
+                    WishlistItem = wishlistItem
                 };
             }
             catch (Exception ex)
@@ -93,58 +121,99 @@ namespace Codemy.Enrollment.Application.Services
             }
         }
 
-        async Task<List<WishlistItem>> IWishlistService.GetWishlistAsync(Guid userId)
+        async Task<WishListResponse> IWishlistService.GetWishlistAsync()
         {
+            var user = _httpContextAccessor.HttpContext?.User;
 
-            var usersById = await _userRepository.FindAsync(u => u.Id == userId);
-            var user = usersById.FirstOrDefault();
-
-            if (user == null)
-            {
-                return new List<WishlistItem>();
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            { 
+                return new WishListResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
             }
 
-            var wishlistItems = await _wishlistRepository.FindAsync(w => w.userId == userId);
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = UserId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", UserId);
+                return new WishListResponse
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+
+            var wishlistItems = await _wishlistItemRepository.FindAsync(w => w.userId == UserId);
             if (wishlistItems == null || !wishlistItems.Any())
             {
-                return new List<WishlistItem>();
+                return new WishListResponse
+                {
+                    Success = false,
+                    Message = "Wishlist is empty or does not exist."
+                };
             }
-            try
+            return new WishListResponse
             {
-                return wishlistItems.ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving wishlist for user {UserId}.", userId);
-                return new List<WishlistItem>();
-            }
+                Success = true,
+                Message = "Wishlist retrieved successfully.",
+                WishlistItems = wishlistItems.ToList()
+            };
         }
 
-        async Task<Response> IWishlistService.RemoveFromWishlistAsync(Guid userId, Guid courseId)
+        async Task<Response> IWishlistService.RemoveFromWishlistAsync(Guid courseId)
         {
-            var usersById = await _userRepository.FindAsync(u => u.Id == userId);
-            var user = usersById.FirstOrDefault();
-
-            if (user == null)
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
             {
                 return new Response
                 {
                     Success = false,
-                    Message = "User not found."
-                };
-            }
-            var courseById = await _courseRepository.FindAsync(c => c.Id == courseId);
-            var course = courseById.FirstOrDefault();
-            if (course == null)
-            {
-                return new Response
-                {
-                    Success = false,
-                    Message = "Course not found."
+                    Message = "User not authenticated or token missing."
                 };
             }
 
-            var existingWishlistItem = await _wishlistRepository.FindAsync(w => w.userId == userId && w.courseId == courseId);
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = UserId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", UserId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+            var courseExists = await _courseClient.GetCourseByIdAsync(
+                new GetCourseByIdRequest { CourseId = courseId.ToString() }
+            );
+            if (!courseExists.Exists)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            } 
+            var existingWishlistItem = await _wishlistItemRepository.FindAsync(w => w.userId == UserId && w.courseId == courseId);
             if (!existingWishlistItem.Any())
             {
                 return new Response
@@ -152,11 +221,9 @@ namespace Codemy.Enrollment.Application.Services
                     Success = false,
                     Message = "Course is not already in the wishlist."
                 };
-            }
-
-            // Remove the wishlist item
+            } 
             var wishlistItem = existingWishlistItem.First();
-            _wishlistRepository.Delete(wishlistItem);
+            _wishlistItemRepository.Delete(wishlistItem);
             try
             {
                 await _unitOfWork.SaveChangesAsync();

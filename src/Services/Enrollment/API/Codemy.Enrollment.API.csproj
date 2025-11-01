@@ -9,11 +9,23 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Application\Codemy.Enrollment.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Codemy.Enrollment.Infrastructure.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DTOs\" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<Protobuf Include="..\..\Courses\API\Protos\courses.proto" GrpcServices="Client" />
+	</ItemGroup>
 
 </Project>

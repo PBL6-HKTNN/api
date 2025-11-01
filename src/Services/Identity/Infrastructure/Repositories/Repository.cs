@@ -39,6 +39,11 @@ namespace Codemy.Identity.Infrastructure
             _context.Entry(entity).State = EntityState.Modified;
         }
 
+        public async Task UpdateAsync(T entity)
+        {
+            _context.Set<T>().Update(entity);
+        }
+
         public void Delete(T entity)
         {
             _dbSet.Remove(entity);

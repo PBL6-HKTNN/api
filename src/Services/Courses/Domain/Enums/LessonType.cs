@@ -2,8 +2,8 @@
 {
     public enum LessonType
     {
-        Video,
-        Article,
-        Quiz
+        Video, //0
+        Article, //1
+        Quiz //2
     }
 }

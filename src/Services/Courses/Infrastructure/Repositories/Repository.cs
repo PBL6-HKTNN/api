@@ -52,5 +52,10 @@ namespace Codemy.Courses.Infrastructure
         {
             return await _dbSet.FindAsync(id);
         }
+
+        public Task UpdateAsync(T entity)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

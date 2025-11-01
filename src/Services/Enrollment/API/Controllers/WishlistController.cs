@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc; 
 using Codemy.Enrollment.Application.Interfaces;
-using Codemy.BuildingBlocks.Core;
-using Codemy.Enrollment.API.DTOs;
+using Codemy.BuildingBlocks.Core;  
 namespace Codemy.Enrollment.API.Controllers
 {
     [ApiController]
@@ -17,24 +16,21 @@ namespace Codemy.Enrollment.API.Controllers
             _logger = logger;
         }
 
-        [HttpPost("add")]
-        public async Task<IActionResult> AddToWishlist([FromBody] AddToWishlistRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                var validationErrors = ModelState
-                    .Where(x => x.Value?.Errors?.Count > 0)
-                    .ToDictionary(
-                        kvp => kvp.Key,
-                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
-                    );
-                return this.ValidationErrorResponse(validationErrors);
-            }
-
+        [HttpPost("add/{courseId}")]
+        public async Task<IActionResult> AddToWishlist(Guid courseId)
+        { 
             try
             {
-                await _wishlistService.AddToWishlistAsync(request.UserId, request.CourseId);
-                return Ok("Course added to wishlist successfully.");
+                var result = await _wishlistService.AddToWishlistAsync(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequest(result.Message ?? "Failed to add course to wishlist.");
+                }
+                return 
+                    this.CreatedResponse(
+                        result.WishlistItem, 
+                        $"/wishlist/get"
+                    );
             }
             catch (Exception ex)
             {
@@ -43,21 +39,17 @@ namespace Codemy.Enrollment.API.Controllers
             }
         }
 
-        [HttpGet("get/{userId}")]
-        public async Task<IActionResult> GetWishlist(Guid userId)
+        [HttpGet("get")]
+        public async Task<IActionResult> GetWishlist()
         {
-            if (userId == Guid.Empty)
-            {
-                return BadRequest("Invalid user ID.");
-            }
             try
             {
-                var wishlist = await _wishlistService.GetWishlistAsync(userId);
-                if (wishlist == null || !wishlist.Any())
+                var result = await _wishlistService.GetWishlistAsync();
+                if (!result.Success)
                 {
-                    return NotFound("Wishlist is empty or does not exist.");
+                    return this.BadRequest(result.Message ?? "Failed to retrieve wishlist.");
                 }
-                return Ok(wishlist);
+                return this.OkResponse(result);
             }
             catch (Exception ex)
             {
@@ -66,23 +58,17 @@ namespace Codemy.Enrollment.API.Controllers
             }
         }
 
-        [HttpDelete("remove")]
-        public async Task<IActionResult> RemoveFromWishlist([FromBody] AddToWishlistRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                var validationErrors = ModelState
-                    .Where(x => x.Value?.Errors?.Count > 0)
-                    .ToDictionary(
-                        kvp => kvp.Key,
-                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
-                    );
-                return this.ValidationErrorResponse(validationErrors);
-            }
+        [HttpDelete("remove/{courseId}")]
+        public async Task<IActionResult> RemoveFromWishlist(Guid courseId)
+        { 
             try
             {
-                await _wishlistService.RemoveFromWishlistAsync(request.UserId, request.CourseId);
-                return Ok("Course removed from wishlist successfully.");
+                var result = await _wishlistService.RemoveFromWishlistAsync(courseId);
+                if(!result.Success)
+                {
+                    return this.BadRequest(result.Message ?? "Failed to remove course from wishlist.");
+                }
+                return this.OkResponse("Course removed from wishlist successfully.");
             }
             catch (Exception ex)
             {

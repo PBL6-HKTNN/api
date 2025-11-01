@@ -1,11 +1,13 @@
 ﻿using Codemy.BuildingBlocks.Core;
 using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Codemy.Courses.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class CourseController : ControllerBase
@@ -60,7 +62,7 @@ namespace Codemy.Courses.API.Controllers
                 if (modules.Modules == null || !modules.Modules.Any())
                 {
                     return this.NotFoundResponse(
-                        "Modules not found",
+                        modules.Message,
                         "No modules found for the specified course."
                     );
                 }

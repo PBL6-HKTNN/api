@@ -8,11 +8,12 @@ namespace Codemy.Courses.Application.Interfaces
 {
     public interface IModuleService
     {
-        Task<ModuleReponse> CreateModuleAsync(CreateModuleRequest request);
+        Task<ModuleResponse> CreateModuleAsync(CreateModuleRequest request);
+        Task<LessonListResponse> GetLessonByModuleId(Guid moduleId);
         Task<ModuleListResponse> GetModules();
     }
     
-    public class ModuleReponse
+    public class ModuleResponse
     {
         public bool Success { get; set; }
         public string? Message { get; set; }

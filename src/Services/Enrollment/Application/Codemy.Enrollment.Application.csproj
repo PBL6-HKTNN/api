@@ -7,9 +7,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Courses\Domain\Codemy.Courses.Domain.csproj" /> 
+    <PackageReference Include="Google.Protobuf" Version="3.33.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.71.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Courses\Domain\Codemy.Courses.Domain.csproj" />
+    <ProjectReference Include="..\..\Identity\API\Codemy.Identity.API.csproj" /> 
     <ProjectReference Include="..\..\Identity\Domain\Codemy.Identity.Domain.csproj" />
     <ProjectReference Include="..\Domain\Codemy.Enrollment.Domain.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<Protobuf Include="..\..\Identity\API\Protos\identity.proto" GrpcServices="Client" />
+	    <Protobuf Include="..\..\Courses\API\Protos\courses.proto" GrpcServices="Client" />
+	</ItemGroup>
 </Project>

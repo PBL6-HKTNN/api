@@ -31,7 +31,6 @@ namespace Codemy.Courses.Application.Services
             _categoryRepository = categoryRepository;
             _client = client;
         }
-
         public async Task<CourseReponse> CreateCourseAsync(CreateCourseRequest request)
         {
             var user =  await _client.GetUserByIdAsync(
