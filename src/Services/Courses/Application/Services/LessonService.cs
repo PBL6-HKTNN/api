@@ -6,8 +6,7 @@ using Codemy.Courses.Domain.Enums;
 using Codemy.IdentityProto;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System.Security.AccessControl;
-using System.Security.Claims; 
+using System.Security.Claims;
 
 namespace Codemy.Courses.Application.Services
 {

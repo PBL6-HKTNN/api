@@ -23,8 +23,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"), // phải trùng Identity
-            ValidAudience = Environment.GetEnvironmentVariable("JWT_ISSUER"), // hoặc có thể tắt ValidateAudience = false
+            ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+            ValidAudience = Environment.GetEnvironmentVariable("JWT_ISSUER"),
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET"))
             ),

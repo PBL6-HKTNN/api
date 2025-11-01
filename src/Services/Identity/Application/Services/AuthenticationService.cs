@@ -513,6 +513,12 @@ namespace Codemy.Identity.Application.Services
 
         public Task<User?> GetUserById(string userId)
         {
+            if (!Guid.TryParse(userId, out var guid))
+            {
+                _logger.LogWarning("Invalid GUID format for userId: {UserId}", userId);
+                Console.WriteLine($"Invalid GUID format for userId: {userId}");
+                return null;
+            }
             return _userRepository.GetByIdAsync(Guid.Parse(userId));
         }
     }

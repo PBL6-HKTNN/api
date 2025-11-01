@@ -22,9 +22,6 @@ namespace Codemy.Identity.API.Services
                     Exists = false
                 };
             }
-
-            Console.WriteLine($"User found: {result.name} ({result.email})");
-
             return new GetUserByIdResponse
             {
                 Exists = true,
