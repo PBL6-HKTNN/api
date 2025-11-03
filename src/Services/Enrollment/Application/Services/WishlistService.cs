@@ -1,14 +1,11 @@
 ﻿using Codemy.BuildingBlocks.Core;
-using Codemy.Courses.Domain.Entities;
+using Codemy.CoursesProto;
 using Codemy.Enrollment.Application.Interfaces;
 using Codemy.Enrollment.Domain.Entities;
-using Codemy.CoursesProto;
 using Codemy.IdentityProto;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
-using System.Net.WebSockets;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Codemy.Enrollment.Application.Services
 {

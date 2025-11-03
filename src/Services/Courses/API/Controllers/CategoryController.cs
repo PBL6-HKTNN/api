@@ -47,7 +47,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating category.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during category creation",
+                    ex.Message
+                );
             }
         }
         [HttpGet] 
@@ -67,7 +70,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error get category.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during category retrieval",
+                    ex.Message
+                );
             }
         }
 

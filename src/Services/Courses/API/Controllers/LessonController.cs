@@ -51,7 +51,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating Lesson.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Lesson creation",
+                    ex.Message
+                );
             }
         }
         [HttpGet]
@@ -71,7 +74,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error get Lesson.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Lesson retrieval",
+                    ex.Message
+                );
             }
         }
 
@@ -93,7 +99,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving lesson by ID.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during lesson retrieval",
+                    ex.Message
+                );
             }
 
         }
@@ -125,7 +134,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating Lesson.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Lesson update",
+                    ex.Message
+                );
             }
         }
 
@@ -147,7 +159,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting Lesson.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Lesson deletion",
+                    ex.Message
+                );
             }
         } 
         } 

@@ -260,7 +260,7 @@ namespace Codemy.Courses.Application.Services
             var userId = Guid.Parse(userIdClaim);
             if (userId != result.CreatedBy)
             {
-                _logger.LogError("User with ID {UserId} is not authorized to update course ID {LessonId}.", userId, courseId);
+                _logger.LogError("User with ID {UserId} is not authorized to update course ID {CourseId}.", userId, courseId);
                 return new CourseReponse
                 {
                     Success = false,
@@ -298,7 +298,7 @@ namespace Codemy.Courses.Application.Services
             return new CourseReponse
             {
                 Success = true,
-                Message = "Module updated successfully.",
+                Message = "Course updated successfully.",
                 Course = result
             };
         }

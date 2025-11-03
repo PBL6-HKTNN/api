@@ -51,7 +51,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating Module.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Module creation",
+                    ex.Message
+                );
             }
         }
         [HttpGet]
@@ -71,7 +74,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error get Module.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Module retrieval",
+                    ex.Message
+                );
             }
         }
         [HttpGet("{moduleId}")]
@@ -93,7 +99,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error get Lesson.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Lesson retrieval",
+                    ex.Message
+                );
             }
         }
         [HttpGet("get/{moduleId}")]
@@ -114,7 +123,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting Module by ID.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Module retrieval",
+                    ex.Message
+                );
             }
         }
         [HttpPost("update/{moduleId}")]
@@ -145,7 +157,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating Module.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Module update",
+                    ex.Message
+                );
             }
         }
 
@@ -167,7 +182,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting Module.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Module deletion",
+                    ex.Message
+                );
             }
         }
     }

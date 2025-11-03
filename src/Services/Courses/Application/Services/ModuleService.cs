@@ -331,7 +331,7 @@ namespace Codemy.Courses.Application.Services
             var userId = Guid.Parse(userIdClaim);
             if (userId != result.CreatedBy)
             {
-                _logger.LogError("User with ID {UserId} is not authorized to update module ID {LessonId}.", userId, moduleId);
+                _logger.LogError("User with ID {UserId} is not authorized to update module ID {ModuleIdS}.", userId, moduleId);
                 return new ModuleResponse
                 {
                     Success = false,
@@ -341,13 +341,7 @@ namespace Codemy.Courses.Application.Services
             var existingModule = await _moduleRepository
                 .FindAsync(l => l.courseId == request.courseId && l.order == request.order && l.Id != moduleId);
             if (existingModule.Any())
-            {
-                Console.WriteLine("Duplicate module IDs:");
-                foreach (var l in existingModule)
-                {
-                    Console.WriteLine(l.Id);
-                }
-
+            { 
                 _logger.LogError(
                     "Module with order index {OrderIndex} already exists for course ID {CourseId}. Duplicate IDs: {Ids}",
                     request.order,

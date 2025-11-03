@@ -141,7 +141,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating Course.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during course update",
+                    ex.Message
+                );
             }
         }
 
@@ -163,7 +166,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting Course.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during course deletion",
+                    ex.Message
+                );
             }
         }
     }
