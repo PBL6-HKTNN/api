@@ -2,10 +2,10 @@
 using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
 using Codemy.Courses.Domain.Entities;
-using Codemy.Identity.Domain.Entities;
 using Codemy.IdentityProto;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Sprache;
 using System.Security.Claims;
 
 namespace Codemy.Courses.Application.Services
@@ -133,11 +133,12 @@ namespace Codemy.Courses.Application.Services
             try
             {
                 var module = await _moduleRepository.GetAllAsync();
+                var filteredModules = module.Where(m => !m.IsDeleted);
                 return new ModuleListResponse
                 {
                     Success = true,
                     Message = "Get list module successfully.",
-                    Modules = module.ToList()
+                    Modules = filteredModules.ToList()
                 };
             }
             catch (Exception e)
@@ -163,6 +164,15 @@ namespace Codemy.Courses.Application.Services
                     {
                         Success = false,
                         Message = "Module does not exist."
+                    };
+                }
+                if (module.IsDeleted)
+                {
+                    _logger.LogError("Module with ID {ModuleId} is deleted.", moduleId);
+                    return new LessonListResponse
+                    {
+                        Success = false,
+                        Message = "Module is deleted."
                     };
                 }
                 var lessons = await _lessonRepository.FindAsync(m => m.moduleId == moduleId);
@@ -206,6 +216,15 @@ namespace Codemy.Courses.Application.Services
                         Message = "Module does not exist."
                     };
                 }
+                if (result.IsDeleted)
+                {
+                    _logger.LogError("Module with ID {ModuleId} is deleted.", moduleId);
+                    return new ModuleResponse   
+                    {
+                        Success = false,
+                        Message = "Module is deleted."
+                    };
+                }
                 return new ModuleResponse
                 {
                     Success = true,
@@ -221,6 +240,141 @@ namespace Codemy.Courses.Application.Services
                     Message = e.Message
                 };
             }
+        }
+
+        public async Task<ModuleResponse> DeleteModuleAsync(Guid moduleId)
+        {
+            var result = await _moduleRepository.GetByIdAsync(moduleId);
+            if (result == null)
+            {
+                return new ModuleResponse
+                {
+                    Success = false,
+                    Message = "Module not found."
+                };
+            }
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new ModuleResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var userId = Guid.Parse(userIdClaim);
+            if (userId != result.CreatedBy)
+            {
+                _logger.LogError("User with ID {UserId} is not authorized to delete module ID {ModuleId}.", userId, moduleId);
+                return new ModuleResponse
+                {
+                    Success = false,
+                    Message = "User is not authorized to delete this module."
+                };
+            }
+            _moduleRepository.Delete(result);
+            var course = await _courseRepository.GetByIdAsync(result.courseId);
+            course.numberOfModules -= 1;
+            var listLessonAfterDelete = await _lessonRepository
+                .FindAsync(l => l.moduleId == result.Id);
+            foreach (var lesson in listLessonAfterDelete)
+            {
+                _lessonRepository.Delete(lesson);
+            }
+            var saveResult = await _unitOfWork.SaveChangesAsync();
+            if (saveResult <= 0)
+            {
+                return new ModuleResponse
+                {
+                    Success = false,
+                    Message = "Failed to delete module due to a database error."
+                };
+            }
+            return new ModuleResponse
+            {
+                Success = true,
+                Message = "Module deleted successfully.", 
+            };
+        }
+
+        public async Task<ModuleResponse> UpdateModuleAsync(Guid moduleId, CreateModuleRequest request)
+        {
+            var result = await _moduleRepository.GetByIdAsync(moduleId);
+            if (result == null)
+            {
+                return new ModuleResponse
+                {
+                    Success = false,
+                    Message = "Module not found."
+                };
+            }
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new ModuleResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var userId = Guid.Parse(userIdClaim);
+            if (userId != result.CreatedBy)
+            {
+                _logger.LogError("User with ID {UserId} is not authorized to update module ID {ModuleIdS}.", userId, moduleId);
+                return new ModuleResponse
+                {
+                    Success = false,
+                    Message = "User is not authorized to update this module."
+                };
+            }
+            var existingModule = await _moduleRepository
+                .FindAsync(l => l.courseId == request.courseId && l.order == request.order && l.Id != moduleId);
+            if (existingModule.Any())
+            { 
+                _logger.LogError(
+                    "Module with order index {OrderIndex} already exists for course ID {CourseId}. Duplicate IDs: {Ids}",
+                    request.order,
+                    request.courseId,
+                    string.Join(", ", existingModule.Select(l => l.Id))
+                );
+
+                return new ModuleResponse
+                {
+                    Success = false,
+                    Message = "Module with the same order index already exists in this course."
+                };
+            }
+
+            result.title = request.title; 
+            result.order = request.order;
+            result.UpdatedAt = DateTime.UtcNow;
+            _moduleRepository.Update(result);
+            var saveResult = await _unitOfWork.SaveChangesAsync();
+            if (saveResult <= 0)
+            {
+                return new ModuleResponse
+                {
+                    Success = false,
+                    Message = "Failed to update module due to a database error."
+                };
+            }
+            return new ModuleResponse
+            {
+                Success = true,
+                Message = "Module updated successfully.",
+                Module = result
+            };
         }
     }
 }

@@ -51,7 +51,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating Module.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Module creation",
+                    ex.Message
+                );
             }
         }
         [HttpGet]
@@ -71,7 +74,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error get Module.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Module retrieval",
+                    ex.Message
+                );
             }
         }
         [HttpGet("{moduleId}")]
@@ -93,7 +99,10 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error get Lesson.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Lesson retrieval",
+                    ex.Message
+                );
             }
         }
         [HttpGet("get/{moduleId}")]
@@ -114,7 +123,69 @@ namespace Codemy.Courses.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting Module by ID.");
-                return StatusCode(500, "Internal server error.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Module retrieval",
+                    ex.Message
+                );
+            }
+        }
+        [HttpPost("update/{moduleId}")]
+        public async Task<IActionResult> UpdateModule(Guid moduleId, [FromBody] CreateModuleRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _moduleService.UpdateModuleAsync(moduleId, request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to update Module.",
+                        "Module update failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.Module);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating Module.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Module update",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpDelete("{moduleId}")]
+        public async Task<IActionResult> DeleteModule(Guid moduleId)
+        {
+            try
+            {
+                var result = await _moduleService.DeleteModuleAsync(moduleId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to delete Module.",
+                        "Module deletion failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse("Module deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting Module.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Module deletion",
+                    ex.Message
+                );
             }
         }
     }

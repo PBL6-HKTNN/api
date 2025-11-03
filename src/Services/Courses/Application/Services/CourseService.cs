@@ -4,7 +4,11 @@ using Codemy.Courses.Application.Interfaces;
 using Codemy.Courses.Domain.Entities;
 using Codemy.Identity.Domain.Entities;
 using Codemy.IdentityProto;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
+using System.Security.Claims;
+using Module = Codemy.Courses.Domain.Entities.Module;
 
 namespace Codemy.Courses.Application.Services
 {
@@ -13,20 +17,27 @@ namespace Codemy.Courses.Application.Services
         private readonly ILogger<CourseService> _logger;
         private readonly IRepository<Course> _courseRepository;
         private readonly IRepository<Module> _moduleRepository;
+        private readonly IRepository<Lesson> _lessonRepository;
         private readonly IRepository<Category> _categoryRepository;
         private readonly IUnitOfWork _unitOfWork; 
         private readonly IdentityService.IdentityServiceClient _client;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
         public CourseService(
+            IHttpContextAccessor httpContextAccessor,
             ILogger<CourseService> logger,
             IRepository<Course> courseRepository,
             IRepository<Module> moduleRepository,
+            IRepository<Lesson> lessonRepository,
             IRepository<Category> categoryRepository,
             IUnitOfWork unitOfWork,
             IdentityService.IdentityServiceClient client)
         {
+            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _courseRepository = courseRepository;
             _moduleRepository = moduleRepository;
+            _lessonRepository = lessonRepository;
             _unitOfWork = unitOfWork;
             _categoryRepository = categoryRepository;
             _client = client;
@@ -65,6 +76,7 @@ namespace Codemy.Courses.Application.Services
                 categoryId = request.categoryId,
                 price = request.price,
                 language = request.language,
+                numberOfModules = 0,
                 level = request.level,
                 instructorId = request.instructorId,
                 CreatedAt = DateTime.UtcNow,
@@ -92,6 +104,71 @@ namespace Codemy.Courses.Application.Services
             };
         }
 
+        public async Task<CourseReponse> DeleteCourseAsync(Guid courseId)
+        {
+            var result = await _courseRepository.GetByIdAsync(courseId);
+            if (result == null)
+            {
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Course not found."
+                };
+            }
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var userId = Guid.Parse(userIdClaim);
+            if (userId != result.CreatedBy)
+            {
+                _logger.LogError("User with ID {UserId} is not authorized to delete course ID {CourseId}.", userId, courseId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "User is not authorized to delete this course."
+                };
+            }
+            _courseRepository.Delete(result);
+            var moduleList = await _moduleRepository
+                .FindAsync(m => m.courseId == result.Id);
+            foreach (var module in moduleList)
+            {
+                _moduleRepository.Delete(module);
+                var listLessonAfterDelete = await _lessonRepository
+                .FindAsync(l => l.moduleId == module.Id);
+                foreach (var lesson in listLessonAfterDelete)
+                {
+                    _lessonRepository.Delete(lesson);
+                }
+            }
+            
+            var saveResult = await _unitOfWork.SaveChangesAsync();
+            if (saveResult <= 0)
+            {
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Failed to delete course due to a database error."
+                };
+            }
+            return new CourseReponse
+            {
+                Success = true,
+                Message = "Course deleted successfully.",
+            };
+        }
+
         public async Task<CourseReponse> GetCourseByIdAsync(Guid courseId)
         {
             var course = await _courseRepository.GetByIdAsync(courseId);
@@ -102,6 +179,15 @@ namespace Codemy.Courses.Application.Services
                 {
                     Success = false,
                     Message = "Course does not exist."
+                };
+            }
+            if(course.IsDeleted)
+            {
+                _logger.LogError("Course with ID {CourseId} is deleted.", courseId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Course is deleted."
                 };
             }
             return new CourseReponse
@@ -125,17 +211,96 @@ namespace Codemy.Courses.Application.Services
                     Message = "Course does not exist."
                 };
             }
-
+            if (course.IsDeleted)
+            {
+                _logger.LogError("Course with ID {CourseId} is deleted.", courseId);
+                return new ModuleListResponse
+                {
+                    Success = false,
+                    Message = "Course is deleted."
+                };
+            }
             var modules = await _moduleRepository.GetAllAsync(m => m.courseId == courseId);
-
+            var filteredModules = modules.Where(m => !m.IsDeleted);
             return new ModuleListResponse
             {
                 Success = true,
                 Message = "Course retrieved successfully.",
-                Modules = modules.ToList()
+                Modules = filteredModules.ToList()
             };
         }
 
+        public async Task<CourseReponse> UpdateCourseAsync(Guid courseId, CreateCourseRequest request)
+        {
 
+            var result = await _courseRepository.GetByIdAsync(courseId);
+            if (result == null)
+            {
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Course not found."
+                };
+            }
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var userId = Guid.Parse(userIdClaim);
+            if (userId != result.CreatedBy)
+            {
+                _logger.LogError("User with ID {UserId} is not authorized to update course ID {CourseId}.", userId, courseId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "User is not authorized to update this course."
+                };
+            }
+            var category = await _categoryRepository.GetByIdAsync(request.categoryId);
+            if (category == null)
+            {
+                _logger.LogError("Category with ID {CategoryId} does not exist.", request.categoryId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Category does not exist."
+                };
+            }
+            result.title = request.title;
+            result.description = request.description;
+            result.thumbnail = request.thumbnail;
+            result.categoryId = request.categoryId;
+            result.price = request.price;
+            result.language = request.language;
+            result.level = request.level;
+            result.UpdatedAt = DateTime.UtcNow;
+            _courseRepository.Update(result);
+            var saveResult = await _unitOfWork.SaveChangesAsync();
+            if (saveResult <= 0)
+            {
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Failed to update course due to a database error."
+                };
+            }
+            return new CourseReponse
+            {
+                Success = true,
+                Message = "Course updated successfully.",
+                Course = result
+            };
+        }
     }
 }

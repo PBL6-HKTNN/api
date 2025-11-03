@@ -6,8 +6,10 @@ namespace Codemy.Courses.Application.Interfaces
     public interface ICourseService
     {
         Task<CourseReponse> CreateCourseAsync(CreateCourseRequest request);
+        Task<CourseReponse> DeleteCourseAsync(Guid courseId);
         Task<CourseReponse> GetCourseByIdAsync(Guid courseId);
         Task<ModuleListResponse> GetModuleByCourseIdAsync(Guid courseId);
+        Task<CourseReponse> UpdateCourseAsync(Guid courseId, CreateCourseRequest request);
     }
 
     public class CourseReponse

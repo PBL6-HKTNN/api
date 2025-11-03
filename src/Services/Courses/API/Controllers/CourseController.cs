@@ -1,6 +1,7 @@
 ﻿using Codemy.BuildingBlocks.Core;
 using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
+using Codemy.Courses.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
@@ -107,6 +108,66 @@ namespace Codemy.Courses.API.Controllers
                 _logger.LogError(ex, "Error creating course.");
                 return this.InternalServerErrorResponse(
                     "Internal server error occurred during course creation",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpPost("update/{courseId}")]
+        public async Task<IActionResult> UpdateCourse(Guid courseId, [FromBody] CreateCourseRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _courseService.UpdateCourseAsync(courseId, request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to update Course.",
+                        "Course update failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.Course);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating Course.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during course update",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpDelete("{courseId}")]
+        public async Task<IActionResult> DeleteCourse(Guid courseId)
+        {
+            try
+            {
+                var result = await _courseService.DeleteCourseAsync(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to delete Course.",
+                        "Course deletion failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse("Course deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting Course.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during course deletion",
                     ex.Message
                 );
             }

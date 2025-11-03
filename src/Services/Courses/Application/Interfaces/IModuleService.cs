@@ -9,9 +9,11 @@ namespace Codemy.Courses.Application.Interfaces
     public interface IModuleService
     {
         Task<ModuleResponse> CreateModuleAsync(CreateModuleRequest request);
+        Task<ModuleResponse> DeleteModuleAsync(Guid moduleId);
         Task<LessonListResponse> GetLessonByModuleId(Guid moduleId);
         Task<ModuleResponse> GetModuleById(Guid moduleId);
         Task<ModuleListResponse> GetModules();
+        Task<ModuleResponse> UpdateModuleAsync(Guid moduleId, CreateModuleRequest request);
     }
     
     public class ModuleResponse

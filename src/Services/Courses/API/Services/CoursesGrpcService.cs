@@ -26,7 +26,9 @@ namespace Codemy.Courses.API.Services
                 Exists = true,
                 CourseId = course.Course.Id.ToString(),
                 InstructorId = course.Course.instructorId.ToString(),
-                Title = course.Course.title
+                Title = course.Course.title,
+                Description = course.Course.description,
+                Thumbnail = course.Course.thumbnail
             };
         }
     }
