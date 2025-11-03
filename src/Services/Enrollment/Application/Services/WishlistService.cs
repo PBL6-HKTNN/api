@@ -7,6 +7,8 @@ using Codemy.IdentityProto;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using System.Net.WebSockets;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Codemy.Enrollment.Application.Services
 {
@@ -163,11 +165,38 @@ namespace Codemy.Enrollment.Application.Services
                     Message = "Wishlist is empty or does not exist."
                 };
             }
+            var wishlistItemDTOs = new List<WishlistItemDTO>();
+            foreach (var item in wishlistItems)
+            {
+                var courseResponse = await _courseClient.GetCourseByIdAsync(
+                    new GetCourseByIdRequest { CourseId = item.courseId.ToString() }
+                );
+                if (courseResponse.Exists)
+                { 
+                    var wishlistItemDTO = new WishlistItemDTO
+                    {
+                        UserId = item.userId,
+                        CourseId = item.courseId,
+                        Title = courseResponse.Title, 
+                        Description = courseResponse.Description,
+                        Thumbnail = courseResponse.Thumbnail
+                    };
+                    wishlistItemDTOs.Add(wishlistItemDTO);
+                } 
+            }
+            if(wishlistItemDTOs.Count == 0)
+            {
+                return new WishListResponse
+                {
+                    Success = false,
+                    Message = "Wishlist is empty or does not exist."
+                };
+            }
             return new WishListResponse
             {
                 Success = true,
                 Message = "Wishlist retrieved successfully.",
-                WishlistItems = wishlistItems.ToList()
+                WishlistItems = wishlistItemDTOs.ToList()
             };
         }
 

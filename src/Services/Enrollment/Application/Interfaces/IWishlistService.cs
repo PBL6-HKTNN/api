@@ -13,7 +13,7 @@ namespace Codemy.Enrollment.Application.Interfaces
     {
         public bool Success { get; set; }
         public string? Message { get; set; }
-        public List<WishlistItem>? WishlistItems { get; set; }
+        public List<WishlistItemDTO>? WishlistItems { get; set; }
     }
 
     public class Response
@@ -21,5 +21,15 @@ namespace Codemy.Enrollment.Application.Interfaces
         public bool Success { get; set; }
         public string? Message { get; set; }
         public WishlistItem? WishlistItem { get; set; }
+    }
+
+    public class WishlistItemDTO
+    {
+        public Guid UserId { get; set; }
+        public Guid CourseId { get; set; }
+        public string Title { get; set; } 
+        public string Description { get; set; }
+        public string Thumbnail { get; set; }
+
     }
 }

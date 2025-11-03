@@ -19,4 +19,6 @@ message GetCourseByIdResponse {
   string courseId = 2;
   string instructorId = 3;
   string title = 4;
+  string thumbnail = 5;
+  string description = 6;
 }

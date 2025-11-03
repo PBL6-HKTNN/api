@@ -97,5 +97,58 @@ namespace Codemy.Courses.API.Controllers
             }
 
         }
-    }
+        [HttpPost("update/{lessonId}")]
+        public async Task<IActionResult> UpdateLesson(Guid lessonId, [FromBody] CreateLessonRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _lessonService.UpdateLessonAsync(lessonId, request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to update Lesson.",
+                        "Lesson update failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.Lesson);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating Lesson.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [HttpDelete("{lessonId}")]
+        public async Task<IActionResult> DeleteLesson(Guid lessonId)
+        {
+            try
+            {
+                var result = await _lessonService.DeleteLessonAsync(lessonId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to delete Lesson.",
+                        "Lesson deletion failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse("Lesson deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting Lesson.");
+                return StatusCode(500, "Internal server error.");
+            }
+        } 
+        } 
 }

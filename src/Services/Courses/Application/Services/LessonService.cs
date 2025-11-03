@@ -160,10 +160,7 @@ namespace Codemy.Courses.Application.Services
             };
         }
 
-        
-
-
-    private async Task<int> GetVideoDurationInMinutes(string contentUrl)
+        private async Task<int> GetVideoDurationInMinutes(string contentUrl)
         {
         //var account = new Account(
         //    "your_cloud_name",
@@ -186,11 +183,12 @@ namespace Codemy.Courses.Application.Services
             try
             {
                 var lessons = await _lessonRepository.GetAllAsync(); 
+                var filteredLessons = lessons.Where(l => !l.IsDeleted);
                 return new LessonListResponse
                 {
                     Success = true,
                     Message = "Get list lesson successfully.",
-                    Lessons = lessons.ToList()
+                    Lessons = filteredLessons.ToList()
                 };
             }
             catch (Exception e)
@@ -216,11 +214,180 @@ namespace Codemy.Courses.Application.Services
                     Message = "Lesson does not exist."
                 };
             }
+            if(lesson.IsDeleted)
+                {
+                _logger.LogError("Lesson with ID {LessonId} is deleted.", lessonId);
+                return new LessonResponse
+                {
+                    Success = false,
+                    Message = "Lesson is deleted."
+                };
+            }
             return new LessonResponse
             {
                 Success = true,
                 Message = "Lesson retrieved successfully.",
                 Lesson = lesson
+            };
+        }
+
+        public async Task<LessonResponse> DeleteLessonAsync(Guid lessonId)
+        {
+            var result = await _lessonRepository.GetByIdAsync(lessonId);
+            if (result == null)
+            {
+                return new LessonResponse
+                {
+                    Success = false,
+                    Message = "Lesson not found."
+                };
+            }
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new LessonResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var userId = Guid.Parse(userIdClaim);
+            if (userId != result.CreatedBy)
+            {
+                _logger.LogError("User with ID {UserId} is not authorized to delete lesson ID {LessonId}.", userId, lessonId);
+                return new LessonResponse
+                {
+                    Success = false,
+                    Message = "User is not authorized to delete this lesson."
+                };
+            }
+            _lessonRepository.Delete(result);
+            var listLessonAfterDelete = await _lessonRepository
+                .FindAsync(l => l.moduleId == result.moduleId && l.orderIndex > result.orderIndex);
+            foreach (var lesson in listLessonAfterDelete)
+            {
+                lesson.orderIndex -= 1;
+                _lessonRepository.Update(lesson);
+            }
+            var saveResult = await _unitOfWork.SaveChangesAsync();
+            if (saveResult <= 0)
+            {
+                return new LessonResponse
+                {
+                    Success = false,
+                    Message = "Failed to delete lesson due to a database error."
+                };
+            }
+            return new LessonResponse
+            {
+                Success = true,
+                Message = "Lesson deleted successfully.",
+                Lesson = result
+            };
+        }
+
+        public async Task<LessonResponse> UpdateLessonAsync(Guid lessonId, CreateLessonRequest request)
+        { 
+            var result = await _lessonRepository.GetByIdAsync(lessonId);
+            if (result == null)
+            {
+                return new LessonResponse
+                {
+                    Success = false,
+                    Message = "Lesson not found."
+                };
+            }
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new LessonResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var userId = Guid.Parse(userIdClaim);
+            if(userId != result.CreatedBy)
+            {
+                _logger.LogError("User with ID {UserId} is not authorized to update lesson ID {LessonId}.", userId, lessonId);
+                return new LessonResponse
+                {
+                    Success = false,
+                    Message = "User is not authorized to update this lesson."
+                };
+            }
+            var existingLesson = await _lessonRepository
+                .FindAsync(l => l.moduleId == request.moduleId && l.orderIndex == request.orderIndex && l.Id != lessonId);
+            if (existingLesson.Any())
+            {
+                Console.WriteLine("Duplicate lesson IDs:");
+                foreach (var l in existingLesson)
+                {
+                    Console.WriteLine(l.Id);
+                }
+
+                _logger.LogError(
+                    "Lesson with order index {OrderIndex} already exists for module ID {ModuleId}. Duplicate IDs: {Ids}",
+                    request.orderIndex,
+                    request.moduleId,
+                    string.Join(", ", existingLesson.Select(l => l.Id))
+                );
+
+                return new LessonResponse
+                {
+                    Success = false,
+                    Message = "Lesson with the same order index already exists in this module."
+                };
+            }
+
+            int durationInMinutes;
+
+            switch (request.lessonType)
+            {
+                case (int)LessonType.Quiz:
+                case (int)LessonType.Article:
+                    durationInMinutes = 5;
+                    break;
+                case (int)LessonType.Video:
+                    durationInMinutes = await GetVideoDurationInMinutes(request.contentUrl);
+                    break;
+                default:
+                    durationInMinutes = 5;
+                    break;
+            }
+            result.title = request.title;
+            result.contentUrl = request.contentUrl;
+            result.isPreview = request.isPreview;
+            result.duration = TimeSpan.FromMinutes(durationInMinutes);
+            result.orderIndex = request.orderIndex;
+            result.lessonType = (LessonType)request.lessonType;
+            result.UpdatedAt = DateTime.UtcNow;
+            _lessonRepository.Update(result);
+            var saveResult = await _unitOfWork.SaveChangesAsync();
+            if (saveResult <= 0)
+            {
+                return new LessonResponse
+                {
+                    Success = false,
+                    Message = "Failed to update lesson due to a database error."
+                };
+            }
+            return new LessonResponse
+            {
+                Success = true,
+                Message = "Lesson updated successfully.",
+                Lesson = result
             };
         }
     }

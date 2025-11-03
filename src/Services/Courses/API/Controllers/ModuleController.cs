@@ -117,5 +117,58 @@ namespace Codemy.Courses.API.Controllers
                 return StatusCode(500, "Internal server error.");
             }
         }
+        [HttpPost("update/{moduleId}")]
+        public async Task<IActionResult> UpdateModule(Guid moduleId, [FromBody] CreateModuleRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _moduleService.UpdateModuleAsync(moduleId, request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to update Module.",
+                        "Module update failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.Module);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating Module.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [HttpDelete("{moduleId}")]
+        public async Task<IActionResult> DeleteModule(Guid moduleId)
+        {
+            try
+            {
+                var result = await _moduleService.DeleteModuleAsync(moduleId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to delete Module.",
+                        "Module deletion failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse("Module deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting Module.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
     }
 }
