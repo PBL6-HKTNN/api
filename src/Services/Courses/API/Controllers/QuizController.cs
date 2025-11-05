@@ -133,7 +133,7 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
-        [HttpPost("Attempts/{quizId}")]
+        [HttpGet("Attempts/{quizId}")]
         public async Task<IActionResult> GetQuizAttempts(Guid quizId)
         {
             try

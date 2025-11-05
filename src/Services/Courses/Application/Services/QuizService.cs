@@ -6,7 +6,6 @@ using Codemy.Courses.Domain.Enums;
 using Codemy.IdentityProto;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System.Net.WebSockets;
 using System.Security.Claims;
 
 namespace Codemy.Courses.Application.Services
@@ -106,19 +105,19 @@ namespace Codemy.Courses.Application.Services
                 };
                 await _quizQuestionRepository.AddAsync( question );
                 totalMarks += item.Marks;
-                foreach (var answerItem in item.Answers)
+                var answersToAdd = item.Answers.Select(answerItem => new Answer
                 {
-                    var answer = new Answer
-                    {
-                        Id = new Guid(),
-                        questionId = questionId,
-                        answerText = answerItem.AnswerText,
-                        isCorrect = answerItem.IsCorrect,
-                        CreatedAt = DateTime.UtcNow,
-                        CreatedBy = userId,
-                        UpdatedAt = DateTime.UtcNow,
-                        UpdatedBy = userId,
-                    };
+                    Id = Guid.NewGuid(),
+                    questionId = questionId,
+                    answerText = answerItem.AnswerText,
+                    isCorrect = answerItem.IsCorrect,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    UpdatedAt = DateTime.UtcNow,
+                    UpdatedBy = userId,
+                });
+                foreach (var answer in answersToAdd) 
+                { 
                     await _answerRepository.AddAsync(answer);
                 }
             }
@@ -316,11 +315,9 @@ namespace Codemy.Courses.Application.Services
                 PassingMarks = quiz.passingMarks,
                 Questions = new List<QuizQuestionDto>()
             };
-            var questions = _quizQuestionRepository.TableNoTracking.Where(q => q.quizId == id).ToList();
+            var questions = _quizQuestionRepository.TableNoTracking.Where(q => q.quizId == id && !q.IsDeleted).ToList();
             foreach (var question in questions)
             {
-                if (question.IsDeleted) 
-                    continue;
                 QuizQuestionDto questionDto = new QuizQuestionDto
                 {
                     QuestionId = question.Id,
@@ -329,11 +326,9 @@ namespace Codemy.Courses.Application.Services
                     Marks = question.marks,
                     Answers = new List<AnswerDto>()
                 };
-                var answers = _answerRepository.TableNoTracking.Where(a => a.questionId == question.Id).ToList();
+                var answers = _answerRepository.TableNoTracking.Where(a => a.questionId == question.Id && !a.IsDeleted).ToList();
                 foreach (var answer in answers)
                 {
-                    if(answer.IsDeleted) 
-                        continue;
                     AnswerDto answerDto = new AnswerDto
                     {
                         AnswerId = answer.Id,
@@ -352,7 +347,7 @@ namespace Codemy.Courses.Application.Services
             };
         }
 
-        public async Task<QuizResult> GetQuizResultsAsync(Guid lesssonId)
+        public async Task<QuizResult> GetQuizResultsAsync(Guid lessonId)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null || !user.Identity?.IsAuthenticated == true)
@@ -382,7 +377,7 @@ namespace Codemy.Courses.Application.Services
                     Message = "User does not exist."
                 };
             }
-            var quiz = _quizRepository.TableNoTracking.FirstOrDefault(q => q.lessonId == lesssonId && !q.IsDeleted);
+            var quiz = _quizRepository.TableNoTracking.FirstOrDefault(q => q.lessonId == lessonId && !q.IsDeleted);
             if (quiz == null)
             {
                 return new QuizResult
@@ -486,7 +481,7 @@ namespace Codemy.Courses.Application.Services
                 {
                     string correctText = correctList.FirstOrDefault()?.answerText?.Trim() ?? "";
                     if (string.Equals(answer.answerText?.Trim(), correctText, StringComparison.OrdinalIgnoreCase))
-                        totalScore++;
+                        totalScore += question.marks;
                     var userAnswer = new UserAnswer
                     {
                         attemptId = quizAttempt.Id,
@@ -505,18 +500,16 @@ namespace Codemy.Courses.Application.Services
                                      !selectedIds.Except(correctIds).Any();
 
                     if (isCorrect)
-                        totalScore+=question.marks;
-                    foreach (var id in selectedIds)
-                    {
-                        var userAnswer = new UserAnswer
+                        totalScore += question.marks;
+                    userAnswers = selectedIds
+                        .Select(id => new UserAnswer
                         {
                             answerId = id,
                             attemptId = quizAttempt.Id,
-                            questionId = answer.QuestionId, 
+                            questionId = answer.QuestionId,
                             CreatedBy = userId,
-                        };
-                        userAnswers.Add(userAnswer);
-                    }
+                        })
+                        .ToList();
                 } 
             }
             Quiz quiz = await _quizRepository.GetByIdAsync(quizAttempt.quizId);
@@ -649,19 +642,19 @@ namespace Codemy.Courses.Application.Services
                 };
                 totalMarks += item.Marks;
                 await _quizQuestionRepository.AddAsync(question);
-                foreach (var answerItem in item.Answers)
+                var answersToAdd = item.Answers.Select(answerItem => new Answer
                 {
-                    var answer = new Answer
-                    {
-                        Id = new Guid(),
-                        questionId = questionId,
-                        answerText = answerItem.AnswerText,
-                        isCorrect = answerItem.IsCorrect,
-                        CreatedAt = DateTime.UtcNow,
-                        CreatedBy = userId,
-                        UpdatedAt = DateTime.UtcNow,
-                        UpdatedBy = userId,
-                    };
+                    Id = Guid.NewGuid(),
+                    questionId = questionId,
+                    answerText = answerItem.AnswerText,
+                    isCorrect = answerItem.IsCorrect,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    UpdatedAt = DateTime.UtcNow,
+                    UpdatedBy = userId,
+                });
+                foreach (var answer in answersToAdd)
+                {
                     await _answerRepository.AddAsync(answer);
                 }
             }

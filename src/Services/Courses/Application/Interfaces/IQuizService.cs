@@ -14,7 +14,7 @@ namespace Codemy.Courses.Application.Interfaces
         Task<QuizResponse> DeleteQuizAsync(Guid quizId);
         Task<QuizAttemptDtoResponse> GetQuizAttemptsAsync(Guid quizId);
         Task<QuizDtoResponse> GetQuizByIdAsync(Guid id);
-        Task<QuizResult> GetQuizResultsAsync(Guid lesssonId);
+        Task<QuizResult> GetQuizResultsAsync(Guid lessonId);
         Task<QuizResult> SubmitQuizAsync(SubmitQuizRequest request);
         Task<QuizResponse> UpdateQuizAsync(Guid quizId, CreateQuizRequest request);
     }
