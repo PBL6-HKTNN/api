@@ -3,6 +3,7 @@ using System;
 using Codemy.Courses.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Codemy.Courses.Infrastructure.Migrations
 {
     [DbContext(typeof(CourseDbContext))]
-    partial class CourseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251105125653_AddTableQuizAttempt")]
+    partial class AddTableQuizAttempt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -453,14 +456,14 @@ namespace Codemy.Courses.Infrastructure.Migrations
                     b.Property<Guid?>("UpdatedBy")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("answerId")
+                    b.Property<Guid>("answerId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("answerText")
-                        .HasColumnType("text");
 
                     b.Property<Guid>("attemptId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("marksObtained")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("questionId")
                         .HasColumnType("uuid");

@@ -20,6 +20,11 @@ namespace Codemy.Courses.Infrastructure.Persistence
         public DbSet<Course> Courses { get; set; }
         public DbSet<Module> Modules { get; set; }
         public DbSet<Lesson> Lessons { get; set; }
+        public DbSet<Quiz> Quizzes { get; set; }
+        public DbSet<Answer> Answers { get; set; }
+        public DbSet<QuizQuestion> QuizQuestions { get; set; }
+        public DbSet<QuizAttempt> QuizAttempts { get; set; }
+        public DbSet<UserAnswer> UserAnswers { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -13,6 +13,7 @@ namespace Codemy.Courses.Application
             services.AddScoped<ICourseService, CourseService>();
             services.AddScoped<IModuleService, ModuleService>();
             services.AddScoped<ILessonService, LessonService>();
+            services.AddScoped<IQuizService, QuizService>();
             services.AddGrpcClient<IdentityService.IdentityServiceClient>(options =>
             {
                 options.Address = new Uri("https://localhost:7046");

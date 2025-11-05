@@ -2,7 +2,7 @@
 
 namespace Codemy.Courses.Domain.Entities
 {
-    internal class Answer : BaseEntity
+    public class Answer : BaseEntity
     {
         public Guid questionId { get; set; }
         public string answerText { get; set; }

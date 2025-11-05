@@ -3,7 +3,7 @@ using Codemy.Courses.Domain.Enums;
 
 namespace Codemy.Courses.Domain.Entities
 {
-    internal class QuizQuestion : BaseEntity
+    public class QuizQuestion : BaseEntity
     {
         public Guid quizId { get; set; }
         public string questionText { get; set; }
