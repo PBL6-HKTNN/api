@@ -1,6 +1,6 @@
 ﻿namespace Codemy.Courses.Domain.Enums
 {
-    internal enum QuestionType
+    public enum QuestionType
     {
         MultipleChoice,
         SingleChoice,

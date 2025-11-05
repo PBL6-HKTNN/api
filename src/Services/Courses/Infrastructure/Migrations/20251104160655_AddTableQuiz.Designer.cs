@@ -3,6 +3,7 @@ using System;
 using Codemy.Courses.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Codemy.Courses.Infrastructure.Migrations
 {
     [DbContext(typeof(CourseDbContext))]
-    partial class CourseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251104160655_AddTableQuiz")]
+    partial class AddTableQuiz
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -331,56 +334,6 @@ namespace Codemy.Courses.Infrastructure.Migrations
                     b.ToTable("Quizzes");
                 });
 
-            modelBuilder.Entity("Codemy.Courses.Domain.Entities.QuizAttempt", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("attemptedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("completedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("quizId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("score")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("status")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("userId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("QuizAttempts");
-                });
-
             modelBuilder.Entity("Codemy.Courses.Domain.Entities.QuizQuestion", b =>
                 {
                     b.Property<Guid>("Id")
@@ -424,50 +377,6 @@ namespace Codemy.Courses.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("QuizQuestions");
-                });
-
-            modelBuilder.Entity("Codemy.Courses.Domain.Entities.UserAnswer", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("CreatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("answerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("answerText")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("attemptId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("questionId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UserAnswers");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,7 +1,7 @@
 ﻿using Codemy.BuildingBlocks.Domain;
 namespace Codemy.Courses.Domain.Entities
 {
-    internal class Quiz : BaseEntity
+    public class Quiz : BaseEntity
     {
         public Guid lessonId { get; set; }
         public string title { get; set; }
