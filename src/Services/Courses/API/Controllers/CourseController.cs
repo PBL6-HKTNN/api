@@ -5,6 +5,7 @@ using Codemy.Courses.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Codemy.Courses.API.Controllers
 {
@@ -22,6 +23,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("get/{courseId}")]
+        [SwaggerOperation(Summary = "Get course by ID", Description = "Retrieve a specific course by its ID")]
         public async Task<IActionResult> GetCourseById(Guid courseId)
         {
             if (courseId == Guid.Empty)
@@ -51,6 +53,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("getModules/{courseId}")]
+        [SwaggerOperation(Summary = "Get modules by course ID", Description = "Retrieve a list of modules for a specific course")]
         public async Task<IActionResult> GetModuleByCourseIdAsync(Guid courseId)
         {
             if (courseId == Guid.Empty)
@@ -80,6 +83,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpPost("create")]
+        [SwaggerOperation(Summary = "Create a new course", Description = "Add a new course to the system")]
         public async Task<IActionResult> CreateCourse([FromBody] CreateCourseRequest request)
         {
             if (!ModelState.IsValid)
@@ -114,6 +118,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpPost("update/{courseId}")]
+        [SwaggerOperation(Summary = "Update a course", Description = "Modify an existing course by its ID")]
         public async Task<IActionResult> UpdateCourse(Guid courseId, [FromBody] CreateCourseRequest request)
         {
             if (!ModelState.IsValid)
@@ -149,6 +154,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpDelete("{courseId}")]
+        [SwaggerOperation(Summary = "Delete a course", Description = "Remove a course by its ID")]
         public async Task<IActionResult> DeleteCourse(Guid courseId)
         {
             try
@@ -172,19 +178,26 @@ namespace Codemy.Courses.API.Controllers
                 );
             }
         }
-        
+
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetCourses(
-            [FromQuery] Guid? categoryId,
-            [FromQuery] string? language,
-            [FromQuery] string? level,
-            [FromQuery] string? sortBy,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
+        [SwaggerOperation(
+            Summary = "Get all courses", 
+            Description = "Retrieve a list of courses with optional filtering and pagination"
+        )]
+        public async Task<IActionResult> GetCourses([FromQuery] GetCoursesRequest request)
         {
-            var result = await _courseService.GetCoursesAsync(categoryId, language, level, sortBy, page, pageSize);
+            var result = await _courseService.GetCoursesAsync(
+                request.CategoryId,
+                request.Language,
+                request.Level,
+                request.SortBy,
+                request.Page,
+                request.PageSize
+            );
+
             return this.OkResponse(result);
         }
+
     }
 }
