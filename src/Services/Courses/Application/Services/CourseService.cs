@@ -306,7 +306,7 @@ namespace Codemy.Courses.Application.Services
             };
         }
 
-        public async Task<IEnumerable<CourseDto>> GetCoursesAsync(
+        public async Task<IEnumerable<Course>> GetCoursesAsync(
             Guid? categoryId = null,
             string? language = null,
             string? level = null,
@@ -336,18 +336,6 @@ namespace Codemy.Courses.Application.Services
             query = query.Skip(skip).Take(pageSize);
 
             var courses = await query
-                .Select(c => new CourseDto
-                {
-                    Id = c.Id,
-                    Title = c.title,
-                    Description = c.description,
-                    Thumbnail = c.thumbnail,
-                    Price = c.price,
-                    Language = c.language,
-                    Level = c.level.ToString(),
-                    AverageRating = c.averageRating,
-                    NumberOfReviews = c.numberOfReviews
-                })
                 .ToListAsync();
 
             return courses;
