@@ -77,8 +77,8 @@ namespace Codemy.Courses.Application.Services
                 };
             }
 
-            var lesson = _lessonRepository.TableNoTracking.FirstOrDefault(l => l.Id == request.LessonId && !l.IsDeleted);
-            if (lesson == null)
+            var lesson = await _lessonRepository.GetByIdAsync(request.LessonId);
+            if (lesson == null || lesson.IsDeleted)
             {
                 return new QuizResponse
                 {
@@ -370,18 +370,18 @@ namespace Codemy.Courses.Application.Services
             };
         }
 
-        public Task<QuizDtoResponse> GetQuizByLessonIdAsync(Guid lessonId)
+        public async Task<QuizDtoResponse> GetQuizByLessonIdAsync(Guid lessonId)
         {
             var quiz = _quizRepository.TableNoTracking.FirstOrDefault(q => q.lessonId == lessonId && !q.IsDeleted);
             if (quiz == null)
             {
-                return Task.FromResult(new QuizDtoResponse
+                return new QuizDtoResponse
                 {
                     Success = false,
                     Message = "Quiz not found for the lesson."
-                });
+                };
             }
-            return GetQuizByIdAsync(quiz.Id);
+            return await GetQuizByIdAsync(quiz.Id);
         }
 
         public async Task<QuizResult> GetQuizResultsAsync(Guid lessonId)

@@ -166,7 +166,6 @@ namespace Codemy.Courses.API.Controllers
                         attempts.Message ?? "No attempts found for the specified Quiz."
                     );
                 }
-                Console.WriteLine(attempts.Success);
                 return this.OkResponse(attempts.QuizAttempt);
             }
             catch (Exception ex)
