@@ -98,7 +98,7 @@ namespace Codemy.Courses.Application.Services
                 };
             }
             var existingLesson = await _lessonRepository
-                .FindAsync(l => l.moduleId == request.moduleId && l.orderIndex == request.orderIndex);
+                .FindAsync(l => l.moduleId == request.moduleId && l.orderIndex == request.orderIndex && !l.IsDeleted);
             if (existingLesson.Any())
                 {
                 _logger.LogError("Lesson with order index {OrderIndex} already exists for module ID {ModuleId}.", request.orderIndex, request.moduleId);

@@ -62,6 +62,7 @@ if (app.Environment.IsDevelopment())
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
+    app.UseCors("AllowAll");
 }
 
 app.UsePathBase("/api");
