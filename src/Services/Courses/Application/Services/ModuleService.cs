@@ -88,16 +88,16 @@ namespace Codemy.Courses.Application.Services
                 };
             }
 
-            var existingModules = await _moduleRepository.FindAsync(m => m.courseId == request.courseId && m.order == request.order);
+            var existingModules = await _moduleRepository.FindAsync(m => m.courseId == request.courseId && m.order == request.order && !m.IsDeleted);
             if (existingModules.Any())
             {
-                _logger.LogError("Module with order {Order} already exists for course ID {CourseId}.", request.order, request.courseId);
                 return new ModuleResponse
                 {
                     Success = false,
-                    Message = "Module with the same order already exists for this course."
+                    Message = "Module with the same order index already exists in this course."
                 };
             }
+            
             var module = new Module
             {
                 Id = Guid.NewGuid(),

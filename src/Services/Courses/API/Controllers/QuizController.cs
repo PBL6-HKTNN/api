@@ -68,7 +68,7 @@ namespace Codemy.Courses.API.Controllers
                 {
                     return this.NotFoundResponse("Quiz not found.");
                 }
-                return this.OkResponse(quiz);
+                return this.OkResponse(quiz.Quiz);
             }
             catch (Exception ex)
             {
@@ -80,6 +80,27 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
+        [HttpGet("lessonId/{lessonId}")]
+        public async Task<IActionResult> GetQuizByLessonId(Guid lessonId)
+        {
+            try
+            {
+                var quiz = await _quizService.GetQuizByLessonIdAsync(lessonId);
+                if (quiz == null)
+                {
+                    return this.NotFoundResponse("Quiz not found for the specified lesson.");
+                }
+                return this.OkResponse(quiz.Quiz);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Quiz by Lesson ID.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred while retrieving Quiz by Lesson ID",
+                    ex.Message
+                );
+            }
+        }
         [HttpPost("submit")]
         public async Task<IActionResult> SubmitQuiz([FromBody] SubmitQuizRequest request)
         {
@@ -103,7 +124,7 @@ namespace Codemy.Courses.API.Controllers
                         "Quiz submission failed due to business logic constraints."
                     );
                 }
-                return this.OkResponse(result);
+                return this.OkResponse(result.QuizAttempts);
             }
             catch (Exception ex)
             {
@@ -139,7 +160,13 @@ namespace Codemy.Courses.API.Controllers
             try
             {
                 var attempts = await _quizService.GetQuizAttemptsAsync(quizId);
-                return this.OkResponse(attempts);
+                if (!attempts.Success)
+                {
+                    return this.NotFoundResponse(attempts.Message ?? "Quiz attempts not found.",
+                        attempts.Message ?? "No attempts found for the specified Quiz."
+                    );
+                }
+                return this.OkResponse(attempts.QuizAttempt);
             }
             catch (Exception ex)
             {

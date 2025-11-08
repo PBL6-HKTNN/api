@@ -8,6 +8,7 @@ namespace Codemy.Courses.Application.Interfaces
         Task<CourseReponse> CreateCourseAsync(CreateCourseRequest request);
         Task<CourseReponse> DeleteCourseAsync(Guid courseId);
         Task<CourseReponse> GetCourseByIdAsync(Guid courseId);
+        Task<ResourceDtoResponse> GetLessonByCourseIdAsync(Guid courseId);
         Task<ModuleListResponse> GetModuleByCourseIdAsync(Guid courseId);
         Task<CourseReponse> UpdateCourseAsync(Guid courseId, CreateCourseRequest request);
         Task<IEnumerable<Course>> GetCoursesAsync(
@@ -24,5 +25,28 @@ namespace Codemy.Courses.Application.Interfaces
         public bool Success { get; set; }
         public string? Message { get; set; } 
         public Course? Course { get; set; } 
+    }
+
+    public class ResourceDtoResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public CourseDto Course { get; set; }
+    }
+
+    public class CourseDto
+    {
+        public Course course { get; set; }
+        public List<ModuleDto> module { get; set; }
+    }
+
+    public class ModuleDto
+    {
+        public Guid moduleId { get; set; }
+        public string title { get; set; }
+        public TimeSpan duration { get; set; }
+        public int numberOfLessons { get; set; }
+        public int order { get; set; }
+        public List<Lesson> lessons { get; set; }
     }
 }

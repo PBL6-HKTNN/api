@@ -18,6 +18,7 @@ namespace Codemy.Courses.Application.Services
         private readonly IRepository<Quiz> _quizRepository;
         private readonly IRepository<QuizAttempt> _quizAttemptRepository;
         private readonly IRepository<QuizQuestion> _quizQuestionRepository;
+        private readonly IRepository<Lesson> _lessonRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IdentityService.IdentityServiceClient _client;
         private readonly IUnitOfWork _unitOfWork;
@@ -27,6 +28,7 @@ namespace Codemy.Courses.Application.Services
             IRepository<UserAnswer> userAnswerRepository,
             IRepository<Quiz> quizRepository,
             IRepository<QuizAttempt> quizAttemptRepository,
+            IRepository<Lesson> lessonRepository,
             IRepository<QuizQuestion> quizQuestionRepository,
             IHttpContextAccessor httpContextAccessor,
             IdentityService.IdentityServiceClient client,
@@ -39,6 +41,7 @@ namespace Codemy.Courses.Application.Services
             _quizAttemptRepository = quizAttemptRepository;
             _quizQuestionRepository = quizQuestionRepository;
             _httpContextAccessor = httpContextAccessor;
+            _lessonRepository = lessonRepository;
             _unitOfWork = unitOfWork;
             _client = client;
         }
@@ -71,6 +74,26 @@ namespace Codemy.Courses.Application.Services
                 {
                     Success = false,
                     Message = "User does not exist."
+                };
+            }
+
+            var lesson = await _lessonRepository.GetByIdAsync(request.LessonId);
+            if (lesson == null || lesson.IsDeleted)
+            {
+                return new QuizResponse
+                {
+                    Success = false,
+                    Message = "Lesson does not exist."
+                };
+            }
+
+            var existingQuiz = _quizRepository.TableNoTracking.FirstOrDefault(q => q.lessonId == request.LessonId && !q.IsDeleted);
+            if (existingQuiz != null)
+            {
+                return new QuizResponse
+                {
+                    Success = false,
+                    Message = "A quiz for this lesson already exists."
                 };
             }
             int totalMarks = 0;
@@ -226,7 +249,7 @@ namespace Codemy.Courses.Application.Services
             {  
                 return new QuizAttemptDtoResponse
                 {
-                    Success = true,
+                    Success = false,
                     Message = "Existing quiz attempt retrieved successfully",
                     QuizAttempt = new QuizAttemptDto
                     {
@@ -242,7 +265,7 @@ namespace Codemy.Courses.Application.Services
             {
                 return new QuizAttemptDtoResponse
                 {
-                    Success = true,
+                    Success = false,
                     Message = "User has already completed this quiz",
                     QuizAttempt = new QuizAttemptDto
                     {
@@ -345,6 +368,20 @@ namespace Codemy.Courses.Application.Services
                 Message = "Quiz retrieved successfully.",
                 Quiz = quizDto
             };
+        }
+
+        public async Task<QuizDtoResponse> GetQuizByLessonIdAsync(Guid lessonId)
+        {
+            var quiz = _quizRepository.TableNoTracking.FirstOrDefault(q => q.lessonId == lessonId && !q.IsDeleted);
+            if (quiz == null)
+            {
+                return new QuizDtoResponse
+                {
+                    Success = false,
+                    Message = "Quiz not found for the lesson."
+                };
+            }
+            return await GetQuizByIdAsync(quiz.Id);
         }
 
         public async Task<QuizResult> GetQuizResultsAsync(Guid lessonId)

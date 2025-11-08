@@ -201,6 +201,58 @@ namespace Codemy.Courses.Application.Services
             };
         }
 
+        public async Task<ResourceDtoResponse> GetLessonByCourseIdAsync(Guid courseId)
+        {
+            var course = await _courseRepository.GetByIdAsync(courseId);
+
+            if (course == null)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
+                return new ResourceDtoResponse
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+            if (course.IsDeleted)
+            {
+                _logger.LogError("Course with ID {CourseId} is deleted.", courseId);
+                return new ResourceDtoResponse
+                {
+                    Success = false,
+                    Message = "Course is deleted."
+                };
+            }
+            var modules = await _moduleRepository.GetAllAsync(m => m.courseId == courseId);
+            var filteredModules = modules.Where(m => !m.IsDeleted);
+            CourseDto courseDto = new CourseDto
+            {
+                course = course,
+                module = new List<ModuleDto>()
+            };
+            foreach (var module in filteredModules)
+            {
+                var lessons = await _lessonRepository.GetAllAsync(l => l.moduleId == module.Id);
+                var filteredLessons = lessons.Where(l => !l.IsDeleted).ToList();
+                ModuleDto moduleDto = new ModuleDto
+                {
+                    moduleId = module.Id,
+                    title = module.title,
+                    duration = module.duration,
+                    numberOfLessons = module.numberOfLessons,
+                    order = module.order,
+                    lessons = filteredLessons
+                };
+                courseDto.module.Add(moduleDto);
+            }
+            return new ResourceDtoResponse
+            {
+                Success = true,
+                Message = "Course and lessons retrieved successfully.",
+                Course = courseDto
+            };
+        }
+
         public async Task<ModuleListResponse> GetModuleByCourseIdAsync(Guid courseId)
         {
             var course = await _courseRepository.GetByIdAsync(courseId);

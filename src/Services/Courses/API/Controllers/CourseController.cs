@@ -70,7 +70,7 @@ namespace Codemy.Courses.API.Controllers
                         "No modules found for the specified course."
                     );
                 }
-                return this.OkResponse(modules);
+                return this.OkResponse(modules.Modules);
             }
             catch (Exception ex)
             {
@@ -82,6 +82,34 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
+        [HttpGet("getLessons/{courseId}")]
+        public async Task<IActionResult> GetLessonByCourseIdAsync(Guid courseId)
+        {
+            if (courseId == Guid.Empty)
+            {
+                return BadRequest("Invalid course ID.");
+            }
+            try
+            {
+                var result = await _courseService.GetLessonByCourseIdAsync(courseId);
+                if (result.Course == null || !result.Course.module.Any())
+                {
+                    return this.NotFoundResponse(
+                        result.Message,
+                        "No lessons found for the specified course."
+                    );
+                }
+                return this.OkResponse(result.Course);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving lessons.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during lesson retrieval",
+                    ex.Message
+                );
+            }
+        }
         [HttpPost("create")]
         [SwaggerOperation(Summary = "Create a new course", Description = "Add a new course to the system")]
         public async Task<IActionResult> CreateCourse([FromBody] CreateCourseRequest request)
