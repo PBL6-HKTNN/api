@@ -249,7 +249,7 @@ namespace Codemy.Courses.Application.Services
             {  
                 return new QuizAttemptDtoResponse
                 {
-                    Success = false,
+                    Success = true,
                     Message = "Existing quiz attempt retrieved successfully",
                     QuizAttempt = new QuizAttemptDto
                     {
