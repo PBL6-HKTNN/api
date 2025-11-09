@@ -1,6 +1,8 @@
-﻿using Codemy.Enrollment.Application;
+﻿using Codemy.Enrollment.API.Services;
+using Codemy.Enrollment.Application;
 using Codemy.Enrollment.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -12,15 +14,13 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Nếu bạn dùng Kestrel, có thể ép cấu hình port
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5178); // HTTP
-    options.ListenAnyIP(7078, listenOptions =>
-    {
-        listenOptions.UseHttps();
-    });
+    options.ListenAnyIP(5178, o => o.Protocols = HttpProtocols.Http1AndHttp2);
+    options.ListenAnyIP(7078, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
 });
 
 builder.Services.AddApplication();
 builder.Services.AddControllers();
+builder.Services.AddGrpc();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
@@ -94,7 +94,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
+app.MapGrpcService<EnrollmentGrpcService>();
 app.MapControllers();
 
 app.Run();

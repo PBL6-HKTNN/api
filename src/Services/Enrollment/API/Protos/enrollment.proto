@@ -1,0 +1,21 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Codemy.EnrollmentsProto";
+
+package enrollments;
+
+service EnrollmentService {
+  rpc CreateEnrollment (CreateEnrollmentRequest) returns (CreateEnrollmentResponse);
+}
+
+// Request
+message CreateEnrollmentRequest {
+  string courseId = 1;
+} 
+
+// Response
+message CreateEnrollmentResponse {
+  bool success = 1;
+  string message = 2;
+}
+ 

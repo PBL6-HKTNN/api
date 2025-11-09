@@ -52,6 +52,40 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
+        [HttpPost("validate")]
+        public async Task<IActionResult> ValidateCourse([FromBody] ValidateCourseRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _courseService.ValidateCourseAsync(request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Course validation failed."
+                    );
+                }
+                return this.OkResponse("Course is valid.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating course.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during course validation",
+                    ex.Message
+                );
+            }
+        }
+
         [HttpGet("getModules/{courseId}")]
         [SwaggerOperation(Summary = "Get modules by course ID", Description = "Retrieve a list of modules for a specific course")]
         public async Task<IActionResult> GetModuleByCourseIdAsync(Guid courseId)

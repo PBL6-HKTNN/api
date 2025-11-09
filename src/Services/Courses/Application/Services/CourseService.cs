@@ -358,6 +358,53 @@ namespace Codemy.Courses.Application.Services
             };
         }
 
+        public async Task<Response> ValidateCourseAsync(ValidateCourseRequest request)
+        {
+            var course = await _courseRepository.GetByIdAsync(request.CourseId);
+
+            if (course == null)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", request.CourseId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+            if (course.IsDeleted)
+            {
+                _logger.LogError("Course with ID {CourseId} is deleted.", request.CourseId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "Course is deleted."
+                };
+            }
+            var modules = await _moduleRepository.GetAllAsync(m => m.courseId == request.CourseId);
+            var filteredModules = modules.Where(m => !m.IsDeleted);
+            foreach (var module in filteredModules)
+            {
+                var lessons = await _lessonRepository.GetAllAsync(l => l.moduleId == module.Id);
+                var filteredLessons = lessons.Where(l => !l.IsDeleted).ToList();
+                foreach (var lesson in filteredLessons)
+                {
+                    if (lesson.Id == request.LessonId)
+                    {
+                        return new Response
+                        {
+                            Success = true,
+                            Message = "Lesson is belong to this course"
+                        };
+                    }
+                }
+            }
+            return new Response
+            {
+                Success = false,
+                Message = "Lesson is not belong to this course"
+            };
+        }
+
         public async Task<IEnumerable<Course>> GetCoursesAsync(
             Guid? categoryId = null,
             string? language = null,

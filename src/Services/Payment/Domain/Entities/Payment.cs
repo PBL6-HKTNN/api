@@ -3,12 +3,12 @@ using Codemy.Payment.Domain.Enums;
 
 namespace Codemy.Payment.Domain.Entities
 {
-    internal class Payment : BaseEntity
-    {
-        public Guid orderId { get; set; }
-        public decimal amount { get; set; }
+    public class Payments : BaseEntity
+    {  
         public DateTime paymentDate { get; set; }
         public MethodPayment method { get; set; }
-
+        public Guid userId { get; set; }
+        public decimal totalAmount { get; set; }
+        public OrderStatus orderStatus { get; set; } 
     }
 }

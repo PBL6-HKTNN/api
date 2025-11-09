@@ -1,16 +1,17 @@
 ﻿using Codemy.CoursesProto;
-using Codemy.Enrollment.Application.Interfaces;
-using Codemy.Enrollment.Application.Services;
+using Codemy.EnrollmentsProto;
 using Codemy.IdentityProto;
+using Codemy.Payment.Application.Interfaces;
+using Codemy.Payment.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Codemy.Enrollment.Application
+namespace Codemy.Payment.Application
 {
     public static class DependencyInjection
-    {        public static IServiceCollection AddApplication(this IServiceCollection services)
-        {
-            services.AddScoped<IWishlistService, WishlistService>();
-            services.AddScoped<IEnrollmentService, EnrollmentService>();
+    {
+        public static IServiceCollection AddApplication(this IServiceCollection services)
+        { 
+            services.AddScoped<IPaymentService, PaymentService>();
             services.AddGrpcClient<IdentityService.IdentityServiceClient>(options =>
             {
                 options.Address = new Uri("https://localhost:7046");
@@ -18,6 +19,10 @@ namespace Codemy.Enrollment.Application
             services.AddGrpcClient<CoursesService.CoursesServiceClient>(options =>
             {
                 options.Address = new Uri("https://localhost:7024");
+            });
+            services.AddGrpcClient<EnrollmentService.EnrollmentServiceClient>(options =>
+            {
+                options.Address = new Uri("https://localhost:7078");
             });
             return services;
         }

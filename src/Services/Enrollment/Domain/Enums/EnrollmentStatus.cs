@@ -1,10 +1,8 @@
 ﻿namespace Codemy.Enrollment.Domain.Enums
 {
-    internal enum EnrollmentStatus
+    public enum EnrollmentStatus
     {
         Active,
-        Completed,
-        Cancelled,
-        OnHold
+        Completed
     }
 }
