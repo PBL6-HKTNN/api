@@ -259,21 +259,6 @@ namespace Codemy.Courses.Application.Services
                 };
             }
 
-            var successAttempt = _quizAttemptRepository.TableNoTracking
-                .FirstOrDefault(qa => qa.quizId == quizId && qa.userId == userId && qa.status == QuizAttemptStatus.Completed);
-            if (successAttempt != null)
-            {
-                return new QuizAttemptDtoResponse
-                {
-                    Success = false,
-                    Message = "User has already completed this quiz",
-                    QuizAttempt = new QuizAttemptDto
-                    {
-                        Quiz = quiz.Quiz,
-                        QuizAttempt = successAttempt
-                    }
-                };
-            }
             QuizAttempt quizAttempt = new QuizAttempt
             {
                 Id = Guid.NewGuid(),
