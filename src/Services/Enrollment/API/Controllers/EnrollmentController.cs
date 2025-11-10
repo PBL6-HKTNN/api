@@ -1,54 +1,82 @@
-
-using System.Security.Claims;
+﻿using Microsoft.AspNetCore.Mvc;
 using Codemy.BuildingBlocks.Core;
+using Codemy.Enrollment.Application.Interfaces;
 using Codemy.Enrollment.Application.DTOs;
-using Codemy.Enrollment.Infrastructure.Clients;
-using Codemy.Enrollment.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
+namespace Codemy.Enrollment.API.Controllers
+{
 [ApiController]
-[Route("api/[controller]")]
+    [Route("[controller]")]
 public class EnrollmentController : ControllerBase
 {
-    private readonly EnrollmentDbContext _context;
-    private readonly CourseClient _courseClient;
+        private readonly IEnrollmentService _enrollmentService;
+        private readonly ILogger<EnrollmentController> _logger;
 
-    public EnrollmentController(
-        EnrollmentDbContext context,
-        CourseClient courseClient 
-    )
+        public EnrollmentController(IEnrollmentService enrollmentService, ILogger<EnrollmentController> logger)
     {
-        _context = context;
-        _courseClient = courseClient;
+            _enrollmentService = enrollmentService;
+            _logger = logger;
     }
 
-    [HttpGet("my-courses")]
-    [Authorize]
-    public async Task<IActionResult> GetMyCourses(int page = 1, int pageSize = 10)
+        [HttpPost("getCourse/{courseId}")]
+        public async Task<IActionResult> GetCourseByCourseId(Guid courseId)
     {
         try
         {
-            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            var courseIds = await _context.Enrollments
-                .Where(e => e.studentId == userId)
-                .Select(e => e.courseId)
-                .ToListAsync();
-
-            if (!courseIds.Any())
-            {
-                return this.OkResponse(new List<CourseDto>());
+                var result = await _enrollmentService.GetCourseAsync(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequest(result.Message ?? "Failed to get enrollment.");
+                }
+                return this.OkResponse(result.Success);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting enrollment by course ID.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
 
-            var courses = await _courseClient.GetCoursesByIdsAsync(courseIds);
+        [HttpPost("enroll/{courseId}")]
+        public async Task<IActionResult> EnrollInCourse(Guid courseId)
+        {
+            try
+            {
+                var result = await _enrollmentService.EnrollInCourseAsyncWithoutGrpc(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequest(result.Message ?? "Failed to enroll in course.");
+                }
+                return 
+                    this.CreatedResponse(
+                        result.Enrollment, 
+                        $"/enrollment/get/{result.Enrollment.Id}"
+                    );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error enrolling in course.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
 
-            return this.OkResponse(courses);
+        [HttpPost("update")]
+        public async Task<IActionResult> UpdateEnrollmentStatus(UpdateEnrollmentRequest request)
+        {
+            try
+            {
+                var result = await _enrollmentService.UpdateEnrollmentStatusAsync(request);
+                if (!result.Success)
+            {
+                    return this.BadRequest(result.Message ?? "Failed to update enrollment status.");
+            }
+                return this.OkResponse(result.Enrollment);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "Internal server error");
+                _logger.LogError(ex, "Error updating enrollment status.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
         }
     }
 }

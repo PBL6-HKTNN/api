@@ -227,15 +227,17 @@ namespace Codemy.Courses.Application.Services
             }
             var modules = await _moduleRepository.GetAllAsync(m => m.courseId == courseId);
             var filteredModules = modules.Where(m => !m.IsDeleted);
+            var moduleSort = filteredModules.OrderBy(m => m.order);
             CourseDto courseDto = new CourseDto
             {
                 course = course,
                 module = new List<ModuleDto>()
             };
-            foreach (var module in filteredModules)
+            foreach (var module in moduleSort)
             {
                 var lessons = await _lessonRepository.GetAllAsync(l => l.moduleId == module.Id);
                 var filteredLessons = lessons.Where(l => !l.IsDeleted).ToList();
+                var lessonSort = filteredLessons.OrderBy(l => l.orderIndex).ToList();
                 ModuleDto moduleDto = new ModuleDto
                 {
                     moduleId = module.Id,
@@ -243,7 +245,7 @@ namespace Codemy.Courses.Application.Services
                     duration = module.duration,
                     numberOfLessons = module.numberOfLessons,
                     order = module.order,
-                    lessons = filteredLessons
+                    lessons = lessonSort
                 };
                 courseDto.module.Add(moduleDto);
             }
@@ -357,6 +359,51 @@ namespace Codemy.Courses.Application.Services
                 Success = true,
                 Message = "Course updated successfully.",
                 Course = result
+            };
+        }
+
+        public async Task<Response> ValidateCourseAsync(ValidateCourseRequest request)
+        {
+            var course = await _courseRepository.GetByIdAsync(request.CourseId);
+
+            if (course == null)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", request.CourseId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+            if (course.IsDeleted)
+            {
+                _logger.LogError("Course with ID {CourseId} is deleted.", request.CourseId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "Course is deleted."
+                };
+            }
+            var modules = await _moduleRepository.GetAllAsync(m => m.courseId == request.CourseId);
+            var filteredModules = modules.Where(m => !m.IsDeleted);
+            foreach (var module in filteredModules)
+            {
+                var lessonExists = (await _lessonRepository.GetAllAsync(l => l.moduleId == module.Id && !l.IsDeleted))
+                    .Any(l => l.Id == request.LessonId);
+
+                if (lessonExists)
+                {
+                    return new Response
+                    {
+                        Success = true,
+                        Message = "Lesson belongs to this course"
+                    };
+                }
+            }
+            return new Response
+            {
+                Success = false,
+                Message = "Lesson does not belong to this course"
             };
         }
 

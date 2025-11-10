@@ -3,9 +3,9 @@
 
 namespace Codemy.Payment.Domain.Entities
 {
-    internal class CartItem : BaseEntity
+    public class CartItem : BaseEntity
     {
-        public Guid cartId { get; set; }
+        public Guid userId { get; set; }
         public Guid courseId { get; set; }
         public decimal price { get; set; }
     }

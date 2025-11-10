@@ -18,6 +18,13 @@ namespace Codemy.Courses.Application.Interfaces
             string? sortBy = null,
             int page = 1,
             int pageSize = 10);
+        Task<Response> ValidateCourseAsync(ValidateCourseRequest request);
+    }
+
+    public class Response
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
     }
 
     public class CourseReponse

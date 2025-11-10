@@ -1,11 +1,10 @@
 ﻿namespace Codemy.Payment.Domain.Enums
 {
-    internal enum OrderStatus
+    public enum OrderStatus
     {
         Pending,
         Completed,
         Failed,
         Cancelled
-    }
-     
+    }    
 }

@@ -1,4 +1,5 @@
-﻿using Codemy.Courses.Application.Interfaces;
+﻿using Codemy.Courses.Application.DTOs;
+using Codemy.Courses.Application.Interfaces;
 using Codemy.CoursesProto;
 
 namespace Codemy.Courses.API.Services
@@ -28,8 +29,23 @@ namespace Codemy.Courses.API.Services
                 InstructorId = course.Course.instructorId.ToString(),
                 Title = course.Course.title,
                 Description = course.Course.description,
-                Thumbnail = course.Course.thumbnail
+                Thumbnail = course.Course.thumbnail,
+                Price = course.Course.price.ToString(),
             };
+        }
+
+        public override async Task<GetValidateResponse> ValidateCourseAsync(GetValidateRequest request, Grpc.Core.ServerCallContext context)
+        {
+            ValidateCourseRequest validateCourseRequest = new ValidateCourseRequest {
+                CourseId = Guid.Parse(request.CourseId),
+                LessonId = Guid.Parse(request.LessonId)
+            };
+            var validate = await _courseService.ValidateCourseAsync(validateCourseRequest);
+            if (validate.Success)
+            {
+                return new GetValidateResponse { Validate = true };
+            }
+            return new GetValidateResponse { Validate = false };
         }
     }
 }

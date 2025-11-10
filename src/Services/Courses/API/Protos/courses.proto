@@ -6,11 +6,17 @@ package courses;
 
 service CoursesService {
   rpc GetCourseById (GetCourseByIdRequest) returns (GetCourseByIdResponse);
+  rpc ValidateCourseAsync (GetValidateRequest) returns (GetValidateResponse);
 }
 
 // Request
 message GetCourseByIdRequest {
   string courseId = 1;
+}
+
+message GetValidateRequest {
+	string courseId = 1;
+	string lessonId = 2;
 }
 
 // Response
@@ -21,4 +27,9 @@ message GetCourseByIdResponse {
   string title = 4;
   string thumbnail = 5;
   string description = 6;
+  string price = 7;
+}
+
+message GetValidateResponse {
+	bool validate = 1;
 }

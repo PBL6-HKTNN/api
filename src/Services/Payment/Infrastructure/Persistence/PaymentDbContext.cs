@@ -1,26 +1,23 @@
 ﻿using Codemy.BuildingBlocks.Core;
 using Codemy.BuildingBlocks.Domain;
-using Codemy.Enrollment.Domain.Entities;
+using Codemy.Payment.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using EnrollmentEntity = Codemy.Enrollment.Domain.Entities.Enrollment;
-
-namespace Codemy.Enrollment.Infrastructure.Persistence
+namespace Codemy.Payment.Infrastructure.Persistence
 {
-    public class EnrollmentDbContext : DbContext
+    public class PaymentDbContext : DbContext
     {
         private readonly IEnumerable<Type> _entityTypes;
 
-        public EnrollmentDbContext(DbContextOptions<EnrollmentDbContext> options) : base(options)
+        public PaymentDbContext(DbContextOptions<PaymentDbContext> options) : base(options)
         {
             // Get all types from Domain assembly that inherit from BaseEntity
             _entityTypes = typeof(BaseEntity).Assembly
                 .GetTypes()
                 .Where(t => t is { IsAbstract: false, IsClass: true } && t.IsSubclassOf(typeof(BaseEntity)));
         }
-        public DbSet<EnrollmentEntity> Enrollments { get; set; }
-        public DbSet<WishlistItem> WishlistItems { get; set; }
-        public DbSet<Enrollments> Enrollments { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<Payments> Payments { get; set; } 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -10,6 +10,7 @@ namespace Codemy.Enrollment.Application
     {        public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             services.AddScoped<IWishlistService, WishlistService>();
+            services.AddScoped<IEnrollmentService, EnrollmentService>();
             services.AddGrpcClient<IdentityService.IdentityServiceClient>(options =>
             {
                 options.Address = new Uri("https://localhost:7046");

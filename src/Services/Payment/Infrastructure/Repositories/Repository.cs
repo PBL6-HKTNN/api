@@ -1,16 +1,16 @@
-﻿using Codemy.BuildingBlocks.Core;
-using Codemy.Enrollment.Infrastructure.Persistence;
+﻿using Codemy.BuildingBlocks.Core; 
+using Codemy.Payment.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions; 
 
-namespace Codemy.Enrollment.Infrastructure
+namespace Codemy.Payment.Infrastructure
 {
     public class Repository<T> : IRepository<T> where T : class, IAuditableEntity
     {
-        private readonly EnrollmentDbContext _context;   
+        private readonly PaymentDbContext _context;   
         private readonly DbSet<T> _dbSet;
 
-        public Repository(EnrollmentDbContext context)  
+        public Repository(PaymentDbContext context)  
         {
             _context = context;
             _dbSet = context.GetDbSet<T>();
@@ -37,11 +37,6 @@ namespace Codemy.Enrollment.Infrastructure
         {
             _context.Entry(entity).State = EntityState.Modified;
         }
-        
-        public async Task UpdateAsync(T entity)
-        {
-            _context.Set<T>().Update(entity);
-        }
 
         public void Delete(T entity)
         {
@@ -58,9 +53,9 @@ namespace Codemy.Enrollment.Infrastructure
             return await _dbSet.FindAsync(id);
         }
 
-        public IQueryable<T> Query()
+        public Task UpdateAsync(T entity)
         {
-            return _dbSet.AsQueryable();
+            throw new NotImplementedException();
         }
 
         public IQueryable<T> Query()
