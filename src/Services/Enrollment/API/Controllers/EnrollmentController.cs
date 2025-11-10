@@ -5,24 +5,24 @@ using Codemy.Enrollment.Application.DTOs;
 
 namespace Codemy.Enrollment.API.Controllers
 {
-    [ApiController]
+[ApiController]
     [Route("[controller]")]
-    public class EnrollmentController : ControllerBase
-    {
+public class EnrollmentController : ControllerBase
+{
         private readonly IEnrollmentService _enrollmentService;
         private readonly ILogger<EnrollmentController> _logger;
 
         public EnrollmentController(IEnrollmentService enrollmentService, ILogger<EnrollmentController> logger)
-        {
+    {
             _enrollmentService = enrollmentService;
             _logger = logger;
-        }
+    }
 
         [HttpPost("getCourse/{courseId}")]
         public async Task<IActionResult> GetCourseByCourseId(Guid courseId)
+    {
+        try
         {
-            try
-            {
                 var result = await _enrollmentService.GetCourseAsync(courseId);
                 if (!result.Success)
                 {
@@ -67,13 +67,13 @@ namespace Codemy.Enrollment.API.Controllers
             {
                 var result = await _enrollmentService.UpdateEnrollmentStatusAsync(request);
                 if (!result.Success)
-                {
-                    return this.BadRequest(result.Message ?? "Failed to update enrollment status.");
-                }
-                return this.OkResponse(result.Enrollment);
-            }
-            catch (Exception ex)
             {
+                    return this.BadRequest(result.Message ?? "Failed to update enrollment status.");
+            }
+                return this.OkResponse(result.Enrollment);
+        }
+        catch (Exception ex)
+        {
                 _logger.LogError(ex, "Error updating enrollment status.");
                 return this.InternalServerErrorResponse("Internal server error.");
             }

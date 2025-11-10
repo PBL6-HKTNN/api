@@ -1,7 +1,7 @@
-﻿using Codemy.BuildingBlocks.Core;
+﻿using System.Security.Claims;
+using Codemy.BuildingBlocks.Core;
 using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
-using Codemy.Courses.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
@@ -260,6 +260,5 @@ namespace Codemy.Courses.API.Controllers
 
             return this.OkResponse(result);
         }
-
     }
 }
