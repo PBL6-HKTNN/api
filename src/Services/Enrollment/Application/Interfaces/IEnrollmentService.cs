@@ -10,9 +10,11 @@ namespace Codemy.Enrollment.Application.Interfaces
 {
     public interface IEnrollmentService
     {
-        Task<EnrollmentResponse> EnrollInCourseAsync(Guid courseId);
+        Task<EnrollmentResponse> EnrollInCourseAsyncWithoutGrpc(Guid courseId);
+        Task<EnrollmentResponse> EnrollInCourseAsync(Guid courseId, Guid userId);
         Task<EnrollmentResponse> UpdateEnrollmentStatusAsync(UpdateEnrollmentRequest request);
-    }
+        Task<Response> GetCourseAsync(Guid courseId);
+    } 
 
     public class EnrollmentResponse
     {

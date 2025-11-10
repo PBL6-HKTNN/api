@@ -7,11 +7,28 @@ namespace Codemy.Payment.Application.Interfaces
     {
         Task<CartResponse> AddToCartAsync(Guid courseId);
         Task<PaymentResponse> CreatePaymentAsync(PaymentRequest paymentRequest);
+        Task<CreatePaymentIntentResponse> CreatePaymentIntentAsync(PaymentIntentRequest request);
         Task<CartResponse> GetCartAsync();
         Task<ListPaymentResponse> GetListPaymentAsync();
         Task<PaymentResponse> GetPaymentAsync();
         Task<CartResponse> RemoveFromCart(Guid courseId);
         Task<UpdatePaymentResponse> UpdatePaymentStatusAsync(UpdatePaymentRequest request);
+        Task UpdateStatusPaymentAutomatic();
+    }
+
+    public class CreatePaymentIntentResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public PaymentIntentDto paymentIntent { get; set; }
+    }
+
+    public class PaymentIntentDto
+    {
+        public string ClientSecret { get; set; }
+        public Guid paymentId { get; set; }
+        public string currency { get; set; }
+        public decimal amount { get; set; }
     }
 
     public class ListPaymentResponse

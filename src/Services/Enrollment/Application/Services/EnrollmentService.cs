@@ -36,36 +36,8 @@ namespace Codemy.Enrollment.Application.Services
             _courseClient = courseClient;
         }
 
-        public async Task<EnrollmentResponse> EnrollInCourseAsync(Guid courseId)
+        public async Task<EnrollmentResponse> EnrollInCourseAsync(Guid courseId, Guid UserId)
         {
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null || !user.Identity?.IsAuthenticated == true)
-            {
-                return new EnrollmentResponse
-                {
-                    Success = false,
-                    Message = "User not authenticated or token missing."
-                };
-            }
-
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                           ?? user.FindFirst("sub")?.Value
-                           ?? user.FindFirst("userId")?.Value;
-
-            var UserId = Guid.Parse(userIdClaim);
-            var userExists = await _client.GetUserByIdAsync(
-                new GetUserByIdRequest { UserId = UserId.ToString() }
-            );
-
-            if (!userExists.Exists)
-            {
-                _logger.LogError("User with ID {UserId} does not exist.", UserId);
-                return new EnrollmentResponse
-                {
-                    Success = false,
-                    Message = "User does not exist."
-                };
-            }
             var courseExists = await _courseClient.GetCourseByIdAsync(
                 new GetCourseByIdRequest { CourseId = courseId.ToString() }
             );
@@ -116,6 +88,148 @@ namespace Codemy.Enrollment.Application.Services
             {
                 Success = true,
                 Enrollment = enrollments
+            };
+        }
+
+        public async Task<EnrollmentResponse> EnrollInCourseAsyncWithoutGrpc(Guid courseId)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = UserId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", UserId);
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+            var courseExists = await _courseClient.GetCourseByIdAsync(
+                new GetCourseByIdRequest { CourseId = courseId.ToString() }
+            );
+            if (!courseExists.Exists)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+
+            var existingEnrollment = await _enrollmentRepository
+                .FindAsync(e => e.courseId == courseId && e.studentId == UserId);
+            if (existingEnrollment.Count != 0)
+            {
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "User is already enrolled in this course."
+                };
+            }
+
+            Enrollments enrollments = new Enrollments
+            {
+                Id = Guid.NewGuid(),
+                courseId = courseId,
+                studentId = UserId,
+                progressStatus = ProgressStatus.NotStarted,
+                enrollmentStatus = EnrollmentStatus.Active,
+                enrollmentDate = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = UserId
+            };
+            await _enrollmentRepository.AddAsync(enrollments);
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result <= 0)
+            {
+                _logger.LogError("Failed to enroll user {UserId} in course {CourseId}.", UserId, courseId);
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "Failed to enroll in course."
+                };
+            }
+            return new EnrollmentResponse
+            {
+                Success = true,
+                Enrollment = enrollments
+            };
+        }
+
+        public async Task<Response> GetCourseAsync(Guid courseId)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new Response
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = UserId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", UserId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+            var courseExists = await _courseClient.GetCourseByIdAsync(
+                new GetCourseByIdRequest { CourseId = courseId.ToString() }
+            );
+            if (!courseExists.Exists)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+
+            var existingEnrollment = await _enrollmentRepository
+                .FindAsync(e => e.courseId == courseId && e.studentId == UserId);
+            if (existingEnrollment.Count == 0)
+                {
+                return new Response
+                {
+                    Success = false,
+                    Message = "User is not enrolled in this course."
+                };
+            }
+            return new Response
+            {
+                Success = true,
             };
         }
 

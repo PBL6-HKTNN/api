@@ -1,4 +1,5 @@
 ﻿using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Extensions;
 using Codemy.CoursesProto;
 using Codemy.EnrollmentsProto;
 using Codemy.IdentityProto;
@@ -7,9 +8,11 @@ using Codemy.Payment.Application.Interfaces;
 using Codemy.Payment.Domain.Entities;
 using Codemy.Payment.Domain.Enums;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging; 
 using System.Net.WebSockets;
+using Stripe;
 using System.Security.Claims;
+using IdentityService = Codemy.IdentityProto.IdentityService;
 namespace Codemy.Payment.Application.Services
 {
     internal class PaymentService : IPaymentService
@@ -23,7 +26,7 @@ namespace Codemy.Payment.Application.Services
         private readonly CoursesService.CoursesServiceClient _courseClient;
         private readonly EnrollmentService.EnrollmentServiceClient _enrollmentClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
+        private readonly PaymentGrpcEnrollmentService _paymentGrpcEnrollmentService;
 
         public PaymentService(
             ILogger<PaymentService> logger,
@@ -34,7 +37,8 @@ namespace Codemy.Payment.Application.Services
             IdentityService.IdentityServiceClient client,
             CoursesService.CoursesServiceClient courseClient,
             EnrollmentService.EnrollmentServiceClient enrollmentClient,
-            IHttpContextAccessor httpContextAccessor
+            IHttpContextAccessor httpContextAccessor,
+            PaymentGrpcEnrollmentService paymentGrpcEnrollmentService
             )
         {
             _logger = logger;
@@ -46,6 +50,28 @@ namespace Codemy.Payment.Application.Services
             _courseClient = courseClient;
             _enrollmentClient = enrollmentClient;
             _httpContextAccessor = httpContextAccessor;
+            _paymentGrpcEnrollmentService = paymentGrpcEnrollmentService;
+        }
+
+        public async Task UpdateStatusPaymentAutomatic()
+        {
+            var payments = await _paymentRepository.GetAllAsync(p => p.orderStatus == OrderStatus.Pending);
+            foreach (var payment in payments)
+            {
+                if ((DateTime.UtcNow - payment.paymentDate).TotalMinutes >= 30)
+                {
+                    payment.orderStatus = OrderStatus.Failed;
+                    payment.UpdatedAt = DateTime.UtcNow;
+                    _paymentRepository.Update(payment);
+                    _logger.LogInformation("Payment with ID {PaymentId} has been automatically updated to Failed status due to timeout.", payment.Id);
+                }
+            }
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result <= 0)
+            {
+                _logger.LogError("Failed to update payment statuses automatically.");
+            }
+            else _logger.LogError("Update payment statuses automatically completed successfully.");
         }
 
         public async Task<CartResponse> AddToCartAsync(Guid courseId)
@@ -623,18 +649,10 @@ namespace Codemy.Payment.Application.Services
                 payment.UpdatedBy = UserId;
                 if (request.status == OrderStatus.Completed)
                 {
-                    // tạo enrollment
                     var orderItems = await _orderItemRepository.GetAllAsync(oi => oi.paymentId == payment.Id);
                     foreach (var item in orderItems)
                     {
-                        var enrollmentResponse = await _enrollmentClient.CreateEnrollmentAsync(
-                            new CreateEnrollmentRequest
-                            {
-                                CourseId = item.courseId.ToString()
-                            }
-                        );
-                        Console.WriteLine(enrollmentResponse.Success);
-                        Console.WriteLine(enrollmentResponse.Message);
+                        var enrollmentResponse = await _paymentGrpcEnrollmentService.CreateEnrollmentAsync(item.courseId);
                         if (!enrollmentResponse.Success)
                         {
                             _logger.LogError("Failed to create enrollment for course {CourseId} after payment completion.", item.courseId);
@@ -680,6 +698,98 @@ namespace Codemy.Payment.Application.Services
                 Success = true,
                 Message = "Payment status updated successfully.",
                 Payment = payment
+            };
+        }
+
+        public async Task<CreatePaymentIntentResponse> CreatePaymentIntentAsync(PaymentIntentRequest request)
+        {
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new CreatePaymentIntentResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = UserId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", UserId);
+                return new CreatePaymentIntentResponse
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+
+            var payment = await _paymentRepository.GetByIdAsync(request.PaymentId);
+            if (payment == null)
+            {
+                _logger.LogError("Payment with ID {PaymentId} not found.", request.PaymentId);
+                return new CreatePaymentIntentResponse
+                {
+                    Success = false,
+                    Message = "Payment not found."
+                };
+            }
+
+            if (payment.totalAmount != request.Amount)
+            {
+                return new CreatePaymentIntentResponse
+                {
+                    Success = false,
+                    Message = "The amount is not matching."
+                };
+            }
+            LogExtensions.LoadEnvFile(); 
+            StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("SECRET_KEY");
+
+            var options = new PaymentIntentCreateOptions
+            {
+                Amount = (long)(request.Amount * 100), // Amount in cents
+                Currency = "usd",
+                PaymentMethodTypes = new List<string> { "card" },
+                Metadata = new Dictionary<string, string>
+                    {
+                        { "paymentId", request.PaymentId.ToString() }, // your internal ID
+                        { "userId", UserId.ToString() }               // optional
+                    }
+            };
+
+            var service = new PaymentIntentService();
+            var paymentIntent = await service.CreateAsync(options);
+            if (paymentIntent == null)
+            {
+                _logger.LogError("Failed to create payment intent.");
+                return new CreatePaymentIntentResponse
+                {
+                    Success = false,
+                    Message = "Failed to create payment intent."
+                };
+            }
+            _logger.LogInformation("Payment intent created successfully with ID {PaymentIntentId}.", paymentIntent.Id);
+            return new CreatePaymentIntentResponse
+            {
+                Success = true,
+                Message = "Created payment intent.",
+                paymentIntent = new PaymentIntentDto
+                {
+                    ClientSecret = paymentIntent.ClientSecret,
+                    paymentId = payment.Id,
+                    amount = payment.totalAmount,
+                    currency = options.Currency
+                }
             };
         }
     }

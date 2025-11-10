@@ -1,7 +1,11 @@
-﻿using Codemy.Payment.Application.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Codemy.BuildingBlocks.Core;
+﻿using Codemy.BuildingBlocks.Core;
 using Codemy.Payment.Application.DTOs;
+using Codemy.Payment.Application.Interfaces;
+using Codemy.Payment.Domain.Enums;
+using Microsoft.AspNetCore.Mvc;
+using Stripe;
+using Stripe.Forwarding;
+using System.Runtime.CompilerServices;
 
 
 namespace Codemy.Payment.API.Controllers
@@ -115,7 +119,7 @@ namespace Codemy.Payment.API.Controllers
         public async Task<IActionResult> GetPayment()
         {
             try
-            { 
+            {
                 var result = await _paymentService.GetPaymentAsync();
                 if (!result.Success)
                 {
@@ -163,7 +167,7 @@ namespace Codemy.Payment.API.Controllers
                 return this.ValidationErrorResponse(validationErrors);
             }
             try
-            { 
+            {
                 var result = await _paymentService.UpdatePaymentStatusAsync(request);
                 if (!result.Success)
                 {
@@ -177,5 +181,80 @@ namespace Codemy.Payment.API.Controllers
                 return this.InternalServerErrorResponse("Internal server error.");
             }
         }
-    } 
+
+        [HttpPost("create-payment-intent")]
+        public async Task<IActionResult> CreatePaymentIntent([FromBody] PaymentIntentRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _paymentService.CreatePaymentIntentAsync(request);
+                if (!result.Success)
+                {
+                    return this.BadRequest(result.Message ?? "Failed to create payment intent.");
+                }
+                return this.OkResponse(result.paymentIntent);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating payment intent.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+        [HttpPost("webhook")]
+        public async Task<IActionResult> StripeWebhook()
+        {
+            var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+            var stripeEvent = EventUtility.ConstructEvent(
+                json,
+                Request.Headers["Stripe-Signature"],
+                Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET")
+            );
+
+            if (stripeEvent.Type == Stripe.EventTypes.PaymentIntentSucceeded ||
+                stripeEvent.Type == Stripe.EventTypes.PaymentIntentPaymentFailed)
+            {
+                var intent = stripeEvent.Data.Object as PaymentIntent;
+                var paymentIdString = intent.Metadata["paymentId"];
+                var paymentId = Guid.Parse(paymentIdString);
+                OrderStatus status = OrderStatus.Pending;
+                if (stripeEvent.Type == Stripe.EventTypes.PaymentIntentSucceeded)
+                {
+                    status = OrderStatus.Completed;
+                    Console.WriteLine("Payment succeeded.");
+                }
+                else if (stripeEvent.Type == Stripe.EventTypes.PaymentIntentPaymentFailed)
+                {
+                    status = OrderStatus.Failed;
+                    Console.WriteLine("Payment failed.");
+                }
+                try
+                {
+                    var result = await _paymentService.UpdatePaymentStatusAsync(new UpdatePaymentRequest { PaymentId = paymentId, status = status});
+                    if (!result.Success)
+                    {
+                        return this.BadRequest(result.Message ?? "Failed to update payment intent.");
+                    }
+                    return this.OkResponse(result.Success);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating payment intent.");
+                    return this.InternalServerErrorResponse("Internal server error.");
+                }
+            }
+
+            return Ok();
+        }
+
+    }
 }

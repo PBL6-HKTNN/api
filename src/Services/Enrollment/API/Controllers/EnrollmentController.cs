@@ -18,12 +18,31 @@ namespace Codemy.Enrollment.API.Controllers
             _logger = logger;
         }
 
+        [HttpPost("getCourse/{courseId}")]
+        public async Task<IActionResult> GetCourseByCourseId(Guid courseId)
+        {
+            try
+            {
+                var result = await _enrollmentService.GetCourseAsync(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequest(result.Message ?? "Failed to get enrollment.");
+                }
+                return this.OkResponse(result.Success);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting enrollment by course ID.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
         [HttpPost("enroll/{courseId}")]
         public async Task<IActionResult> EnrollInCourse(Guid courseId)
         {
             try
             {
-                var result = await _enrollmentService.EnrollInCourseAsync(courseId);
+                var result = await _enrollmentService.EnrollInCourseAsyncWithoutGrpc(courseId);
                 if (!result.Success)
                 {
                     return this.BadRequest(result.Message ?? "Failed to enroll in course.");

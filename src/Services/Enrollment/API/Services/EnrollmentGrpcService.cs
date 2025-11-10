@@ -12,7 +12,7 @@ namespace Codemy.Enrollment.API.Services
 
         public override async Task<CreateEnrollmentResponse> CreateEnrollment(CreateEnrollmentRequest request, Grpc.Core.ServerCallContext context)
         {
-            var result = await _enrollmentService.EnrollInCourseAsync(Guid.Parse(request.CourseId));
+            var result = await _enrollmentService.EnrollInCourseAsync(Guid.Parse(request.CourseId), Guid.Parse(request.UserId));
             return new CreateEnrollmentResponse
             {
                 Success = result.Success,

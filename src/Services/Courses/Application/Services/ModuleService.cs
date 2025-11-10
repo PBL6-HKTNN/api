@@ -176,6 +176,10 @@ namespace Codemy.Courses.Application.Services
                     };
                 }
                 var lessons = await _lessonRepository.FindAsync(m => m.moduleId == moduleId);
+                var lessonFiltered = lessons.Where(l => !l.IsDeleted).ToList();
+                var lessonSortByLessonId = lessonFiltered.Count > 0
+                    ? lessonFiltered.OrderBy(l => l.orderIndex).ToList()
+                    : new List<Lesson>();
                 if (lessons.ToList().Count == 0)
                 {
                     return new LessonListResponse
@@ -188,7 +192,7 @@ namespace Codemy.Courses.Application.Services
                 {
                     Success = true,
                     Message = "Get list lesson successfully.",
-                    Lessons = lessons.ToList()
+                    Lessons = lessonSortByLessonId
                 };
             }
             catch (Exception e)

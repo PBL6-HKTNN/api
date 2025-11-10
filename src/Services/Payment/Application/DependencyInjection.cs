@@ -12,6 +12,8 @@ namespace Codemy.Payment.Application
         public static IServiceCollection AddApplication(this IServiceCollection services)
         { 
             services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<PaymentGrpcEnrollmentService>();
+            services.AddHostedService<PaymentStatusBackgroundService>();
             services.AddGrpcClient<IdentityService.IdentityServiceClient>(options =>
             {
                 options.Address = new Uri("https://localhost:7046");
