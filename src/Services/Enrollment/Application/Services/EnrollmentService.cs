@@ -251,14 +251,13 @@ namespace Codemy.Enrollment.Application.Services
             }
             if (request.LessonId.HasValue)
             {
-                var validate = _courseClient.ValidateCourseAsync
-                    (new GetValidateRequest { CourseId = enrollment.courseId.ToString(), LessonId = request.LessonId.ToString() });
+                var validate = _courseClient.ValidateCourseAsync(new GetValidateRequest { CourseId = enrollment.courseId.ToString(), LessonId = request.LessonId.ToString() });
                 if (!validate.Validate)
                 {
                     return new EnrollmentResponse
                     {
                         Success = false,
-                        Message = "Lesson is not belong to this course."
+                        Message = "Lesson does not belong to this course."
                     };
                 }
                 enrollment.lessonId = request.LessonId.Value;

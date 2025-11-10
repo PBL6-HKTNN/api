@@ -224,18 +224,23 @@ namespace Codemy.Payment.API.Controllers
                 stripeEvent.Type == Stripe.EventTypes.PaymentIntentPaymentFailed)
             {
                 var intent = stripeEvent.Data.Object as PaymentIntent;
+                if (intent == null)
+                {
+                    _logger.LogError("Stripe event object could not be cast to PaymentIntent.");
+                    return this.BadRequest("Invalid payment intent object in webhook event.");
+                }
                 var paymentIdString = intent.Metadata["paymentId"];
                 var paymentId = Guid.Parse(paymentIdString);
                 OrderStatus status = OrderStatus.Pending;
                 if (stripeEvent.Type == Stripe.EventTypes.PaymentIntentSucceeded)
                 {
                     status = OrderStatus.Completed;
-                    Console.WriteLine("Payment succeeded.");
+                    _logger.LogInformation("Payment succeeded.");
                 }
                 else if (stripeEvent.Type == Stripe.EventTypes.PaymentIntentPaymentFailed)
                 {
                     status = OrderStatus.Failed;
-                    Console.WriteLine("Payment failed.");
+                    _logger.LogInformation("Payment failed.");
                 }
                 try
                 {

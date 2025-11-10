@@ -71,7 +71,7 @@ namespace Codemy.Payment.Application.Services
             {
                 _logger.LogError("Failed to update payment statuses automatically.");
             }
-            else _logger.LogError("Update payment statuses automatically completed successfully.");
+            else _logger.LogInformation("Update payment statuses automatically completed successfully.");
         }
 
         public async Task<CartResponse> AddToCartAsync(Guid courseId)
@@ -227,9 +227,9 @@ namespace Codemy.Payment.Application.Services
                     };
                 }
                 var cartItem = await _cartItemRepository.GetAllAsync(c => c.courseId == item);
-                var cartItemFilted = cartItem.Where(c => !c.IsDeleted);
-                if (cartItemFilted.Any()) {
-                    _cartItemRepository.Delete(cartItemFilted.FirstOrDefault());
+                var cartItemFiltered = cartItem.Where(c => !c.IsDeleted);
+                if (cartItemFiltered.Any()) {
+                    _cartItemRepository.Delete(cartItemFiltered.FirstOrDefault());
                 }
                 OrderItem orderItem = new OrderItem
                     {
@@ -615,7 +615,6 @@ namespace Codemy.Payment.Application.Services
             }
 
             var payment = await _paymentRepository.GetByIdAsync(request.PaymentId);
-            Console.WriteLine(payment.orderStatus);
             if (payment == null)
             {
                 _logger.LogError("Payment with ID {PaymentId} not found.", request.PaymentId);

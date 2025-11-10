@@ -388,24 +388,22 @@ namespace Codemy.Courses.Application.Services
             var filteredModules = modules.Where(m => !m.IsDeleted);
             foreach (var module in filteredModules)
             {
-                var lessons = await _lessonRepository.GetAllAsync(l => l.moduleId == module.Id);
-                var filteredLessons = lessons.Where(l => !l.IsDeleted).ToList();
-                foreach (var lesson in filteredLessons)
+                var lessonExists = (await _lessonRepository.GetAllAsync(l => l.moduleId == module.Id && !l.IsDeleted))
+                    .Any(l => l.Id == request.LessonId);
+
+                if (lessonExists)
                 {
-                    if (lesson.Id == request.LessonId)
+                    return new Response
                     {
-                        return new Response
-                        {
-                            Success = true,
-                            Message = "Lesson is belong to this course"
-                        };
-                    }
+                        Success = true,
+                        Message = "Lesson belongs to this course"
+                    };
                 }
             }
             return new Response
             {
                 Success = false,
-                Message = "Lesson is not belong to this course"
+                Message = "Lesson does not belong to this course"
             };
         }
 
