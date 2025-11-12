@@ -3,7 +3,6 @@ using Codemy.BuildingBlocks.Domain;
 using Codemy.Enrollment.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using EnrollmentEntity = Codemy.Enrollment.Domain.Entities.Enrollment;
 
 namespace Codemy.Enrollment.Infrastructure.Persistence
 {
@@ -17,8 +16,7 @@ namespace Codemy.Enrollment.Infrastructure.Persistence
             _entityTypes = typeof(BaseEntity).Assembly
                 .GetTypes()
                 .Where(t => t is { IsAbstract: false, IsClass: true } && t.IsSubclassOf(typeof(BaseEntity)));
-        }
-        public DbSet<EnrollmentEntity> Enrollments { get; set; }
+        } 
         public DbSet<WishlistItem> WishlistItems { get; set; }
         public DbSet<Enrollments> Enrollments { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
