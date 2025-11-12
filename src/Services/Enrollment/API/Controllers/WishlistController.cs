@@ -49,7 +49,7 @@ namespace Codemy.Enrollment.API.Controllers
                 {
                     return this.BadRequest(result.Message ?? "Failed to retrieve wishlist.");
                 }
-                return this.OkResponse(result);
+                return this.OkResponse(result.WishlistItems);
             }
             catch (Exception ex)
             {
