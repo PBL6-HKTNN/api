@@ -19,6 +19,7 @@ public class EnrollmentController : ControllerBase
     }
 
         [HttpPost("getCourse/{courseId}")]
+        [EndpointDescription("Check enrollment course or not")]
         public async Task<IActionResult> GetCourseByCourseId(Guid courseId)
     {
         try

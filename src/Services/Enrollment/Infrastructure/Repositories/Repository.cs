@@ -62,10 +62,5 @@ namespace Codemy.Enrollment.Infrastructure
         {
             return _dbSet.AsQueryable();
         }
-
-        public IQueryable<T> Query()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
