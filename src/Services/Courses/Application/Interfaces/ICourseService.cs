@@ -49,7 +49,7 @@ namespace Codemy.Courses.Application.Interfaces
 
     public class ModuleDto
     {
-        public Guid moduleId { get; set; }
+        public Guid Id { get; set; }
         public string title { get; set; }
         public TimeSpan duration { get; set; }
         public int numberOfLessons { get; set; }
