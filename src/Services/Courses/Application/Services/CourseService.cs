@@ -240,7 +240,7 @@ namespace Codemy.Courses.Application.Services
                 var lessonSort = filteredLessons.OrderBy(l => l.orderIndex).ToList();
                 ModuleDto moduleDto = new ModuleDto
                 {
-                    moduleId = module.Id,
+                    Id = module.Id,
                     title = module.title,
                     duration = module.duration,
                     numberOfLessons = module.numberOfLessons,
