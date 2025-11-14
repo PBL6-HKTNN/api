@@ -29,9 +29,9 @@ namespace Codemy.Enrollment.API.Controllers
                 var result = await _enrollmentService.GetCourseAsync(courseId);
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to get enrollment.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to get enrollment.");
                 }
-                return this.OkResponse(result.Success);
+                return this.OkResponse(result);
             }
             catch (Exception ex)
             {
@@ -48,7 +48,7 @@ namespace Codemy.Enrollment.API.Controllers
                 var result = await _enrollmentService.EnrollInCourseAsyncWithoutGrpc(courseId);
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to enroll in course.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to enroll in course.");
                 }
                 return
                     this.CreatedResponse(
