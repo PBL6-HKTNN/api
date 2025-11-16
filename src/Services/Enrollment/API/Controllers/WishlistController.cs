@@ -66,7 +66,7 @@ namespace Codemy.Enrollment.API.Controllers
                 var result = await _wishlistService.RemoveFromWishlistAsync(courseId);
                 if(!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to remove course from wishlist.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to remove course from wishlist.");
                 }
                 return this.OkResponse("Course removed from wishlist successfully.");
             }

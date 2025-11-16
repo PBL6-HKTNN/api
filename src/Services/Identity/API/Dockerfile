@@ -17,9 +17,6 @@ COPY ["src/BuildingBlocks/Codemy.BuildingBlocks.Infrastructure/Codemy.BuildingBl
 COPY ["src/BuildingBlocks/Codemy.BuildingBlocks.Domain/Codemy.BuildingBlocks.Domain.csproj", "src/BuildingBlocks/Codemy.BuildingBlocks.Domain/"]
 COPY ["src/BuildingBlocks/Core/Codemy.BuildingBlocks.Core.csproj", "src/BuildingBlocks/Core/"]
 COPY ["src/Services/Identity/Application/Codemy.Identity.Application.csproj", "src/Services/Identity/Application/"]
-COPY ["src/Services/Notification/API/Codemy.Notification.API.csproj", "src/Services/Notification/API/"]
-COPY ["src/Services/Notification/Application/Codemy.Notification.Application.csproj", "src/Services/Notification/Application/"]
-COPY ["src/Services/Notification/Infrastructure/Codemy.Notification.Infrastructure.csproj", "src/Services/Notification/Infrastructure/"]
 COPY ["src/Services/Identity/Domain/Codemy.Identity.Domain.csproj", "src/Services/Identity/Domain/"]
 COPY ["src/Services/Identity/Infrastructure/Codemy.Identity.Infrastructure.csproj", "src/Services/Identity/Infrastructure/"]
 RUN dotnet restore "./src/Services/Identity/API/Codemy.Identity.API.csproj"

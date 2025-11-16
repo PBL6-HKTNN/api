@@ -31,7 +31,7 @@ namespace Codemy.Payment.API.Controllers
                 var result = await _paymentService.GetCartAsync();
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to retrieve cart.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve cart.");
                 }
                 return this.OkResponse(result.CartItems);
             }
@@ -50,7 +50,7 @@ namespace Codemy.Payment.API.Controllers
                 var result = await _paymentService.AddToCartAsync(courseId);
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to add course to cart.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to add course to cart.");
                 }
                 return
                     this.CreatedResponse(
@@ -72,7 +72,7 @@ namespace Codemy.Payment.API.Controllers
                 var result = await _paymentService.RemoveFromCart(courseId);
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to remove course from cart.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to remove course from cart.");
                 }
                 return this.OkResponse("Course removed from cart successfully.");
             }
@@ -101,7 +101,7 @@ namespace Codemy.Payment.API.Controllers
                 var result = await _paymentService.CreatePaymentAsync(paymentRequest);
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to create payment.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to create payment.");
                 }
                 return
                     this.CreatedResponse(
@@ -123,7 +123,7 @@ namespace Codemy.Payment.API.Controllers
                 var result = await _paymentService.GetPaymentAsync();
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to retrieve payment.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve payment.");
                 }
                 return this.OkResponse(result.Payment);
             }
@@ -142,7 +142,7 @@ namespace Codemy.Payment.API.Controllers
                 var result = await _paymentService.GetListPaymentAsync();
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to retrieve payment.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve payment.");
                 }
                 return this.OkResponse(result.Payments);
             }
@@ -171,7 +171,7 @@ namespace Codemy.Payment.API.Controllers
                 var result = await _paymentService.UpdatePaymentStatusAsync(request);
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to update payment status.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to update payment status.");
                 }
                 return this.OkResponse(result.Payment);
             }
@@ -200,7 +200,7 @@ namespace Codemy.Payment.API.Controllers
                 var result = await _paymentService.CreatePaymentIntentAsync(request);
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to create payment intent.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to create payment intent.");
                 }
                 return this.OkResponse(result.paymentIntent);
             }
@@ -227,7 +227,7 @@ namespace Codemy.Payment.API.Controllers
                 if (intent == null)
                 {
                     _logger.LogError("Stripe event object could not be cast to PaymentIntent.");
-                    return this.BadRequest("Invalid payment intent object in webhook event.");
+                    return this.BadRequestResponse("Invalid payment intent object in webhook event.");
                 }
                 var paymentIdString = intent.Metadata["paymentId"];
                 var paymentId = Guid.Parse(paymentIdString);
@@ -247,7 +247,7 @@ namespace Codemy.Payment.API.Controllers
                     var result = await _paymentService.UpdatePaymentStatusAsync(new UpdatePaymentRequest { PaymentId = paymentId, status = status});
                     if (!result.Success)
                     {
-                        return this.BadRequest(result.Message ?? "Failed to update payment intent.");
+                        return this.BadRequestResponse(result.Message ?? "Failed to update payment intent.");
                     }
                     return this.OkResponse(result.Success);
                 }

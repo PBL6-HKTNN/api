@@ -16,12 +16,12 @@ services:
       - "8080:5197"
       - "8443:7046"
     env_file:
-      - D:\sem7\pbl\PBL\Codemy\.env
+      - ./.env
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
     volumes:
-      - D:\sem7\pbl\PBL\Codemy\aspnetapp.pfx:/https/aspnetapp.pfx
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   review-api:
     build:
@@ -34,12 +34,12 @@ services:
       - "8085:5041"
       - "8442:7048"
     env_file:
-      - D:\sem7\pbl\PBL\Codemy\.env
+      - ./.env
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
     volumes:
-      - D:\sem7\pbl\PBL\Codemy\aspnetapp.pfx:/https/aspnetapp.pfx
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   search-api:
     build:
@@ -52,12 +52,12 @@ services:
       - "8086:5004"
       - "8441:7180"
     env_file:
-      - D:\sem7\pbl\PBL\Codemy\.env
+      - ./.env
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
     volumes:
-      - D:\sem7\pbl\PBL\Codemy\aspnetapp.pfx:/https/aspnetapp.pfx
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   courses-api:
     build:
@@ -70,12 +70,12 @@ services:
       - "8084:5079"
       - "8448:7024"
     env_file:
-      - D:\sem7\pbl\PBL\Codemy\.env
+      - ./.env
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
     volumes:
-      - D:\sem7\pbl\PBL\Codemy\aspnetapp.pfx:/https/aspnetapp.pfx
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   api-gateway:
     build:
@@ -87,12 +87,12 @@ services:
     ports:
       - "8444:7000"
     env_file:
-      - D:\sem7\pbl\PBL\Codemy\.env
+      - ./.env
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
     volumes:
-      - D:\sem7\pbl\PBL\Codemy\aspnetapp.pfx:/https/aspnetapp.pfx
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   payment-api:
     build:
@@ -105,12 +105,12 @@ services:
       - "8081:5299"
       - "8445:7099"
     env_file:
-      - D:\sem7\pbl\PBL\Codemy\.env
+      - ./.env
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
     volumes:
-      - D:\sem7\pbl\PBL\Codemy\aspnetapp.pfx:/https/aspnetapp.pfx
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   notification-api:
     build:
@@ -123,12 +123,12 @@ services:
       - "8082:5180"
       - "8446:7187"
     env_file:
-      - D:\sem7\pbl\PBL\Codemy\.env
+      - ./.env
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
     volumes:
-      - D:\sem7\pbl\PBL\Codemy\aspnetapp.pfx:/https/aspnetapp.pfx
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   enrollment-api:
     build:
@@ -141,9 +141,9 @@ services:
       - "8083:5178"
       - "8447:7078"
     env_file:
-      - D:\sem7\pbl\PBL\Codemy\.env
+      - ./.env
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
     volumes:
-      - D:\sem7\pbl\PBL\Codemy\aspnetapp.pfx:/https/aspnetapp.pfx
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx

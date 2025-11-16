@@ -22,7 +22,7 @@ namespace Codemy.Courses.Application
 
             services.AddGrpcClient<CourseIndexService.CourseIndexServiceClient>(options =>
             {
-                options.Address = new Uri("http://serach-service:5005");
+                options.Address = new Uri("http://search-service:5005");
             });
             return services;
         }
