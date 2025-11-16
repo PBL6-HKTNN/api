@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\Core\Codemy.BuildingBlocks.Core.csproj" />
-    <ProjectReference Include="..\..\Notification\API\Codemy.Notification.API.csproj" />
     <ProjectReference Include="..\Domain\Codemy.Identity.Domain.csproj" /> 
   </ItemGroup>
 	<ItemGroup>

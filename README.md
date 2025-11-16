@@ -112,6 +112,12 @@ cd src/Services/Identity/Codemy.Services.Identity.Api
 dotnet run
 ```
 
+### Docker
+```bash
+docker network create codemy-network
+docker compose up -d --build
+```
+
 
 ## 📦 Project Structure
 

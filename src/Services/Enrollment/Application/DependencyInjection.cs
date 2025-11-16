@@ -13,11 +13,11 @@ namespace Codemy.Enrollment.Application
             services.AddScoped<IEnrollmentService, EnrollmentService>();
             services.AddGrpcClient<IdentityService.IdentityServiceClient>(options =>
             {
-                options.Address = new Uri("https://localhost:7046");
+                options.Address = new Uri("http://identity-service:5198");
             });
             services.AddGrpcClient<CoursesService.CoursesServiceClient>(options =>
             {
-                options.Address = new Uri("https://localhost:7024");
+                options.Address = new Uri("http://courses-service:5078");
             });
             return services;
         }

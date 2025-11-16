@@ -128,11 +128,10 @@ namespace Codemy.Courses.API.Controllers
             try
             {
                 var result = await _courseService.GetLessonByCourseIdAsync(courseId);
-                if (result.Course == null || !result.Course.module.Any())
+                if (!result.Success)
                 {
-                    return this.NotFoundResponse(
-                        result.Message,
-                        "No lessons found for the specified course."
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to retrieve lessons."
                     );
                 }
                 return this.OkResponse(result.Course);

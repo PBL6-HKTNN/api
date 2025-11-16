@@ -14,7 +14,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Configure Kestrel to listen on specific ports for HTTP/1.1 and HTTP/2 with HTTPS
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5178, o => o.Protocols = HttpProtocols.Http1AndHttp2);
+    options.ListenAnyIP(5178, o => o.Protocols = HttpProtocols.Http1);
+    options.ListenAnyIP(5179, o => o.Protocols = HttpProtocols.Http2);  
     options.ListenAnyIP(7014, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
 });
 
@@ -91,7 +92,7 @@ if (app.Environment.IsDevelopment())
           .AllowAnyHeader());
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 app.MapGrpcService<EnrollmentGrpcService>();
