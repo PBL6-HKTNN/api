@@ -16,6 +16,11 @@ services:
     ports:
       - "8080:5197"
       - "8443:7046"
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   review-api:
     image: monmoonluna/codemy-review-api:latest
@@ -28,6 +33,11 @@ services:
     ports:
       - "8085:5041"
       - "8442:7048"
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   search-api:
     image: monmoonluna/codemy-search-api:latest
@@ -40,6 +50,11 @@ services:
     ports:
       - "8086:5004"
       - "8441:7180"
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   courses-api:
     image: monmoonluna/codemy-courses-api:latest
@@ -52,6 +67,11 @@ services:
     ports:
       - "8084:5079"
       - "8448:7024"
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   payment-api:
     image: monmoonluna/codemy-payment-api:latest
@@ -64,6 +84,11 @@ services:
     ports:
       - "8081:5299"
       - "8445:7099"
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   notification-api:
     image: monmoonluna/codemy-notification-api:latest
@@ -76,6 +101,11 @@ services:
     ports:
       - "8082:5180"
       - "8446:7187"
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   enrollment-api:
     image: monmoonluna/codemy-enrollment-api:latest
@@ -88,6 +118,11 @@ services:
     ports:
       - "8083:5178"
       - "8447:7078"
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
   api-gateway:
     image: monmoonluna/codemy-api-gateway:latest
@@ -99,3 +134,8 @@ services:
     restart: always
     ports:
       - "8444:7000"
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
