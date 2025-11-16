@@ -2,11 +2,11 @@
   "Routes": [
     {
       "DownstreamPathTemplate": "/Course/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "courses-service",
-          "Port": 5079
+          "Host": "localhost",
+          "Port": 7024
         }
       ],
       "UpstreamPathTemplate": "/gateway/Course/{everything}",
@@ -14,11 +14,11 @@
     },
     {
       "DownstreamPathTemplate": "/Category/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "courses-service",
-          "Port": 5079
+          "Host": "localhost",
+          "Port": 7024
         }
       ],
       "UpstreamPathTemplate": "/gateway/Category/{everything}",
@@ -26,11 +26,11 @@
     },
     {
       "DownstreamPathTemplate": "/Lesson/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "courses-service",
-          "Port": 5079
+          "Host": "localhost",
+          "Port": 7024
         }
       ],
       "UpstreamPathTemplate": "/gateway/Lesson/{everything}",
@@ -38,11 +38,11 @@
     },
     {
       "DownstreamPathTemplate": "/Module/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "courses-service",
-          "Port": 5079
+          "Host": "localhost",
+          "Port": 7024
         }
       ],
       "UpstreamPathTemplate": "/gateway/Module/{everything}",
@@ -50,11 +50,11 @@
     },
     {
       "DownstreamPathTemplate": "/Quiz/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "courses-service",
-          "Port": 5079
+          "Host": "localhost",
+          "Port": 7024
         }
       ],
       "UpstreamPathTemplate": "/gateway/Quiz/{everything}",
@@ -62,11 +62,11 @@
     },
     {
       "DownstreamPathTemplate": "/Wishlist/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "enrollment-service",
-          "Port": 5178
+          "Host": "localhost",
+          "Port": 7014
         }
       ],
       "UpstreamPathTemplate": "/gateway/Wishlist/{everything}",
@@ -74,11 +74,11 @@
     },
     {
       "DownstreamPathTemplate": "/Enrollment/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "enrollment-service",
-          "Port": 5178
+          "Host": "localhost",
+          "Port": 7014
         }
       ],
       "UpstreamPathTemplate": "/gateway/Enrollment/{everything}",
@@ -86,11 +86,11 @@
     },
     {
       "DownstreamPathTemplate": "/Auth/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "identity-service",
-          "Port": 5197
+          "Host": "localhost",
+          "Port": 7046
         }
       ],
       "UpstreamPathTemplate": "/gateway/Auth/{everything}",
@@ -98,11 +98,11 @@
     },
     {
       "DownstreamPathTemplate": "/User/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "identity-service",
-          "Port": 5197
+          "Host": "localhost",
+          "Port": 7046
         }
       ],
       "UpstreamPathTemplate": "/gateway/User/{everything}",
@@ -110,11 +110,11 @@
     },
     {
       "DownstreamPathTemplate": "/Email/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "notification-service",
-          "Port": 5180
+          "Host": "localhost",
+          "Port": 7187
         }
       ],
       "UpstreamPathTemplate": "/gateway/Email/{everything}",
@@ -122,11 +122,11 @@
     },
     {
       "DownstreamPathTemplate": "/Payment/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "payment-service",
-          "Port": 5299
+          "Host": "localhost",
+          "Port": 7099
         }
       ],
       "UpstreamPathTemplate": "/gateway/Payment/{everything}",
@@ -134,11 +134,11 @@
     },
     {
       "DownstreamPathTemplate": "/Review/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "review-service",
-          "Port": 5041
+          "Host": "localhost",
+          "Port": 7048
         }
       ],
       "UpstreamPathTemplate": "/gateway/Review/{everything}",
@@ -146,11 +146,11 @@
     },
     {
       "DownstreamPathTemplate": "/search/{everything}",
-      "DownstreamScheme": "http",
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "search-service",
-          "Port": 5004
+          "Host": "localhost",
+          "Port": 7180
         }
       ],
       "UpstreamPathTemplate": "/gateway/Search/{everything}",
