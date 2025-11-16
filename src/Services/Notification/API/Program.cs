@@ -6,7 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5180, o => o.Protocols = HttpProtocols.Http1AndHttp2);
+    options.ListenAnyIP(5180, o => o.Protocols = HttpProtocols.Http1);
+    options.ListenAnyIP(5181, o => o.Protocols = HttpProtocols.Http2);
     options.ListenAnyIP(7187, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
 });
 // Add services to the container. 
@@ -28,7 +29,7 @@ if (app.Environment.IsDevelopment())
           .AllowAnyHeader());
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 app.MapGrpcService<NotificationServiceImpl>();

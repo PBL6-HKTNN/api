@@ -17,7 +17,7 @@ namespace Codemy.Identity.Application
             // gRPC client - Notification service
             services.AddGrpcClient<NotificationService.NotificationServiceClient>(options =>
             { 
-                options.Address = new Uri("https://localhost:7187");
+                options.Address = new Uri("http://notification-service:5181");
             }); 
 
             return services;

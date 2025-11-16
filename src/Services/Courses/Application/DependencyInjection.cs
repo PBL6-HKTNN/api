@@ -17,12 +17,12 @@ namespace Codemy.Courses.Application
             services.AddScoped<IQuizService, QuizService>();
             services.AddGrpcClient<IdentityService.IdentityServiceClient>(options =>
             {
-                options.Address = new Uri("https://localhost:7046");
+                options.Address = new Uri("http://identity-service:5198");
             });
 
             services.AddGrpcClient<CourseIndexService.CourseIndexServiceClient>(options =>
             {
-                options.Address = new Uri("https://localhost:7201");
+                options.Address = new Uri("http://serach-service:5005");
             });
             return services;
         }

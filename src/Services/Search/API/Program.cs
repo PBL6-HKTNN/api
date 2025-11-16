@@ -46,7 +46,7 @@ builder.Services.AddApplicationServices();
 
 builder.Services.AddGrpcClient<CoursesService.CoursesServiceClient>("CoursesGrpcClient", options =>
     {
-        options.Address = new Uri("https://localhost:7024");
+        options.Address = new Uri("http://courses-service:5078");
     });
 
 // ===== Background Service (Subscribe to Course Events) =====
@@ -106,7 +106,8 @@ builder.Services.AddOpenApi();
 // ===== Kestrel: HTTP + HTTPS + HTTP/2 (gRPC) =====
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5004, o => o.Protocols = HttpProtocols.Http1AndHttp2); // HTTP
+    options.ListenAnyIP(5004, o => o.Protocols = HttpProtocols.Http1); // HTTP
+    options.ListenAnyIP(5005, o => o.Protocols = HttpProtocols.Http2); // gRPC
     options.ListenAnyIP(7180, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2); // HTTPS + gRPC
 });
 

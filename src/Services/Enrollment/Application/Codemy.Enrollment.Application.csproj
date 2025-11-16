@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Courses\Domain\Codemy.Courses.Domain.csproj" />
-    <ProjectReference Include="..\..\Identity\API\Codemy.Identity.API.csproj" /> 
     <ProjectReference Include="..\..\Identity\Domain\Codemy.Identity.Domain.csproj" />
     <ProjectReference Include="..\Domain\Codemy.Enrollment.Domain.csproj" />
   </ItemGroup>
