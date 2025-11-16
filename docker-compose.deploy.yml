@@ -11,7 +11,7 @@ services:
     networks:
       - codemy-network
     env_file:
-      - ./.env
+      - ./.env.deploy
     restart: always
     ports:
       - "8080:5197"
@@ -23,7 +23,7 @@ services:
     networks:
       - codemy-network
     env_file:
-      - ./.env
+      - ./.env.deploy
     restart: always
     ports:
       - "8085:5041"
@@ -35,7 +35,7 @@ services:
     networks:
       - codemy-network
     env_file:
-      - ./.env
+      - ./.env.deploy
     restart: always
     ports:
       - "8086:5004"
@@ -47,7 +47,7 @@ services:
     networks:
       - codemy-network
     env_file:
-      - ./.env
+      - ./.env.deploy
     restart: always
     ports:
       - "8084:5079"
@@ -59,7 +59,7 @@ services:
     networks:
       - codemy-network
     env_file:
-      - ./.env
+      - ./.env.deploy
     restart: always
     ports:
       - "8081:5299"
@@ -71,7 +71,7 @@ services:
     networks:
       - codemy-network
     env_file:
-      - ./.env
+      - ./.env.deploy
     restart: always
     ports:
       - "8082:5180"
@@ -83,7 +83,7 @@ services:
     networks:
       - codemy-network
     env_file:
-      - ./.env
+      - ./.env.deploy
     restart: always
     ports:
       - "8083:5178"
@@ -95,7 +95,7 @@ services:
     networks:
       - codemy-network
     env_file:
-      - ./.env
+      - ./.env.deploy
     restart: always
     ports:
       - "8444:7000"
