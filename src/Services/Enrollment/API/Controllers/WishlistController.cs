@@ -24,7 +24,7 @@ namespace Codemy.Enrollment.API.Controllers
                 var result = await _wishlistService.AddToWishlistAsync(courseId);
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to add course to wishlist.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to add course to wishlist.");
                 }
                 return 
                     this.CreatedResponse(
@@ -47,9 +47,9 @@ namespace Codemy.Enrollment.API.Controllers
                 var result = await _wishlistService.GetWishlistAsync();
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to retrieve wishlist.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve wishlist.");
                 }
-                return this.OkResponse(result);
+                return this.OkResponse(result.WishlistItems);
             }
             catch (Exception ex)
             {
@@ -66,7 +66,7 @@ namespace Codemy.Enrollment.API.Controllers
                 var result = await _wishlistService.RemoveFromWishlistAsync(courseId);
                 if(!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to remove course from wishlist.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to remove course from wishlist.");
                 }
                 return this.OkResponse("Course removed from wishlist successfully.");
             }

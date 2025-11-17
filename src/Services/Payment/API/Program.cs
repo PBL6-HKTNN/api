@@ -1,6 +1,7 @@
-﻿using Codemy.Payment.Infrastructure;
-using Codemy.Payment.Application;
+﻿using Codemy.Payment.Application;
+using Codemy.Payment.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -10,13 +11,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5299); // HTTP
+    options.ListenAnyIP(5299, o => o.Protocols = HttpProtocols.Http1); // HTTP
+    options.ListenAnyIP(5298, o => o.Protocols = HttpProtocols.Http2);  // gRPC
     options.ListenAnyIP(7099, listenOptions =>
     {
         listenOptions.UseHttps();
     });
 });
-builder.Services.AddApplication();
+builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -79,7 +81,7 @@ if (app.Environment.IsDevelopment())
     app.UseCors("AllowAll");
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 

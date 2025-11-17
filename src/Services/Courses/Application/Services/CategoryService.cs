@@ -19,7 +19,6 @@ namespace Codemy.Courses.Application.Services
         private readonly ILogger<CategoryService> _logger;
         private readonly IRepository<Category> _categoryRepository;
         private readonly IUnitOfWork _unitOfWork; 
-        private readonly IdentityService.IdentityServiceClient _client;
         public CategoryService(
             ILogger<CategoryService> logger,
             IRepository<Category> categoryRepository,

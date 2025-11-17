@@ -11,14 +11,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Nếu bạn dùng Kestrel, có thể ép cấu hình port
+// Configure Kestrel to listen on specific ports for HTTP/1.1 and HTTP/2 with HTTPS
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5178, o => o.Protocols = HttpProtocols.Http1AndHttp2);
-    options.ListenAnyIP(7078, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
+    options.ListenAnyIP(5178, o => o.Protocols = HttpProtocols.Http1);
+    options.ListenAnyIP(5179, o => o.Protocols = HttpProtocols.Http2);  
+    options.ListenAnyIP(7014, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
 });
 
-builder.Services.AddApplication();
+builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddGrpc();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -91,7 +92,7 @@ if (app.Environment.IsDevelopment())
           .AllowAnyHeader());
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 app.MapGrpcService<EnrollmentGrpcService>();

@@ -2,34 +2,36 @@
 using Codemy.BuildingBlocks.Core;
 using Codemy.Enrollment.Application.Interfaces;
 using Codemy.Enrollment.Application.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Codemy.Enrollment.API.Controllers
 {
-[ApiController]
+    [ApiController]
     [Route("[controller]")]
-public class EnrollmentController : ControllerBase
-{
+    public class EnrollmentController : ControllerBase
+    {
         private readonly IEnrollmentService _enrollmentService;
         private readonly ILogger<EnrollmentController> _logger;
 
         public EnrollmentController(IEnrollmentService enrollmentService, ILogger<EnrollmentController> logger)
-    {
+        {
             _enrollmentService = enrollmentService;
             _logger = logger;
-    }
+        }
 
         [HttpPost("getCourse/{courseId}")]
         [EndpointDescription("Check course enrollment status")]
         public async Task<IActionResult> GetCourseByCourseId(Guid courseId)
-    {
-        try
         {
+            try
+            {
                 var result = await _enrollmentService.GetCourseAsync(courseId);
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to get enrollment.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to get enrollment.");
                 }
-                return this.OkResponse(result.Success);
+                return this.OkResponse(result);
             }
             catch (Exception ex)
             {
@@ -46,11 +48,11 @@ public class EnrollmentController : ControllerBase
                 var result = await _enrollmentService.EnrollInCourseAsyncWithoutGrpc(courseId);
                 if (!result.Success)
                 {
-                    return this.BadRequest(result.Message ?? "Failed to enroll in course.");
+                    return this.BadRequestResponse(result.Message ?? "Failed to enroll in course.");
                 }
-                return 
+                return
                     this.CreatedResponse(
-                        result.Enrollment, 
+                        result.Enrollment,
                         $"/enrollment/get/{result.Enrollment.Id}"
                     );
             }
@@ -68,14 +70,39 @@ public class EnrollmentController : ControllerBase
             {
                 var result = await _enrollmentService.UpdateEnrollmentStatusAsync(request);
                 if (!result.Success)
-            {
+                {
                     return this.BadRequest(result.Message ?? "Failed to update enrollment status.");
-            }
+                }
                 return this.OkResponse(result.Enrollment);
-        }
-        catch (Exception ex)
-        {
+            }
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Error updating enrollment status.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
+        [HttpGet("my-courses")]
+        [Authorize]
+        public async Task<IActionResult> GetMyCourses(int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+                {
+                    return this.Unauthorized("User identifier claim is missing or invalid.");
+                }
+
+                var result = await _enrollmentService.GetMyCoursesAsync(userId, page, pageSize);
+                if (!result.Success)
+                {
+                    return this.BadRequest(result.Message ?? "Failed to get my courses.");
+                }
+                return this.OkResponse(result.Courses);
+            }
+            catch (Exception)
+            {
                 return this.InternalServerErrorResponse("Internal server error.");
             }
         }

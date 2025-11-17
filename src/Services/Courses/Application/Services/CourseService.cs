@@ -3,13 +3,10 @@ using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
 using Codemy.Courses.Domain.Entities;
 using Codemy.Courses.Domain.Enums;
-using Codemy.Identity.Domain.Entities;
 using Codemy.IdentityProto;
 using Microsoft.AspNetCore.Http;
-using Codemy.IdentityProto;
-using Microsoft.EntityFrameworkCore;
+using Codemy.SearchProto;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
 using System.Security.Claims;
 using Module = Codemy.Courses.Domain.Entities.Module;
 using Microsoft.EntityFrameworkCore;
@@ -23,8 +20,9 @@ namespace Codemy.Courses.Application.Services
         private readonly IRepository<Module> _moduleRepository;
         private readonly IRepository<Lesson> _lessonRepository;
         private readonly IRepository<Category> _categoryRepository;
-        private readonly IUnitOfWork _unitOfWork; 
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IdentityService.IdentityServiceClient _client;
+        private readonly CourseIndexService.CourseIndexServiceClient _searchClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public CourseService(
@@ -35,7 +33,8 @@ namespace Codemy.Courses.Application.Services
             IRepository<Lesson> lessonRepository,
             IRepository<Category> categoryRepository,
             IUnitOfWork unitOfWork,
-            IdentityService.IdentityServiceClient client
+            IdentityService.IdentityServiceClient client,
+            CourseIndexService.CourseIndexServiceClient searchClient
         )
         {
             _httpContextAccessor = httpContextAccessor;
@@ -46,6 +45,7 @@ namespace Codemy.Courses.Application.Services
             _unitOfWork = unitOfWork;
             _categoryRepository = categoryRepository;
             _client = client;
+            _searchClient = searchClient;
         }
         public async Task<CourseReponse> CreateCourseAsync(CreateCourseRequest request)
         {
@@ -101,6 +101,32 @@ namespace Codemy.Courses.Application.Services
                 };
             }
             _logger.LogInformation("Course {CourseTitle} created successfully for Instructor ID {InstructorId}.", course.title, request.instructorId);
+            
+            try
+            {
+                await _searchClient.IndexCourseAsync(new CourseIndexRequest
+                {
+                    Id = course.Id.ToString(),
+                    InstructorId = course.instructorId.ToString(),
+                    Title = course.title,
+                    Description = course.description,
+                    Thumbnail = course.thumbnail,
+                    Status = (int)course.status,
+                    Duration = course.duration.ToString(),
+                    Price = (double)course.price,
+                    Level = (int)course.level,
+                    NumberOfModules = course.numberOfModules,
+                    CategoryId = course.categoryId.ToString(),
+                    Language = course.language,
+                    NumberOfReviews = course.numberOfReviews,
+                    AverageRating = (double)course.averageRating
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to index course {CourseId} in search service after creation.", course.Id);
+            }
+
             return new CourseReponse
             {
                 Success = true,
@@ -240,7 +266,7 @@ namespace Codemy.Courses.Application.Services
                 var lessonSort = filteredLessons.OrderBy(l => l.orderIndex).ToList();
                 ModuleDto moduleDto = new ModuleDto
                 {
-                    moduleId = module.Id,
+                    Id = module.Id,
                     title = module.title,
                     duration = module.duration,
                     numberOfLessons = module.numberOfLessons,

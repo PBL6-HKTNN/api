@@ -38,10 +38,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5079, o => o.Protocols = HttpProtocols.Http1AndHttp2);
+    options.ListenAnyIP(5078, o => o.Protocols = HttpProtocols.Http2);
+    options.ListenAnyIP(5079, o => o.Protocols = HttpProtocols.Http1);
     options.ListenAnyIP(7024, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
 });
-builder.Services.AddApplication();
+builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddGrpc();
 
@@ -104,7 +105,7 @@ if (app.Environment.IsDevelopment())
           .AllowAnyHeader());
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UsePathBase("/api");
 app.UseRouting();
