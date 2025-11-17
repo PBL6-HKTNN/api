@@ -174,12 +174,12 @@ namespace Codemy.Enrollment.Application.Services
             };
         }
 
-        public async Task<Response> GetCourseAsync(Guid courseId)
+        public async Task<EnrollmentResponse> GetCourseAsync(Guid courseId)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null || !user.Identity?.IsAuthenticated == true)
             {
-                return new Response
+                return new EnrollmentResponse
                 {
                     Success = false,
                     Message = "User not authenticated or token missing."
@@ -198,7 +198,7 @@ namespace Codemy.Enrollment.Application.Services
             if (!userExists.Exists)
             {
                 _logger.LogError("User with ID {UserId} does not exist.", UserId);
-                return new Response
+                return new EnrollmentResponse
                 {
                     Success = false,
                     Message = "User does not exist."
@@ -210,7 +210,7 @@ namespace Codemy.Enrollment.Application.Services
             if (!courseExists.Exists)
             {
                 _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
-                return new Response
+                return new EnrollmentResponse
                 {
                     Success = false,
                     Message = "Course does not exist."
@@ -221,15 +221,17 @@ namespace Codemy.Enrollment.Application.Services
                 .FindAsync(e => e.courseId == courseId && e.studentId == UserId);
             if (existingEnrollment.Count == 0)
                 {
-                return new Response
+                return new EnrollmentResponse
                 {
                     Success = false,
                     Message = "User is not enrolled in this course."
                 };
             }
-            return new Response
+            return new EnrollmentResponse
             {
                 Success = true,
+                Message = "User is enrolled in this course.",
+                Enrollment = existingEnrollment.First()
             };
         }
 

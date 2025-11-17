@@ -19,7 +19,7 @@ builder.WebHost.ConfigureKestrel(options =>
     options.ListenAnyIP(7014, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
 });
 
-builder.Services.AddApplication();
+builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddGrpc();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

@@ -18,7 +18,7 @@ builder.WebHost.ConfigureKestrel(options =>
         listenOptions.UseHttps();
     });
 });
-builder.Services.AddApplication();
+builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
