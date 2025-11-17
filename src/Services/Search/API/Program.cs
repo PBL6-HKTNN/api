@@ -46,7 +46,7 @@ builder.Services.AddApplicationServices();
 
 builder.Services.AddGrpcClient<CoursesService.CoursesServiceClient>("CoursesGrpcClient", options =>
     {
-        options.Address = new Uri("http://courses-service:5078");
+        options.Address = new Uri(builder.Configuration["GrpcClients:Courses"]);
     });
 
 // ===== Background Service (Subscribe to Course Events) =====

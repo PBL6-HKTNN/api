@@ -154,7 +154,8 @@ namespace Codemy.Enrollment.Application.Services
             }
 
             var wishlistItems = await _wishlistItemRepository.FindAsync(w => w.userId == UserId);
-            if (wishlistItems == null || !wishlistItems.Any())
+            var wishlistItemsFiltered = wishlistItems.Where(wishlistItems => !wishlistItems.IsDeleted);
+            if (wishlistItemsFiltered == null || !wishlistItemsFiltered.Any())
             {
                 return new WishListResponse
                 {
@@ -163,7 +164,7 @@ namespace Codemy.Enrollment.Application.Services
                 };
             }
             var wishlistItemDTOs = new List<WishlistItemDTO>();
-            foreach (var item in wishlistItems)
+            foreach (var item in wishlistItemsFiltered)
             {
                 var courseResponse = await _courseClient.GetCourseByIdAsync(
                     new GetCourseByIdRequest { CourseId = item.courseId.ToString() }
@@ -179,7 +180,7 @@ namespace Codemy.Enrollment.Application.Services
                         Thumbnail = courseResponse.Thumbnail
                     };
                     wishlistItemDTOs.Add(wishlistItemDTO);
-                } 
+                }
             }
             if(wishlistItemDTOs.Count == 0)
             {

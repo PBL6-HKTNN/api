@@ -2,14 +2,15 @@
 using Codemy.Courses.Application.Services;
 using Codemy.IdentityProto;
 using Codemy.SearchProto;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Codemy.Courses.Application
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddApplication(this IServiceCollection services)
-        { 
+        public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
+        {
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<ICourseService, CourseService>();
             services.AddScoped<IModuleService, ModuleService>();
@@ -17,12 +18,12 @@ namespace Codemy.Courses.Application
             services.AddScoped<IQuizService, QuizService>();
             services.AddGrpcClient<IdentityService.IdentityServiceClient>(options =>
             {
-                options.Address = new Uri("http://identity-service:5198");
+                options.Address = new Uri(configuration["GrpcClients:Identity"]);
             });
 
             services.AddGrpcClient<CourseIndexService.CourseIndexServiceClient>(options =>
             {
-                options.Address = new Uri("http://search-service:5005");
+                options.Address = new Uri(configuration["GrpcClients:Search"]);
             });
             return services;
         }

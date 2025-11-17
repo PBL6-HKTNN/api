@@ -19,6 +19,7 @@ services:
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+      ASPNETCORE_ENVIRONMENT: "Production"
     volumes:
       - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
@@ -70,6 +71,7 @@ services:
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+      ASPNETCORE_ENVIRONMENT: "Production"
     volumes:
       - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
@@ -121,6 +123,7 @@ services:
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+      ASPNETCORE_ENVIRONMENT: "Production"
     volumes:
       - ./aspnetapp.pfx:/https/aspnetapp.pfx
 
@@ -137,5 +140,6 @@ services:
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
       ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+      ASPNETCORE_ENVIRONMENT: "Production"
     volumes:
       - ./aspnetapp.pfx:/https/aspnetapp.pfx
