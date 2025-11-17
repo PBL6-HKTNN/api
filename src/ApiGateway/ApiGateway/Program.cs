@@ -4,6 +4,7 @@ using Ocelot.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile($"ocelot.{builder.Environment.EnvironmentName}.json", optional: false);
+builder.Services.AddCors();
 builder.Services.AddOcelot();
 // Add services to the container.
 builder.WebHost.ConfigureKestrel(options =>
