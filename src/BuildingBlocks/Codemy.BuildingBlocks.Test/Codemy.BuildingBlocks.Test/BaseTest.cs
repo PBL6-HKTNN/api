@@ -18,7 +18,8 @@ namespace Codemy.BuildingBlocks.Test
         private string _currentTestName;
         protected string AuthToken;
         protected Guid CurrentUserId; // Lưu user ID của user đang login
-
+        protected static bool HasExportedReport = false;
+        protected static readonly object ExportLock = new object();
         // Dictionary để lưu các IDs thật để replace placeholders
         protected Dictionary<string, string> TestDataReplacements;
 
@@ -79,66 +80,49 @@ namespace Codemy.BuildingBlocks.Test
                 var endpoint = Settings.Endpoints["Auth"] + "/login";
                 var response = await ApiClient.PostAsync(endpoint, loginRequest);
 
-                if (response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"✗ Login failed: {response.StatusCode}");
+                    Console.WriteLine(await response.Content.ReadAsStringAsync());
+                    return;
+                }
 
-                    // ✅ FIX: Handle nested response with "data" wrapper
-                    try
-                    {
-                        var apiResponse = JsonConvert.DeserializeObject<dynamic>(content);
+                var content = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Content: {content}");
 
-                        // Check if response has "data" wrapper
-                        dynamic loginData = apiResponse?.data ?? apiResponse;
+                dynamic apiResponse = JsonConvert.DeserializeObject<dynamic>(content);
+                dynamic loginData = apiResponse?.data;
 
-                        // Try different property names for token
-                        string token = null;
-                        if (loginData?.token != null)
-                            token = loginData.token.ToString();
-                        else if (loginData?.accessToken != null)
-                            token = loginData.accessToken.ToString();
-                        else if (loginData?.Token != null)
-                            token = loginData.Token.ToString();
-                        else if (loginData?.AccessToken != null)
-                            token = loginData.AccessToken.ToString();
+                if (loginData == null)
+                {
+                    Console.WriteLine("✗ Login response has no 'data' object");
+                    return;
+                }
 
-                        if (!string.IsNullOrEmpty(token))
-                        {
-                            AuthToken = token;
-                            ApiClient.SetAuthToken(AuthToken);
+                // lấy token
+                AuthToken = loginData.token?.ToString();
+                ApiClient.SetAuthToken(AuthToken);
 
-                            // Lấy user ID từ token
-                            CurrentUserId = GetUserIdFromToken();
-
-                            Console.WriteLine("✓ Login successful!");
-                            Console.WriteLine($"User: {Settings.TestUser.Email}");
-                            Console.WriteLine($"User ID: {CurrentUserId}");
-                            Console.WriteLine();
-                        }
-                        else
-                        {
-                            Console.WriteLine("✗ Could not extract token from response");
-                            Console.WriteLine($"Response: {content}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"✗ Error parsing login response: {ex.Message}");
-                        Console.WriteLine($"Response: {content}");
-                    }
+                // lấy userId
+                string userIdStr = loginData.user?.id?.ToString();
+                if (!string.IsNullOrEmpty(userIdStr))
+                {
+                    CurrentUserId = Guid.Parse(userIdStr);
+                    Console.WriteLine($"User ID extracted: {CurrentUserId}");
                 }
                 else
                 {
-                    Console.WriteLine($"✗ Login failed: {response.StatusCode}");
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Error: {errorContent}");
+                    Console.WriteLine("✗ Cannot extract user ID");
                 }
+
+                Console.WriteLine("✓ Login successful!");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"✗ Login error: {ex.Message}");
             }
         }
+
 
         /// <summary>
         /// Setup test data - Tạo dữ liệu thật để replace placeholders
@@ -147,53 +131,20 @@ namespace Codemy.BuildingBlocks.Test
         {
             try
             {
-                //Console.WriteLine("=== Setting up test data ===");
-
-                //// 1. Tạo Course và Lesson để có Quiz
-                //var courseAndLessonIds = await CreateTestCourseWithLesson();
-                //var courseId = courseAndLessonIds.Item1;
-                //var lessonId = courseAndLessonIds.Item2;
-
-                //// 2. Tạo Quiz cho lesson vừa tạo
-                //var quizId = await CreateTestQuizForLesson(lessonId);
-                //TestDataReplacements["VALID_QUIZ_ID"] = quizId.ToString();
-
-                //// 3. Submit quiz để tạo attempt (user đã complete)
-                //await SubmitTestQuiz(quizId);
-                //TestDataReplacements["VALID_LESSON_ID"] = lessonId.ToString();
-
-                //// 4. Tạo lesson + quiz khác nhưng chưa submit (no attempt)
-                //var anotherLesson = await CreateTestLesson(courseId);
-                //var quizIdNoAttempt = await CreateTestQuizForLesson(anotherLesson);
-                //TestDataReplacements["VALID_LESSON_ID_NO_ATTEMPT"] = anotherLesson.ToString();
-                //TestDataReplacements["VALID_QUIZ_ID_NO_ATTEMPTS"] = quizIdNoAttempt.ToString();
-
-                //// 5. Lưu user ID
-                //TestDataReplacements["VALID_USER_ID"] = CurrentUserId.ToString();
-
-                //Console.WriteLine("✓ Test data setup completed!");
-                //Console.WriteLine($"Valid Lesson ID (with attempt): {lessonId}");
-                //Console.WriteLine($"Valid Lesson ID (no attempt): {anotherLesson}");
-                //Console.WriteLine($"Valid Quiz ID: {quizId}");
-                //Console.WriteLine($"Valid User ID: {CurrentUserId}");
-                //Console.WriteLine();
                 Console.WriteLine("\n=== Setting up test data ===");
 
                 // Setup cho Category tests
                 await SetupCategoryTestData();
 
-                // Setup cho Quiz tests (nếu cần)
-                // await SetupQuizTestData();
-
                 // Setup cho User tests
                 TestDataReplacements["VALID_USER_ID"] = CurrentUserId.ToString();
 
-                Console.WriteLine("✓ Test data setup completed!");
+                Console.WriteLine("Test data setup completed!", TestDataReplacements["VALID_USER_ID"]);
                 Console.WriteLine();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"✗ Error setting up test data: {ex.Message}");
+                Console.WriteLine($"Error setting up test data: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
             }
         }
@@ -438,11 +389,11 @@ namespace Codemy.BuildingBlocks.Test
                 // Tạo một category để test duplicate
                 var duplicateCategoryName = await CreateTestCategory("Duplicate Test Category");
                 TestDataReplacements["DUPLICATE_CATEGORY_NAME"] = duplicateCategoryName;
-                Console.WriteLine($"  ✓ Created duplicate test category: {duplicateCategoryName}");
+                Console.WriteLine($"  Created duplicate test category: {duplicateCategoryName}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"  ✗ Error setting up category test data: {ex.Message}");
+                Console.WriteLine($"  Error setting up category test data: {ex.Message}");
             }
         }
 
@@ -466,19 +417,19 @@ namespace Codemy.BuildingBlocks.Test
 
                 if (response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"    ✓ Created test category: {categoryName}");
+                    Console.WriteLine($"    Created test category: {categoryName}");
                     return categoryName;
                 }
                 else
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"    ⚠ Failed to create category: {response.StatusCode}");
+                    Console.WriteLine($"    Failed to create category: {response.StatusCode}");
                     Console.WriteLine($"    Error: {errorContent}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"  ✗ Error creating test category: {ex.Message}");
+                Console.WriteLine($"Error creating test category: {ex.Message}");
             }
 
             // Return a unique name as fallback
@@ -492,7 +443,7 @@ namespace Codemy.BuildingBlocks.Test
         {
             _currentTestName = testName;
             _stopwatch.Restart();
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ▶ Starting test: {testName}");
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Starting test: {testName}");
         }
 
         /// <summary>
@@ -525,11 +476,6 @@ namespace Codemy.BuildingBlocks.Test
             };
 
             Reporter.AddResult(result);
-
-            var statusIcon = status == "Passed" ? "✓" : status == "Failed" ? "✗" : "⊘";
-
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {statusIcon} Test {status}: {_currentTestName} ({result.DurationMs:F2}ms)");
-
             if (!string.IsNullOrEmpty(errorMessage))
             {
                 Console.WriteLine($"   Error: {errorMessage}");
@@ -544,12 +490,9 @@ namespace Codemy.BuildingBlocks.Test
             var testClass = GetType().Name;
 
             if (testClass.Contains("Category")) return "Category";
-            if (testClass.Contains("Quiz")) return "Quiz";
             if (testClass.Contains("User")) return "User";
             if (testClass.Contains("Profile")) return "Profile";
             if (testClass.Contains("Course")) return "Course";
-            if (testClass.Contains("Enrollment")) return "Enrollment";
-            if (testClass.Contains("Payment")) return "Payment";
 
             return "General";
         }
@@ -621,14 +564,12 @@ namespace Codemy.BuildingBlocks.Test
 
             try
             {
-                // Decode JWT token (simple parsing, không verify signature)
                 var parts = AuthToken.Split('.');
                 if (parts.Length != 3)
                     return Guid.Empty;
 
                 var payload = parts[1];
 
-                // Add padding if needed
                 var mod = payload.Length % 4;
                 if (mod != 0)
                 {
@@ -637,14 +578,8 @@ namespace Codemy.BuildingBlocks.Test
 
                 var jsonBytes = Convert.FromBase64String(payload);
                 var json = System.Text.Encoding.UTF8.GetString(jsonBytes);
-
-                // Parse as JObject instead of dynamic
                 var tokenData = Newtonsoft.Json.Linq.JObject.Parse(json);
-
-                // Thử các claim names khác nhau
                 string userIdStr = null;
-
-                // Standard claims
                 if (tokenData["sub"] != null)
                     userIdStr = tokenData["sub"].ToString();
                 else if (tokenData["nameid"] != null)
@@ -656,12 +591,6 @@ namespace Codemy.BuildingBlocks.Test
                 else if (tokenData["unique_name"] != null)
                     userIdStr = tokenData["unique_name"].ToString();
 
-                // Debug: Print all claims
-                Console.WriteLine("JWT Token Claims:");
-                foreach (var claim in tokenData)
-                {
-                    Console.WriteLine($"  {claim.Key}: {claim.Value}");
-                }
 
                 if (!string.IsNullOrEmpty(userIdStr) && Guid.TryParse(userIdStr, out Guid userId))
                 {
@@ -678,7 +607,15 @@ namespace Codemy.BuildingBlocks.Test
 
         public void Dispose()
         {
-            Reporter.GenerateDetailedReport();
+            lock (ExportLock)
+            {
+                if (!HasExportedReport)
+                {
+                    Console.WriteLine("\nExporting test results...\n");
+                    Reporter.GenerateDetailedReport();
+                    HasExportedReport = true;
+                }
+            }
             ApiClient?.Dispose();
             GC.SuppressFinalize(this);
         }

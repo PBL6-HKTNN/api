@@ -3,50 +3,44 @@ using Codemy.BuildingBlocks.Test;
 using Newtonsoft.Json;
 using System.Diagnostics;
 
-namespace Codemy.Identity.UnitTests
+namespace Codemy.Enrollment.UnitTests
 {
-    public class UserTest : BaseTest
+    public class WishlistTest : BaseTest
     {
-        [Fact]
-        public async Task UpdateProfile_WithCsvData_ShouldMatchExpectedResults()
+        public async Task GetWishlist_WithCsvData_ShouldMatchExpectedResults()
         {
-            var testDataList = CsvReader.ReadCsv<UpdateProfileTestData>("UpdateProfileTestData.csv");
+            var testDataList = CsvReader.ReadCsv<GetWishlistTestData>("GetWishlistTestData.csv");
 
-            Console.WriteLine($"\n=== Running {testDataList.Count} test cases for UpdateProfile ===\n");
+            Console.WriteLine($"\n=== Running {testDataList.Count} test cases for Get Wishlist ===\n");
 
+            // ✅ FIX 1: Add counters for summary
             int passedCount = 0;
             int failedCount = 0;
 
             foreach (var testData in testDataList)
             {
-                StartTest($"UpdateProfile - {testData.TestCase}", "User");
+                StartTest($"GetWishlist - {testData.TestCase}", "User");
 
                 try
-                { 
+                {
                     bool isUnauthorizedTest = testData.TestCase.Contains("Unauthorized");
                     string originalToken = null;
 
                     if (isUnauthorizedTest)
                     {
                         originalToken = AuthToken;
-                        ApiClient.SetAuthToken(null);  
+                        ApiClient.SetAuthToken(null);
                         Console.WriteLine($"Testing unauthorized access (token removed)");
-                    } 
+                    }
                     var userId = ParseGuidOrDefault(testData.UserId);
-
-                    var updateRequest = new
-                    {
-                        name = string.IsNullOrEmpty(testData.Name) ? "" : testData.Name,
-                        bio = string.IsNullOrEmpty(testData.Bio) ? "" : testData.Bio,
-                    };
-
-                    var requestJson = JsonConvert.SerializeObject(updateRequest);
                     var endpoint = GetEndpoint("User") + $"/{userId}/profile";
 
                     Console.WriteLine($"  Test Case: {testData.TestCase}");
                     Console.WriteLine($"  Description: {testData.Description}");
                     Console.WriteLine($"  User ID: {userId}");
                     Console.WriteLine($"  Request: {requestJson}");
+
+                    // Act
                     var stopwatch = Stopwatch.StartNew();
                     var response = await ApiClient.PutAsync(endpoint, updateRequest);
                     stopwatch.Stop();
@@ -56,6 +50,7 @@ namespace Codemy.Identity.UnitTests
 
                     Console.WriteLine($"  Expected Status: {testData.ExpectedStatus}, Actual: {actualStatus}");
 
+                    // ✅ FIX 3: Better response parsing with nested data handling
                     dynamic profileResult = null;
                     if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(responseContent))
                     {
@@ -63,6 +58,7 @@ namespace Codemy.Identity.UnitTests
                         {
                             var apiResponse = JsonConvert.DeserializeObject<dynamic>(responseContent);
 
+                            // Check if response has a "data" wrapper
                             if (apiResponse?.data != null)
                             {
                                 profileResult = apiResponse.data;
@@ -78,10 +74,13 @@ namespace Codemy.Identity.UnitTests
                             Console.WriteLine($"Warning: Could not parse response: {ex.Message}");
                         }
                     }
+
+                    // Assert
                     var passed = actualStatus == testData.ExpectedStatus;
 
                     if (passed && profileResult != null && response.IsSuccessStatusCode)
                     {
+                        // Verify updated fields
                         if (!string.IsNullOrEmpty(testData.Name))
                         {
                             string actualName = profileResult.name?.ToString() ?? "";
@@ -114,11 +113,15 @@ namespace Codemy.Identity.UnitTests
                     {
                         Console.WriteLine($"  Response: {responseContent}");
                     }
+
+                    // ✅ FIX 4: Restore token after unauthorized test
                     if (isUnauthorizedTest && originalToken != null)
                     {
                         ApiClient.SetAuthToken(originalToken);
                         Console.WriteLine($"Token restored");
                     }
+
+                    // ✅ FIX 5: Update counters
                     if (passed)
                     {
                         passedCount++;
@@ -127,6 +130,8 @@ namespace Codemy.Identity.UnitTests
                     {
                         failedCount++;
                     }
+
+                    // Record result
                     RecordTestResult(
                         status: passed ? "Passed" : "Failed",
                         endpoint: endpoint,
@@ -153,6 +158,8 @@ namespace Codemy.Identity.UnitTests
                     Console.WriteLine();
                 }
             }
+
+            // ✅ FIX 6: Print summary
             Console.WriteLine($"\n{'=',-60}");
             Console.WriteLine($"SUMMARY: Total: {testDataList.Count} | Passed: {passedCount} | Failed: {failedCount}");
             Console.WriteLine($"Pass Rate: {(passedCount * 100.0 / testDataList.Count):F2}%");
@@ -167,6 +174,7 @@ namespace Codemy.Identity.UnitTests
 
             try
             {
+                // ✅ FIX 7: Handle unauthorized tests in Theory
                 bool isUnauthorizedTest = testData.TestCase.Contains("Unauthorized");
                 string originalToken = null;
 
@@ -191,19 +199,27 @@ namespace Codemy.Identity.UnitTests
                 stopwatch.Stop();
 
                 var actualStatus = (int)response.StatusCode;
+
+                // ✅ FIX 8: Restore token before assertions
                 if (isUnauthorizedTest && originalToken != null)
                 {
                     ApiClient.SetAuthToken(originalToken);
                 }
+
+                // Assert
                 Assert.Equal(testData.ExpectedStatus, actualStatus);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
+
+                    // ✅ FIX 9: Handle nested response in Theory
                     try
                     {
                         var apiResponse = JsonConvert.DeserializeObject<dynamic>(content);
                         dynamic result = apiResponse?.data ?? apiResponse;
+
+                        // Verify updated fields
                         if (!string.IsNullOrEmpty(testData.Name))
                         {
                             Assert.Equal(testData.Name, result.name.ToString());

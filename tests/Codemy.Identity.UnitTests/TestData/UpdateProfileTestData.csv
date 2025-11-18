@@ -1,8 +1,54 @@
 ﻿TestCase,UserId,Name,Bio,ExpectedStatus,ExpectedSuccess,Description
 TC_01_Valid_Full_Update,VALID_USER_ID,John Doe Updated,Software engineer passionate about clean code and testing,200,true,Update both name and bio with valid data
-TC_02_Vietnamese_Name,VALID_USER_ID,Nguyễn Văn A,Student,200,true,Name with Vietnamese characters
-TC_03_Name_Too_Long,VALID_USER_ID,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,,400,false,Name exceeds 100 characters
-TC_04_Name_Only_Whitespace,VALID_USER_ID,"   ",,400,false,Name contains only spaces
-TC_05_Bio_Too_Long,VALID_USER_ID,,Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo.,400,false,Bio exceeds 500 characters
-TC_06_Unauthorized_No_Token,VALID_USER_ID,Test Name,,401,false,Update profile without authentication token
-TC_07_Invalid_UserId_Format,invalid-guid,Test Name,,400,false,UserId is not a valid GUID format
+TC_02_Valid_Name_Only,VALID_USER_ID,Alice Smith,,200,true,Update only name field
+TC_03_Valid_Bio_Only,VALID_USER_ID,,Full-stack developer with 5 years experience,200,true,Update only bio field
+TC_04_Valid_Empty_Bio,VALID_USER_ID,Bob Johnson,,200,true,Update name and clear bio (empty string)
+TC_05_Vietnamese_Name,VALID_USER_ID,Nguyễn Văn A,Sinh viên năm 3 chuyên ngành CNTT,200,true,Name and bio with Vietnamese characters
+TC_06_Special_Characters_Name,VALID_USER_ID,O'Neil-Smith Jr.,"Developer, Designer & Creator",200,true,Name with apostrophe and hyphen
+TC_07_Unicode_Emoji_Bio,VALID_USER_ID,Test User,🚀 Building amazing apps! 💻 Code lover ☕,200,true,Bio with emoji characters
+TC_08_Minimum_Name_Length,VALID_USER_ID,Jo,Short bio,200,true,Name with 2 characters (minimum)
+TC_09_Maximum_Name_Length,VALID_USER_ID,Abcdefghijklmnopqrstuvwxyz Abcdefghijklmnopqrstuvwxyz Abcdefghijklmnopqrstuvwxyz Abcdefghijklmnop,Valid bio,200,true,Name with 100 characters (maximum)
+TC_10_Maximum_Bio_Length,VALID_USER_ID,Valid Name,Lorem ipsum dolor sit amet consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum.,200,true,Bio with 500 characters (maximum)
+TC_11_Name_Too_Long,VALID_USER_ID,This is a very long name that exceeds the maximum allowed length of 100 characters and should be rejected by validation rules in the API endpoint because it is too long,Valid bio,400,false,Name exceeds 100 characters
+TC_12_Bio_Too_Long,VALID_USER_ID,Valid Name,Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.,400,false,Bio exceeds 500 characters
+TC_13_Empty_Name,VALID_USER_ID,,Valid bio,400,false,Name is empty string
+TC_14_Name_Only_Whitespace,VALID_USER_ID,"   ",Valid bio,400,false,Name contains only spaces
+TC_15_Name_Leading_Trailing_Spaces,VALID_USER_ID,"  John Doe  ",Valid bio,200,true,Name with leading and trailing spaces (should be trimmed)
+TC_16_Bio_Only_Whitespace,VALID_USER_ID,Valid Name,"     ",200,true,Bio with only spaces (might be allowed)
+TC_17_Name_With_Numbers,VALID_USER_ID,John123,Developer bio,200,true,Name containing numbers
+TC_18_Name_With_Tab_Character,VALID_USER_ID,"John	Doe",Developer,400,false,Name with tab character (invalid)
+TC_19_Name_With_Newline,VALID_USER_ID,"John
+Doe",Developer,400,false,Name with newline character (invalid)
+TC_20_Bio_Multiline,VALID_USER_ID,John Doe,"Line 1: Developer
+Line 2: Designer
+Line 3: Creator",200,true,Bio with multiple lines (might be valid)
+TC_21_XSS_Attempt_Name,VALID_USER_ID,<script>alert('xss')</script>,Valid bio,400,false,Name with XSS attempt
+TC_22_XSS_Attempt_Bio,VALID_USER_ID,Valid Name,<script>alert('xss')</script>,400,false,Bio with XSS attempt
+TC_23_SQL_Injection_Name,VALID_USER_ID,'; DROP TABLE Users; --,Valid bio,400,false,Name with SQL injection attempt
+TC_24_HTML_Tags_Bio,VALID_USER_ID,Valid Name,<b>Bold text</b> and <i>italic text</i>,400,false,Bio with HTML tags
+TC_25_Null_Name,VALID_USER_ID,,Valid bio,400,false,Name field is null/missing
+TC_26_Both_Fields_Empty,VALID_USER_ID,,,400,false,Both name and bio are empty
+TC_27_Unauthorized_No_Token,VALID_USER_ID,Test Name,Test Bio,401,false,Update profile without authentication token
+TC_28_Invalid_UserId_Format,invalid-guid,Test Name,Test Bio,400,false,UserId is not a valid GUID format
+TC_29_Invalid_UserId_Zero_Guid,00000000-0000-0000-0000-000000000000,Test Name,Test Bio,404,false,UserId is zero GUID (not found)
+TC_30_Invalid_UserId_Random_Guid,550e8400-e29b-41d4-a716-446655440000,Test Name,Test Bio,404,false,UserId does not exist in database
+TC_31_Different_User_Update,DIFFERENT_USER_ID,Hacker Name,Hacker Bio,403,false,User trying to update another user's profile (should be forbidden)
+TC_32_Case_Sensitive_Name,VALID_USER_ID,john DOE,Developer,200,true,Name with mixed case
+TC_33_All_Uppercase_Name,VALID_USER_ID,JOHN DOE SMITH,DEVELOPER AND DESIGNER,200,true,All uppercase name and bio
+TC_34_All_Lowercase_Name,VALID_USER_ID,john doe smith,developer and designer,200,true,All lowercase name and bio
+TC_35_Bio_With_URLs,VALID_USER_ID,Valid Name,Check out my portfolio at https://example.com and GitHub at github.com/user,200,true,Bio containing URLs
+TC_36_Bio_With_Email,VALID_USER_ID,Valid Name,Contact me at john.doe@example.com for opportunities,200,true,Bio containing email address
+TC_37_Bio_With_Phone,VALID_USER_ID,Valid Name,Call me at +84-123-456-789 or (123) 456-7890,200,true,Bio with phone numbers
+TC_38_Unicode_Chinese_Name,VALID_USER_ID,李明,中国软件工程师,200,true,Chinese characters in name and bio
+TC_39_Unicode_Japanese_Name,VALID_USER_ID,田中太郎,日本のプログラマー,200,true,Japanese characters
+TC_40_Unicode_Korean_Name,VALID_USER_ID,김철수,한국 개발자,200,true,Korean characters
+TC_41_Unicode_Arabic_Name,VALID_USER_ID,محمد أحمد,مهندس برمجيات,200,true,Arabic characters
+TC_42_Unicode_Russian_Name,VALID_USER_ID,Иван Петров,Российский разработчик,200,true,Russian Cyrillic characters
+TC_43_Mixed_Languages,VALID_USER_ID,John Nguyễn 李,Developer 开发者 مطور,200,true,Mixed languages in name and bio
+TC_44_Name_Single_Character,VALID_USER_ID,A,Valid bio,400,false,Name with single character (might be invalid)
+TC_45_Bio_Single_Character,VALID_USER_ID,Valid Name,A,200,true,Bio with single character
+TC_46_Rapid_Update_Same_Data,VALID_USER_ID,Rapid Test,Testing rapid updates,200,true,Rapid successive update with same data (idempotency test)
+TC_47_Name_With_Accents,VALID_USER_ID,José García Müller,Développeur français,200,true,Name with various accents
+TC_48_Bio_With_Markdown,VALID_USER_ID,Valid Name,**Bold** and *italic* text with [links](url),200,true,Bio with markdown syntax (if allowed)
+TC_49_Bio_With_Code,VALID_USER_ID,Valid Name,I love coding: const x = 10; console.log(x);,200,true,Bio with code snippets
+TC_50_Name_Exactly_100_Chars,VALID_USER_ID,1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890,Valid bio,200,true,Name exactly 100 characters

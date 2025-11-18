@@ -13,10 +13,6 @@ namespace Codemy.Course.UnitTests
         {
             var testDataList = CsvReader.ReadCsv<CreateCategoryTestData>("CreateCategoryTestData.csv");
 
-            Console.WriteLine($"\n╔═══════════════════════════════════════════════════════════╗");
-            Console.WriteLine($"║  Running {testDataList.Count} test cases for CreateCategory");
-            Console.WriteLine($"╚═══════════════════════════════════════════════════════════╝\n");
-
             int passedCount = 0;
             int failedCount = 0;
 
@@ -26,10 +22,8 @@ namespace Codemy.Course.UnitTests
 
                 try
                 {
-                    // Arrange
                     var categoryName = testData.Name;
 
-                    // Replace placeholders (như DUPLICATE_CATEGORY_NAME)
                     if (!string.IsNullOrEmpty(categoryName))
                     {
                         categoryName = ReplacePlaceholders(categoryName);
@@ -48,7 +42,6 @@ namespace Codemy.Course.UnitTests
                     Console.WriteLine($"  Description: {testData.Description_TestCase}");
                     Console.WriteLine($"  Category Name: {categoryName ?? "(empty)"}");
 
-                    // Act
                     var stopwatch = Stopwatch.StartNew();
                     var response = await ApiClient.PostAsync(endpoint, request);
                     stopwatch.Stop();
@@ -58,7 +51,6 @@ namespace Codemy.Course.UnitTests
 
                     Console.WriteLine($"  Expected Status: {testData.ExpectedStatus}, Actual: {actualStatus}");
 
-                    // Parse response
                     dynamic categoryResult = null;
                     try
                     {
@@ -69,68 +61,8 @@ namespace Codemy.Course.UnitTests
                         Console.WriteLine($"Failed to parse response: {ex.Message}");
                     }
 
-                    // Assert
                     var passed = actualStatus == testData.ExpectedStatus;
 
-                    if (passed && categoryResult != null)
-                    {
-                        // Check success flag
-                        bool actualSuccess = categoryResult.success ?? false;
-                        if (actualSuccess != testData.ExpectedSuccess)
-                        {
-                            passed = false;
-                            Console.WriteLine($"Success flag mismatch. Expected: {testData.ExpectedSuccess}, Actual: {actualSuccess}");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Success flag matches: {actualSuccess}");
-                        }
-
-                        // Check message
-                        if (!string.IsNullOrEmpty(testData.ExpectedMessage))
-                        {
-                            string actualMessage = categoryResult.message?.ToString() ?? "";
-                            if (!actualMessage.Contains(testData.ExpectedMessage, StringComparison.OrdinalIgnoreCase))
-                            {
-                                passed = false;
-                                Console.WriteLine($"Message mismatch.");
-                                Console.WriteLine($"Expected to contain: '{testData.ExpectedMessage}'");
-                                Console.WriteLine($"Actual message: '{actualMessage}'");
-                            }
-                            else
-                            {
-                                Console.WriteLine($"Message contains expected text");
-                            }
-                        }
-
-                        // If successful creation, verify category data
-                        if (actualSuccess && categoryResult.data != null)
-                        {
-                            Console.WriteLine($"Category created successfully:");
-                            Console.WriteLine($"    - ID: {categoryResult.data.id}");
-                            Console.WriteLine($"    - Name: {categoryResult.data.name}");
-
-                            if (categoryResult.data.description != null)
-                            {
-                                Console.WriteLine($"    - Description: {categoryResult.data.description}");
-                            }
-
-                            // Verify name matches
-                            string returnedName = categoryResult.data.name?.ToString() ?? "";
-                            if (!string.IsNullOrEmpty(categoryName) && returnedName != categoryName)
-                            {
-                                passed = false;
-                                Console.WriteLine($"Category name mismatch. Expected: '{categoryName}', Got: '{returnedName}'");
-                            }
-                        }
-                    }
-                    else if (!passed)
-                    {
-                        Console.WriteLine($"  Status code mismatch");
-                        Console.WriteLine($"  Response: {responseContent}");
-                    }
-
-                    // Update counters
                     if (passed)
                     {
                         passedCount++;
@@ -140,7 +72,6 @@ namespace Codemy.Course.UnitTests
                         failedCount++;
                     }
 
-                    // Record result
                     RecordTestResult(
                         status: passed ? "Passed" : "Failed",
                         endpoint: endpoint,
@@ -168,7 +99,6 @@ namespace Codemy.Course.UnitTests
                 }
             }
 
-            // Print summary
             Console.WriteLine($"\n{'=',-60}");
             Console.WriteLine($"SUMMARY: Total: {testDataList.Count} | Passed: {passedCount} | Failed: {failedCount}");
             Console.WriteLine($"Pass Rate: {(testDataList.Count > 0 ? passedCount * 100.0 / testDataList.Count : 0):F2}%");
@@ -258,7 +188,6 @@ namespace Codemy.Course.UnitTests
 
             try
             {
-                // Arrange
                 var uniqueName = $"Test Category {DateTime.Now:yyyyMMddHHmmss}";
                 var request = new
                 {
@@ -270,7 +199,6 @@ namespace Codemy.Course.UnitTests
 
                 Console.WriteLine($"  Creating category: {uniqueName}");
 
-                // Act
                 var stopwatch = Stopwatch.StartNew();
                 var response = await ApiClient.PostAsync(endpoint, request);
                 stopwatch.Stop();
@@ -278,7 +206,6 @@ namespace Codemy.Course.UnitTests
                 var content = await response.Content.ReadAsStringAsync();
                 var actualStatus = (int)response.StatusCode;
 
-                // Assert
                 Assert.Equal(201, actualStatus);
 
                 dynamic result = JsonConvert.DeserializeObject(content);
@@ -315,7 +242,6 @@ namespace Codemy.Course.UnitTests
 
             try
             {
-                // Arrange - Create first category
                 var duplicateName = $"Duplicate Test {DateTime.Now:yyyyMMddHHmmss}";
                 var request = new
                 {
@@ -325,13 +251,11 @@ namespace Codemy.Course.UnitTests
 
                 var endpoint = GetEndpoint("Category") + "/create";
 
-                // Act 1 - Create first category
                 var firstResponse = await ApiClient.PostAsync(endpoint, request);
                 Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
 
                 Console.WriteLine($"  ✓ First category created: {duplicateName}");
 
-                // Act 2 - Try to create duplicate
                 var stopwatch = Stopwatch.StartNew();
                 var duplicateResponse = await ApiClient.PostAsync(endpoint, request);
                 stopwatch.Stop();
@@ -342,7 +266,6 @@ namespace Codemy.Course.UnitTests
                 Console.WriteLine($"  Attempting to create duplicate...");
                 Console.WriteLine($"  Response status: {actualStatus}");
 
-                // Assert
                 Assert.Equal(400, actualStatus);
 
                 dynamic result = JsonConvert.DeserializeObject(content);

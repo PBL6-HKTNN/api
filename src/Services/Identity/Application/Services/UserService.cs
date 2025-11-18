@@ -2,6 +2,7 @@ using Codemy.BuildingBlocks.Core;
 using Codemy.Identity.API.DTOs.User;
 using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Domain.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace Codemy.Identity.Application.Services
 {
@@ -22,9 +23,16 @@ namespace Codemy.Identity.Application.Services
         {
             var user = await _userRepository.GetByIdAsync(userId)
                 ?? throw new KeyNotFoundException("User not found");
+            var trimmedName = request.Name?.Trim();
 
-            user.name = request.Name;
-            user.bio = request.Bio;
+            // Additional validations
+            if (string.IsNullOrWhiteSpace(trimmedName))
+                throw new ValidationException("Name cannot be empty or whitespace");
+
+            if (trimmedName.Any(c => char.IsControl(c) && c != '\n' && c != '\r'))
+                throw new ValidationException("Name contains invalid control characters");
+            user.name = trimmedName;
+            user.bio = request.Bio?.Trim();
 
             await _userRepository.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
