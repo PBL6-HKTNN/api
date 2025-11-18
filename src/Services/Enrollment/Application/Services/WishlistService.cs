@@ -35,6 +35,59 @@ namespace Codemy.Enrollment.Application.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
+        public async Task<Response> CheckCourseInWishlist(Guid courseId)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new Response
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = UserId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", UserId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+
+            var existingWishlistItem = await _wishlistItemRepository.FindAsync(w => w.userId == UserId && w.courseId == courseId && !w.IsDeleted);
+            if (existingWishlistItem.Any())
+            {
+                return new Response
+                {
+                    Success = true,
+                    Message = "Course is in the wishlist.",
+                    WishlistItem = existingWishlistItem.First()
+                };
+            }
+            else
+            {
+                return new Response
+                {
+                    Success = false,
+                    Message = "Course is not in the wishlist."
+                };
+            }
+        }
+
         async Task<Response> IWishlistService.AddToWishlistAsync(Guid courseId)
         {
             var user = _httpContextAccessor.HttpContext?.User;
@@ -78,7 +131,7 @@ namespace Codemy.Enrollment.Application.Services
                 };
             } 
 
-            var existingWishlistItem = await _wishlistItemRepository.FindAsync(w => w.userId == UserId && w.courseId == courseId);
+            var existingWishlistItem = await _wishlistItemRepository.FindAsync(w => w.userId == UserId && w.courseId == courseId && ! w.IsDeleted);
             if (existingWishlistItem.Any())
             {
                 return new Response

@@ -5,6 +5,7 @@ namespace Codemy.Enrollment.Application.Interfaces
     public interface IWishlistService
     {
         Task<Response> AddToWishlistAsync(Guid courseId);
+        Task<Response> CheckCourseInWishlist(Guid courseId);
         Task<WishListResponse> GetWishlistAsync();
         Task<Response> RemoveFromWishlistAsync(Guid courseId);
     }
