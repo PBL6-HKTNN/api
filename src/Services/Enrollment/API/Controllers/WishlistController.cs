@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc; 
 using Codemy.Enrollment.Application.Interfaces;
-using Codemy.BuildingBlocks.Core;  
+using Codemy.BuildingBlocks.Core;
 namespace Codemy.Enrollment.API.Controllers
 {
     [ApiController]
@@ -18,7 +18,7 @@ namespace Codemy.Enrollment.API.Controllers
 
         [HttpPost("add/{courseId}")]
         public async Task<IActionResult> AddToWishlist(Guid courseId)
-        { 
+        {
             try
             {
                 var result = await _wishlistService.AddToWishlistAsync(courseId);
@@ -26,9 +26,9 @@ namespace Codemy.Enrollment.API.Controllers
                 {
                     return this.BadRequestResponse(result.Message ?? "Failed to add course to wishlist.");
                 }
-                return 
+                return
                     this.CreatedResponse(
-                        result.WishlistItem, 
+                        result.WishlistItem,
                         $"/wishlist/get"
                     );
             }
@@ -60,11 +60,11 @@ namespace Codemy.Enrollment.API.Controllers
 
         [HttpDelete("remove/{courseId}")]
         public async Task<IActionResult> RemoveFromWishlist(Guid courseId)
-        { 
+        {
             try
             {
                 var result = await _wishlistService.RemoveFromWishlistAsync(courseId);
-                if(!result.Success)
+                if (!result.Success)
                 {
                     return this.BadRequestResponse(result.Message ?? "Failed to remove course from wishlist.");
                 }
@@ -94,4 +94,5 @@ namespace Codemy.Enrollment.API.Controllers
                 return StatusCode(500, "Internal server error.");
             }
         }
+    }
 }
