@@ -76,6 +76,22 @@ namespace Codemy.Enrollment.API.Controllers
                 return StatusCode(500, "Internal server error.");
             }
         }
-
-    }
+        [HttpGet("Check/{courseId}")]
+        public async Task<IActionResult> CheckCourseInWishlist(Guid courseId)
+        {
+            try
+            {
+                var result = await _wishlistService.CheckCourseInWishlist(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve wishlist.");
+                }
+                return this.OkResponse(result.WishlistItem);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking course in wishlist.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
 }
