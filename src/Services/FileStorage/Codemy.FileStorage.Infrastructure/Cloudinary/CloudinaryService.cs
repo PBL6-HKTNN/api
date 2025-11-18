@@ -29,7 +29,7 @@ namespace Codemy.FileStorage.Infrastructure.Cloudinary
         //        ResourceType = ResourceType.Video
         //    });
 
-        //    return result.Duration; // tính bằng giây
+        //    return result.Duration; 
         //}
 
     public async Task<FileUploadResponse> UploadImageAsync(IFormFile file)
@@ -75,25 +75,42 @@ namespace Codemy.FileStorage.Infrastructure.Cloudinary
             if (file == null)
                 throw new ArgumentNullException(nameof(file));
 
-            Console.WriteLine($"[CloudinaryService] Uploading video: {file.FileName}");
+            if (file.Length == 0)
+                throw new ArgumentException("File is empty");
+
+            if (!file.ContentType.StartsWith("video/"))
+                Console.WriteLine($"[Warning] File {file.FileName} có Content-Type không phải video: {file.ContentType}");
+
+            Console.WriteLine($"[CloudinaryService] Uploading video: {file.FileName} ({file.Length / 1024 / 1024} MB)");
 
             var uploadParams = new VideoUploadParams
             {
                 File = new FileDescription(file.FileName, file.OpenReadStream()),
-                Folder = "codemy/videos"
+                Folder = "codemy/videos",
+                UseFilename = true,
+                UniqueFilename = false,
+                Overwrite = true,
             };
 
-            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+            VideoUploadResult uploadResult;
 
-            if (uploadResult == null)
-                throw new Exception("Upload failed: Cloudinary returned null result");
+            if (file.Length > 20_000_000) // > 20MB
+            {
+                uploadResult = await _cloudinary.UploadLargeAsync(uploadParams);
+            }
+            else
+            {
+                uploadResult = await _cloudinary.UploadAsync(uploadParams);
+            }
 
             if (uploadResult.Error != null)
-                throw new Exception($"Cloudinary error: {uploadResult.Error.Message}");
+                throw new Exception($"Cloudinary upload error: {uploadResult.Error.Message}");
+
+            Console.WriteLine($"[CloudinaryService] Upload video success: {uploadResult.PublicId}");
 
             return new FileUploadResponse
             {
-                Url = uploadResult.SecureUrl?.AbsoluteUri ?? string.Empty,
+                Url = uploadResult.SecureUrl?.ToString() ?? string.Empty,
                 PublicId = uploadResult.PublicId,
                 Type = "video"
             };

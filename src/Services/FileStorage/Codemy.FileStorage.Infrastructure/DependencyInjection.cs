@@ -37,6 +37,7 @@ namespace Codemy.FileStorage.Infrastructure
             // Cloudinary instance
             var account = new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret);
             var cloudinary = new CloudinaryDotNet.Cloudinary(account);
+            cloudinary.Api.Timeout = 600000;
             services.AddSingleton(cloudinary);
 
             // Register services
