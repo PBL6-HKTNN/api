@@ -4,8 +4,23 @@ using Codemy.FileStorage.Infrastructure.Cloudinary;
 using Codemy.FileStorage.Infrastructure.Configurations;
 using Codemy.FileStorage.Infrastructure;
 using Codemy.FileStorage.Application;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<KestrelServerOptions>(options =>
+{
+    options.Limits.MaxRequestBodySize = 1_000_000_000; // 1GB
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 1_000_000_000; // 1GB
+});
+
+builder.Services.Configure<KestrelServerOptions>(options => 
+    options.Limits.MaxRequestBodySize = 200*1024*1024);
 
 // Add services to the container.
 

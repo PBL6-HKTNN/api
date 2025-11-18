@@ -19,10 +19,10 @@ namespace Codemy.FileStorage.API.Controllers
             _fileAppService = fileAppService;
         }
 
+        [RequestSizeLimit(1_000_000_000)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 1_000_000_000)]
         [HttpPost("{type}")]
-        [SwaggerOperation(Summary = "Upload file", Description = "Upload a file to Cloudinary")]
         public async Task<IActionResult> UploadFile(
-            [SwaggerParameter("File type (Ex: image, document, video)")]
             [FromRoute] string type,
             IFormFile file)
         {
@@ -37,6 +37,7 @@ namespace Codemy.FileStorage.API.Controllers
                 Type = result.Type
             });
         }
+
 
         [HttpDelete("{publicId}")]
         [SwaggerOperation(Summary = "Delete file", Description = "Delete a file from Cloudinary by its public ID")]
