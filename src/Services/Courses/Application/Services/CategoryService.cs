@@ -28,13 +28,13 @@ namespace Codemy.Courses.Application.Services
             _categoryRepository = categoryRepository;
             _unitOfWork = unitOfWork;
         }
-        public async Task<CategoryReponse> CreateCategoryAsync(CreateCategoryRequest request)
+        public async Task<CategoryResponse> CreateCategoryAsync(CreateCategoryRequest request)
         {
             //CREATED BY, UPDATED BY
             var categorys = await _categoryRepository.FindAsync(c => c.name == request.Name);
             if (categorys.Any())
             {
-                return new CategoryReponse
+                return new CategoryResponse
                 {
                     Success = false,
                     Message = "Category with the same name already exists."
@@ -50,13 +50,13 @@ namespace Codemy.Courses.Application.Services
             var result = await _unitOfWork.SaveChangesAsync();
             if (result <= 0)
             {
-                return new CategoryReponse
+                return new CategoryResponse
                 {
                     Success = false,
                     Message = "Failed to create category."
                 };
             }
-            return new CategoryReponse
+            return new CategoryResponse
             {
                 Success = true,
                 Message = "Category created successfully.",

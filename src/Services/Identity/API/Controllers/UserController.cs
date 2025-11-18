@@ -1,6 +1,7 @@
 using Codemy.BuildingBlocks.Core;
 using Codemy.Identity.API.DTOs.User;
 using Codemy.Identity.Application.Interfaces;
+using Codemy.Identity.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +22,16 @@ namespace Codemy.Identity.API.Controllers
         [HttpPut("{id}/profile")]
         public async Task<IActionResult> UpdateProfile(Guid id, [FromBody] UpdateProfileRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
             var user = await _userService.UpdateProfileAsync(id, request);
             return this.OkResponse(new UserResponse
             {

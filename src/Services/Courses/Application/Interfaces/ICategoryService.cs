@@ -5,10 +5,10 @@ namespace Codemy.Courses.Application.Interfaces
 {
     public interface ICategoryService
     {
-        Task<CategoryReponse> CreateCategoryAsync(CreateCategoryRequest request);
+        Task<CategoryResponse> CreateCategoryAsync(CreateCategoryRequest request);
         Task<CategoryListResponse> GetCategories();
     }
-    public class CategoryReponse
+    public class CategoryResponse
     {
         public bool Success { get; set; }
         public string? Message { get; set; }

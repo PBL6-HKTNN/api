@@ -1,0 +1,8 @@
+﻿TestCase,UserId,Name,Bio,ExpectedStatus,ExpectedSuccess,Description
+TC_01_Valid_Full_Update,VALID_USER_ID,John Doe Updated,Software engineer passionate about clean code and testing,200,true,Update both name and bio with valid data
+TC_02_Vietnamese_Name,VALID_USER_ID,Nguyễn Văn A,Student,200,true,Name with Vietnamese characters
+TC_03_Name_Too_Long,VALID_USER_ID,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,,400,false,Name exceeds 100 characters
+TC_04_Name_Only_Whitespace,VALID_USER_ID,"   ",,400,false,Name contains only spaces
+TC_05_Bio_Too_Long,VALID_USER_ID,,Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo.,400,false,Bio exceeds 500 characters
+TC_06_Unauthorized_No_Token,VALID_USER_ID,Test Name,,401,false,Update profile without authentication token
+TC_07_Invalid_UserId_Format,invalid-guid,Test Name,,400,false,UserId is not a valid GUID format

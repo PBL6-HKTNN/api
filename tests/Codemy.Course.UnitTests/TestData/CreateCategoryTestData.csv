@@ -1,0 +1,9 @@
+TestCase,Name,Description,ExpectedStatus,ExpectedSuccess,ExpectedMessage,Description_TestCase
+ValidCategory_AllFields,Programming,Learn programming languages,201,true,Category created successfully,Valid category with all fields
+ValidCategory_NameOnly,Web Development,,201,true,Category created successfully,Valid category with only name
+ValidCategory_WithSpecialChars,Test & Design,Category with special characters,201,true,Category created successfully,Category with special characters
+DuplicateName,DUPLICATE_CATEGORY_NAME,This will fail,400,false,already exists,Duplicate category name
+EmptyName,,Empty name test,400,false,,Empty category name
+LongName,This_Is_A_Very_Long_Category_Name_That_Should_Be_Tested_To_See_If_The_API_Handles_Long_Names_Properly_In_The_System,Long name test,201,true,Category created successfully,Category name with 100+ characters
+UnicodeCharacters,Lập Trình Căn Bản,Vietnamese category name,201,true,Category created successfully,Unicode characters in name
+NumbersInName,Programming101,Category with numbers,201,true,Category created successfully,Category name with numbers

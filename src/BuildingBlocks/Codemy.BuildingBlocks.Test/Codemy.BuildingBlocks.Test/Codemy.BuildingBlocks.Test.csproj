@@ -9,27 +9,20 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="CsvHelper" Version="33.1.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\BuildingBlocks\Codemy.BuildingBlocks.Domain\Codemy.BuildingBlocks.Domain.csproj" />
-    <ProjectReference Include="..\..\src\BuildingBlocks\Codemy.BuildingBlocks.Test\Codemy.BuildingBlocks.Test\Codemy.BuildingBlocks.Test.csproj" />
+    <ProjectReference Include="..\..\..\Services\Identity\API\Codemy.Identity.API.csproj" />
+    <ProjectReference Include="..\..\..\Services\Identity\Application\Codemy.Identity.Application.csproj" />
+    <ProjectReference Include="..\..\Codemy.BuildingBlocks.Domain\Codemy.BuildingBlocks.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="appsettings.test.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\UpdateProfileTestData.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

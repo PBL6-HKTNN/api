@@ -6,4 +6,14 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="33.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Services\Identity\API\Codemy.Identity.API.csproj" />
+    <ProjectReference Include="..\..\Services\Identity\Application\Codemy.Identity.Application.csproj" />
+    <ProjectReference Include="..\Codemy.BuildingBlocks.Domain\Codemy.BuildingBlocks.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
