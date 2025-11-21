@@ -5,5 +5,6 @@ namespace Codemy.FileStorage.Application.DTOs
         public string Url { get; set; } = null!;
         public string PublicId { get; set; } = null!;
         public string Type { get; set; } = null!;
+        public double? Duration { get; set; }
     }
 }
