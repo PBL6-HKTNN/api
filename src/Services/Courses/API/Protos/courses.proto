@@ -1,0 +1,63 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Codemy.CoursesProto";
+
+package courses;
+
+import "google/protobuf/empty.proto";
+
+service CoursesService {
+  rpc GetCourseById (GetCourseByIdRequest) returns (GetCourseByIdResponse);
+  rpc ValidateCourseAsync (GetValidateRequest) returns (GetValidateResponse);
+
+  // RPC mới để lấy tất cả course cho search index
+  rpc GetAllCoursesForIndexing (google.protobuf.Empty) returns (GetAllCoursesForIndexingResponse);
+}
+
+// Request
+message GetCourseByIdRequest {
+  string courseId = 1;
+}
+
+message GetValidateRequest {
+  string courseId = 1;
+  string lessonId = 2;
+}
+
+// Response
+message GetCourseByIdResponse {
+  bool exists = 1;
+  string courseId = 2;
+  string instructorId = 3;
+  string title = 4;
+  string thumbnail = 5;
+  string description = 6;
+  string price = 7;
+}
+
+message GetValidateResponse {
+  bool validate = 1;
+  bool isLastLesson = 2;
+}
+
+// Response cho GetAllCoursesForIndexing
+message CourseIndexDto {
+  string id = 1;
+  string instructorId = 2;
+  string title = 3;
+  string description = 4;
+  string thumbnail = 5;
+  int32 status = 6;
+  int64 durationTicks = 7;
+  string price = 8;
+  int32 level = 9;
+  int32 numberOfModules = 10;
+  string categoryId = 11;
+  string language = 12;
+  int32 numberOfReviews = 13;
+  string averageRating = 14;
+}
+
+message GetAllCoursesForIndexingResponse {
+  repeated CourseIndexDto courses = 1;
+}

@@ -1,0 +1,34 @@
+﻿using Codemy.Identity.Application.Interfaces;
+using Codemy.IdentityProto; 
+using Grpc.Core; 
+namespace Codemy.Identity.API.Services
+{
+    public class IdentityGrpcService : IdentityService.IdentityServiceBase
+    {
+        private readonly IAuthenticationService _authenticationService;
+
+        public IdentityGrpcService(IAuthenticationService authenticationService)
+        {
+            _authenticationService = authenticationService;
+        }
+
+        public override async Task<GetUserByIdResponse> GetUserById(GetUserByIdRequest request, ServerCallContext context)
+        {
+            var result = await _authenticationService.GetUserById(request.UserId);
+            if (result == null)
+            {
+                return new GetUserByIdResponse
+                {
+                    Exists = false
+                };
+            }
+            return new GetUserByIdResponse
+            {
+                Exists = true,
+                UserId = result.Id.ToString(),
+                Email = result.email,
+                Name = result.name
+            };
+        }
+    }
+}

@@ -1,0 +1,149 @@
+version: "3.9"
+
+networks:
+  codemy-network:
+    external: true
+
+services:
+  identity-api:
+    build:
+      context: .
+      dockerfile: src/Services/Identity/API/Dockerfile
+    container_name: identity-service
+    networks:
+      - codemy-network
+    ports:
+      - "8080:5197"
+      - "8443:7046"
+    env_file:
+      - ./.env
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
+
+  review-api:
+    build:
+      context: .
+      dockerfile: src/Services/Review/API/Dockerfile
+    container_name: review-service
+    networks:
+      - codemy-network
+    ports:
+      - "8085:5041"
+      - "8442:7048"
+    env_file:
+      - ./.env
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
+
+  search-api:
+    build:
+      context: .
+      dockerfile: src/Services/Search/API/Dockerfile
+    container_name: search-service
+    networks:
+      - codemy-network
+    ports:
+      - "8086:5004"
+      - "8441:7180"
+    env_file:
+      - ./.env
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
+
+  courses-api:
+    build:
+      context: .
+      dockerfile: src/Services/Courses/API/Dockerfile
+    container_name: courses-service
+    networks:
+      - codemy-network
+    ports:
+      - "8084:5079"
+      - "8448:7024"
+    env_file:
+      - ./.env
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: src/ApiGateway/ApiGateway/Dockerfile
+    container_name: api-gateway-service
+    networks:
+      - codemy-network
+    ports:
+      - "8444:7000"
+    env_file:
+      - ./.env
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
+
+  payment-api:
+    build:
+      context: .
+      dockerfile: src/Services/Payment/API/Dockerfile
+    container_name: payment-service
+    networks:
+      - codemy-network
+    ports:
+      - "8081:5299"
+      - "8445:7099"
+    env_file:
+      - ./.env
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
+
+  notification-api:
+    build:
+      context: .
+      dockerfile: src/Services/Notification/API/Dockerfile
+    container_name: notification-service
+    networks:
+      - codemy-network
+    ports:
+      - "8082:5180"
+      - "8446:7187"
+    env_file:
+      - ./.env
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
+
+  enrollment-api:
+    build:
+      context: .
+      dockerfile: src/Services/Enrollment/API/Dockerfile
+    container_name: enrollment-service
+    networks:
+      - codemy-network
+    ports:
+      - "8083:5178"
+      - "8447:7078"
+    env_file:
+      - ./.env
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "YourPassword"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: "/https/aspnetapp.pfx"
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx

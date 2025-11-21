@@ -8,6 +8,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\Codemy.Enrollment.Domain.csproj" />
+    <ProjectReference Include="..\Application\Codemy.Enrollment.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
   </ItemGroup>
 
 </Project>

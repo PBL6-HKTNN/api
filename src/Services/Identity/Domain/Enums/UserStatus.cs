@@ -1,6 +1,6 @@
 ﻿namespace Codemy.Identity.Domain.Enums
 {
-    internal enum UserStatus
+    public enum UserStatus
     {
         Active,
         Inactive,  

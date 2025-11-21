@@ -1,6 +1,6 @@
 ﻿namespace Codemy.Enrollment.Domain.Enums
 {
-    internal enum ProgressStatus
+    public enum ProgressStatus
     {
         NotStarted,
         InProgress,

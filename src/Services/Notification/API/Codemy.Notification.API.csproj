@@ -3,16 +3,33 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>enable</ImplicitUsings> 
+    <OutputPath>bin\Debug\net9.0\$(MSBuildProjectName)</OutputPath> 
+    <UserSecretsId>70ac02fc-5f7d-4f87-b6a8-a21cac8d36a8</UserSecretsId> 
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS> 
+    <DockerfileContext>..\..\..\..</DockerfileContext>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.33.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.72.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Core\Codemy.BuildingBlocks.Core.csproj" />
     <ProjectReference Include="..\Application\Codemy.Notification.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Codemy.Notification.Infrastructure.csproj" />
   </ItemGroup>
+
+    <ItemGroup>
+	    <Protobuf Include="Protos\notification.proto" GrpcServices="Server" />
+    </ItemGroup>
 
 </Project>
