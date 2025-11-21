@@ -5,11 +5,13 @@ using Codemy.Enrollment.Application.DTOs;
 using Codemy.Enrollment.Application.Interfaces;
 using Codemy.Enrollment.Domain.Entities;
 using Codemy.Enrollment.Domain.Enums;
-using Codemy.Identity.Domain.Entities;
 using Codemy.IdentityProto;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+
+using ProtoValidateRequest = Codemy.CoursesProto.GetValidateRequest;
 
 namespace Codemy.Enrollment.Application.Services
 {
@@ -302,7 +304,7 @@ namespace Codemy.Enrollment.Application.Services
             }
             if (request.LessonId.HasValue)
             {
-                var validate = _courseClient.ValidateCourseAsync(new GetValidateRequest { CourseId = enrollment.courseId.ToString(), LessonId = request.LessonId.ToString() });
+                var validate = _courseClient.ValidateCourseAsync(new ProtoValidateRequest { CourseId = enrollment.courseId.ToString(), LessonId = request.LessonId.ToString() });
                 if (!validate.Validate)
                 {
                     return new EnrollmentResponse
@@ -481,7 +483,7 @@ namespace Codemy.Enrollment.Application.Services
             }
             //check lessonId thuộc course không
             var validate = _courseClient.ValidateCourseAsync(
-                new GetValidateRequest { CourseId = request.CourseId.ToString(), LessonId = request.LessonId.ToString() }
+                new ProtoValidateRequest { CourseId = request.CourseId.ToString(), LessonId = request.LessonId.ToString() }
             );
             if (!validate.Validate)
             {
@@ -519,5 +521,26 @@ namespace Codemy.Enrollment.Application.Services
                 Enrollment = enrollment
             };
         }
+
+        public async Task<CheckEnrollmentsResponse> CheckEnrollmentsAsync(CheckEnrollmentsRequest request)
+        {
+
+            if (request.CourseIds == null || !request.CourseIds.Any())
+                return new CheckEnrollmentsResponse { EnrolledCourseIds = new List<string>() };
+
+            var enrolledCourses = await _enrollmentRepository
+                .Query()
+                .Where(e => e.studentId == request.UserId && request.CourseIds.Contains(e.courseId))
+                .Select(e => e.courseId)
+                .ToListAsync();
+
+            return new CheckEnrollmentsResponse
+            {
+                Success = true,
+                Message = "Check enrollments completed.",
+                EnrolledCourseIds = enrolledCourses.Select(id => id.ToString()).ToList()
+            };
+        }
+
     }
 }

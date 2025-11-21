@@ -30,5 +30,21 @@ namespace Codemy.Enrollment.API.Services
                 LessonId = result.Enrollment?.lessonId.ToString() ?? string.Empty,
             };
         }
+
+        public override async Task<CheckResponse> CheckEnrollments(CheckRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var checkRequest = new CheckEnrollmentsRequest
+            {
+                UserId = Guid.Parse(request.UserId),
+                CourseIds = request.CourseIds.Select(id => Guid.Parse(id)).ToList()
+            };
+            var result = await _enrollmentService.CheckEnrollmentsAsync(checkRequest);
+            return new CheckResponse
+            {
+                Success = result.Success,
+                Message = result.Message ?? string.Empty,
+                EnrolledCourseIds = { result.EnrolledCourseIds }
+            };
+        }
     }
 }

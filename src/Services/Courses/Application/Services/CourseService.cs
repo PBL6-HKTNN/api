@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using Module = Codemy.Courses.Domain.Entities.Module;
 using Microsoft.EntityFrameworkCore;
+using Codemy.EnrollmentsProto;
 
 namespace Codemy.Courses.Application.Services
 {
@@ -23,6 +24,7 @@ namespace Codemy.Courses.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IdentityService.IdentityServiceClient _client;
         private readonly CourseIndexService.CourseIndexServiceClient _searchClient;
+        private readonly EnrollmentService.EnrollmentServiceClient _enrollmentService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public CourseService(
@@ -34,7 +36,8 @@ namespace Codemy.Courses.Application.Services
             IRepository<Category> categoryRepository,
             IUnitOfWork unitOfWork,
             IdentityService.IdentityServiceClient client,
-            CourseIndexService.CourseIndexServiceClient searchClient
+            CourseIndexService.CourseIndexServiceClient searchClient,
+            EnrollmentService.EnrollmentServiceClient enrollmentService
         )
         {
             _httpContextAccessor = httpContextAccessor;
@@ -46,6 +49,7 @@ namespace Codemy.Courses.Application.Services
             _categoryRepository = categoryRepository;
             _client = client;
             _searchClient = searchClient;
+            _enrollmentService = enrollmentService;
         }
         public async Task<CourseReponse> CreateCourseAsync(CreateCourseRequest request)
         {
@@ -445,7 +449,7 @@ namespace Codemy.Courses.Application.Services
             };
         }
 
-        public async Task<IEnumerable<Course>> GetCoursesAsync(
+        public async Task<IEnumerable<GetCoursesResponse>> GetCoursesAsync(
             Guid? categoryId = null,
             string? language = null,
             string? level = null,
@@ -453,6 +457,22 @@ namespace Codemy.Courses.Application.Services
             int page = 1,
             int pageSize = 10)
         {
+            var httpContext = _httpContextAccessor.HttpContext;
+            Guid? userId = null;
+
+            if (httpContext?.User != null)
+            {
+                var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                            ?? httpContext.User.FindFirst("sub")?.Value
+                            ?? httpContext.User.FindFirst("userId")?.Value;
+
+                if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var parsedId))
+                {
+                    userId = parsedId;
+                }
+            }
+
+            // Query courses
             var query = _courseRepository.Query();
 
             if (categoryId.HasValue)
@@ -464,6 +484,7 @@ namespace Codemy.Courses.Application.Services
             if (!string.IsNullOrEmpty(level) && Enum.TryParse(level, out Level parsedLevel))
                 query = query.Where(c => c.level == parsedLevel);
 
+            // Sorting
             query = sortBy switch
             {
                 "price" => query.OrderBy(c => c.price),
@@ -471,13 +492,54 @@ namespace Codemy.Courses.Application.Services
                 _ => query.OrderByDescending(c => c.CreatedAt)
             };
 
+            // Pagination
             var skip = (page - 1) * pageSize;
             query = query.Skip(skip).Take(pageSize);
 
-            var courses = await query
-                .ToListAsync();
+            // Get courses list
+            var courses = await query.ToListAsync();
 
-            return courses;
+            // Batch check enrollments
+            List<string> enrolledCourseIds = new List<string>();
+            if (userId.HasValue && courses.Any())
+            {
+                try
+                {
+                    var response = await _enrollmentService.CheckEnrollmentsAsync(new CheckRequest
+                    {
+                        UserId = userId.Value.ToString(),
+                        CourseIds = { courses.Select(c => c.Id.ToString()).ToList() }
+                    });
+                    enrolledCourseIds = response?.EnrolledCourseIds?.ToList() ?? new List<string>();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to check enrollments for user {UserId}. Defaulting IsEnrolled to false for all courses.", userId.Value);
+                    enrolledCourseIds = new List<string>();
+                }
+            }
+
+            var result = courses.Select(c => new GetCoursesResponse
+            {
+                Id = c.Id,
+                instructorId = c.instructorId,
+                title = c.title,
+                description = c.description,
+                thumbnail = c.thumbnail,
+                status = (int)c.status,
+                duration = c.duration,
+                price = c.price,
+                level = (int)c.level,
+                numberOfModules = c.numberOfModules,
+                categoryId = c.categoryId,
+                language = c.language,
+                numberOfReviews = c.numberOfReviews,
+                averageRating = c.averageRating,
+                IsEnrolled = enrolledCourseIds.Contains(c.Id.ToString()) 
+            }).ToList();
+
+            return result;
         }
+
     }
 }
