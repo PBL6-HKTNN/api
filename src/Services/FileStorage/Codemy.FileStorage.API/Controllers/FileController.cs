@@ -34,7 +34,8 @@ namespace Codemy.FileStorage.API.Controllers
             {
                 Url = result.Url,
                 PublicId = result.PublicId,
-                Type = result.Type
+                Type = result.Type,
+                Duration = result.Duration
             });
         }
 

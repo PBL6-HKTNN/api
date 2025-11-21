@@ -13,7 +13,6 @@ namespace Codemy.Courses.Application.DTOs
         public string title { get; set; }
         [Required]
         public string contentUrl { get; set; } 
-        public TimeSpan duration { get; set; }
         [Required]
         public int orderIndex { get; set; }
         [Required]
@@ -22,5 +21,8 @@ namespace Codemy.Courses.Application.DTOs
         public bool isPreview { get; set; }
         [Required]
         public int lessonType { get; set; }
+        [Required]
+        public double duration { get; set; }
+
     }
 }

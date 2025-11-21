@@ -112,19 +112,19 @@ namespace Codemy.Courses.Application.Services
                     Message = "Lesson with the same order index already exists in this module."
                 };
             } 
-            int durationInMinutes;
+            double durationInSeconds;
 
             switch (request.lessonType)
             {
                 case (int)LessonType.Quiz:  
                 case (int)LessonType.Article: 
-                    durationInMinutes = 5; 
+                    durationInSeconds = (double)(5 * 60); 
                     break;
                 case (int)LessonType.Video:
-                    durationInMinutes = await GetVideoDurationInMinutes(request.contentUrl);
+                    durationInSeconds = request.duration;
                     break;
                 default:
-                    durationInMinutes = 5;
+                    durationInSeconds = (double)(5 * 60);
                     break;
             }  
             var lesson = new Lesson
@@ -132,7 +132,7 @@ namespace Codemy.Courses.Application.Services
                     Id = Guid.NewGuid(),
                     title = request.title,
                     contentUrl = request.contentUrl,
-                    duration = TimeSpan.FromMinutes(durationInMinutes),
+                    duration = TimeSpan.FromSeconds(durationInSeconds),
                     moduleId = request.moduleId,
                     orderIndex = request.orderIndex,
                     isPreview = request.isPreview,
@@ -162,24 +162,6 @@ namespace Codemy.Courses.Application.Services
                 Message = "Lesson created successfully.",
                 Lesson = lesson
             };
-        }
-
-        private async Task<int> GetVideoDurationInMinutes(string contentUrl)
-        {
-        //var account = new Account(
-        //    "your_cloud_name",
-        //    "your_api_key",
-        //    "your_api_secret"
-        //);
-
-        //var cloudinary = new Cloudinary(account);
-        //var result = await cloudinary.GetResourceAsync(new GetResourceParams(publicId)
-        //{
-        //    ResourceType = ResourceType.Video
-        //});
-
-        //return result.Duration; // tính bằng giây
-        return 10; // Giả sử video có độ dài 10 phút
         }
 
         public async Task<LessonListResponse> GetLessons()
@@ -355,25 +337,25 @@ namespace Codemy.Courses.Application.Services
                 };
             }
 
-            int durationInMinutes;
+            double durationInSeconds;
 
             switch (request.lessonType)
             {
                 case (int)LessonType.Quiz:
                 case (int)LessonType.Article:
-                    durationInMinutes = 5;
+                    durationInSeconds = (double)(5 * 60);
                     break;
                 case (int)LessonType.Video:
-                    durationInMinutes = await GetVideoDurationInMinutes(request.contentUrl);
+                    durationInSeconds = request.duration;
                     break;
                 default:
-                    durationInMinutes = 5;
+                    durationInSeconds = (double)(5 * 60);
                     break;
             }
             result.title = request.title;
             result.contentUrl = request.contentUrl;
             result.isPreview = request.isPreview;
-            result.duration = TimeSpan.FromMinutes(durationInMinutes);
+            result.duration = TimeSpan.FromSeconds(durationInSeconds);
             result.orderIndex = request.orderIndex;
             result.lessonType = (LessonType)request.lessonType;
             result.UpdatedAt = DateTime.UtcNow;

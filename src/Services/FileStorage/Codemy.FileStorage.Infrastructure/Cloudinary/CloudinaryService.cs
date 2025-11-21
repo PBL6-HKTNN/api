@@ -112,7 +112,8 @@ namespace Codemy.FileStorage.Infrastructure.Cloudinary
             {
                 Url = uploadResult.SecureUrl?.ToString() ?? string.Empty,
                 PublicId = uploadResult.PublicId,
-                Type = "video"
+                Type = "video",
+                Duration = uploadResult.Duration
             };
         }
 
