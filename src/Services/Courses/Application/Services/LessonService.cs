@@ -118,13 +118,13 @@ namespace Codemy.Courses.Application.Services
             {
                 case (int)LessonType.Quiz:  
                 case (int)LessonType.Article: 
-                    durationInSeconds = (double)(5 * 60); 
+                    durationInSeconds = 5 * 60; 
                     break;
                 case (int)LessonType.Video:
                     durationInSeconds = request.duration;
                     break;
                 default:
-                    durationInSeconds = (double)(5 * 60);
+                    durationInSeconds = 5 * 60;
                     break;
             }  
             var lesson = new Lesson
@@ -343,13 +343,13 @@ namespace Codemy.Courses.Application.Services
             {
                 case (int)LessonType.Quiz:
                 case (int)LessonType.Article:
-                    durationInSeconds = (double)(5 * 60);
+                    durationInSeconds = 5 * 60;
                     break;
                 case (int)LessonType.Video:
                     durationInSeconds = request.duration;
                     break;
                 default:
-                    durationInSeconds = (double)(5 * 60);
+                    durationInSeconds = 5 * 60;
                     break;
             }
             result.title = request.title;
