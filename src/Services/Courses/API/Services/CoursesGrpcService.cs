@@ -44,7 +44,7 @@ namespace Codemy.Courses.API.Services
             var validate = await _courseService.ValidateCourseAsync(validateCourseRequest);
             if (validate.Success)
             {
-                return new GetValidateResponse { Validate = true };
+                return new GetValidateResponse { Validate = true , IsLastLesson = validate.isLastLesson ?? false};
             }
             return new GetValidateResponse { Validate = false };
         }

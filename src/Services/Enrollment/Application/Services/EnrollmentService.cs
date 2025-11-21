@@ -1,9 +1,11 @@
 ﻿using Codemy.BuildingBlocks.Core;
+using Codemy.Courses.Domain.Entities;
 using Codemy.CoursesProto;
 using Codemy.Enrollment.Application.DTOs;
 using Codemy.Enrollment.Application.Interfaces;
 using Codemy.Enrollment.Domain.Entities;
 using Codemy.Enrollment.Domain.Enums;
+using Codemy.Identity.Domain.Entities;
 using Codemy.IdentityProto;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -173,6 +175,53 @@ namespace Codemy.Enrollment.Application.Services
                 Enrollment = enrollments
             };
         }
+
+        public async Task<EnrollmentResponse> GetCourseWithGrpc(Guid courseId, Guid userId)
+        {
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = userId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", userId);
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+            var courseExists = await _courseClient.GetCourseByIdAsync(
+                new GetCourseByIdRequest { CourseId = courseId.ToString() }
+            );
+            if (!courseExists.Exists)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+
+            var existingEnrollment = await _enrollmentRepository
+                .FindAsync(e => e.courseId == courseId && e.studentId == userId);
+            if (existingEnrollment.Count == 0)
+            {
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "User is not enrolled in this course."
+                };
+            }
+            return new EnrollmentResponse
+            {
+                Success = true,
+                Message = "User is enrolled in this course.",
+                Enrollment = existingEnrollment.First()
+            };
+        }
+        
 
         public async Task<EnrollmentResponse> GetCourseAsync(Guid courseId)
         {
@@ -368,5 +417,107 @@ namespace Codemy.Enrollment.Application.Services
             };
         }
 
+        public async Task<EnrollmentResponse> UpdateProgressAsync(UpdateProgressRequest request)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = UserId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", UserId);
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+            var courseExists = await _courseClient.GetCourseByIdAsync(
+                new GetCourseByIdRequest { CourseId = request.CourseId.ToString() }
+            );
+            if (!courseExists.Exists)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", request.CourseId);
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+
+            var existingEnrollment = await _enrollmentRepository
+                .FindAsync(e => e.courseId == request.CourseId && e.studentId == UserId);
+            if (existingEnrollment.Count == 0)
+            {
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "User is not enrolled in this course."
+                };
+            }
+            var enrollment = existingEnrollment.First();
+            if (enrollment.progressStatus == ProgressStatus.Completed)
+            {
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "User has already completed this course. Don't change progress status."
+                };
+            }
+            //check lessonId thuộc course không
+            var validate = _courseClient.ValidateCourseAsync(
+                new GetValidateRequest { CourseId = request.CourseId.ToString(), LessonId = request.LessonId.ToString() }
+            );
+            if (!validate.Validate)
+            {
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "Lesson does not belong to this course."
+                };
+            }
+            if (validate.IsLastLesson)
+            {
+                enrollment.progressStatus = ProgressStatus.Completed;
+                enrollment.enrollmentStatus = EnrollmentStatus.Completed;
+                enrollment.completionDate = DateTime.UtcNow;
+            }
+            else
+            {
+                enrollment.progressStatus = ProgressStatus.InProgress;
+            }
+            enrollment.lessonId = request.LessonId;
+            _enrollmentRepository.Update(enrollment);
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result <= 0)
+            {
+                _logger.LogError("Failed to update progress for enrollment {EnrollmentId}.", enrollment.Id);
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "Failed to update progress."
+                };
+            }
+            return new EnrollmentResponse
+            {
+                Success = true,
+                Enrollment = enrollment
+            };
+        }
     }
 }

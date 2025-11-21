@@ -40,6 +40,26 @@ namespace Codemy.Enrollment.API.Controllers
             }
         }
 
+        [HttpPost("updateProgress")]
+        public async Task<IActionResult> UpdateProgress(UpdateProgressRequest request)
+        {
+            try
+            {
+                var result = await _enrollmentService.UpdateProgressAsync(request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to update progress.");
+                }
+                return this.OkResponse(result.Enrollment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating progress.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
+
         [HttpPost("enroll/{courseId}")]
         public async Task<IActionResult> EnrollInCourse(Guid courseId)
         {

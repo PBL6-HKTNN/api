@@ -388,14 +388,14 @@ namespace Codemy.Courses.Application.Services
             };
         }
 
-        public async Task<Response> ValidateCourseAsync(ValidateCourseRequest request)
+        public async Task<ValidateCourseResponse> ValidateCourseAsync(ValidateCourseRequest request)
         {
             var course = await _courseRepository.GetByIdAsync(request.CourseId);
 
             if (course == null)
             {
                 _logger.LogError("Course with ID {CourseId} does not exist.", request.CourseId);
-                return new Response
+                return new ValidateCourseResponse
                 {
                     Success = false,
                     Message = "Course does not exist."
@@ -404,7 +404,7 @@ namespace Codemy.Courses.Application.Services
             if (course.IsDeleted)
             {
                 _logger.LogError("Course with ID {CourseId} is deleted.", request.CourseId);
-                return new Response
+                return new ValidateCourseResponse
                 {
                     Success = false,
                     Message = "Course is deleted."
@@ -419,14 +419,26 @@ namespace Codemy.Courses.Application.Services
 
                 if (lessonExists)
                 {
-                    return new Response
+                    var lesson = await _lessonRepository.GetByIdAsync(request.LessonId);
+                    if (module.order == course.numberOfModules && lesson.orderIndex == module.numberOfLessons)
+                    {
+                        return new ValidateCourseResponse
+                        {
+                            Success = true,
+                            Message = "Lesson belongs to this course",
+                            isLastLesson = true
+                        };
+                    }
+
+                    return new ValidateCourseResponse
                     {
                         Success = true,
-                        Message = "Lesson belongs to this course"
+                        Message = "Lesson belongs to this course",
+                        isLastLesson = false
                     };
                 }
             }
-            return new Response
+            return new ValidateCourseResponse
             {
                 Success = false,
                 Message = "Lesson does not belong to this course"

@@ -16,7 +16,18 @@ namespace Codemy.Enrollment.API.Services
             return new CreateEnrollmentResponse
             {
                 Success = result.Success,
-                Message = result.Message ?? string.Empty, 
+                Message = result.Message ?? string.Empty,
+            };
+        }
+
+        public override async Task<GetCourseWithGrpcResponse> GetCourseWithGrpc(GetCourseWithGrpcRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var result = await _enrollmentService.GetCourseWithGrpc(Guid.Parse(request.CourseId), Guid.Parse(request.UserId));
+            return new GetCourseWithGrpcResponse
+            {
+                Success = result.Success,
+                Message = result.Message ?? string.Empty,
+                LessonId = result.Enrollment?.lessonId.ToString() ?? string.Empty,
             };
         }
     }

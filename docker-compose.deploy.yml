@@ -2,7 +2,7 @@
 
 networks:
   codemy-network:
-    external: true   # Nếu bạn đã tạo trước. Nếu chưa, để internal.
+    external: true
 
 services:
   identity-api:
