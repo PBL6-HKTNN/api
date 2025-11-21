@@ -11,7 +11,6 @@ using Codemy.BuildingBlocks.EventBus.RabbitMQ;
 
 namespace Codemy.Courses.API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class CourseController : ControllerBase
@@ -55,6 +54,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpPost("validate")]
+        [SwaggerOperation(Summary = "Validate course data", Description = "Validate if the lesson is the last lesson of a course")]
         public async Task<IActionResult> ValidateCourse([FromBody] ValidateCourseRequest request)
         {
             if (!ModelState.IsValid)
@@ -145,6 +145,7 @@ namespace Codemy.Courses.API.Controllers
                 );
             }
         }
+        [Authorize]
         [HttpPost("create")]
         [SwaggerOperation(Summary = "Create a new course", Description = "Add a new course to the system")]
         public async Task<IActionResult> CreateCourse([FromBody] CreateCourseRequest request)
@@ -198,7 +199,7 @@ namespace Codemy.Courses.API.Controllers
                 );
             }
         }
-
+        [Authorize]
         [HttpPost("update/{courseId}")]
         [SwaggerOperation(Summary = "Update a course", Description = "Modify an existing course by its ID")]
         public async Task<IActionResult> UpdateCourse(Guid courseId, [FromBody] CreateCourseRequest request)
@@ -234,7 +235,7 @@ namespace Codemy.Courses.API.Controllers
                 );
             }
         }
-
+        [Authorize]
         [HttpDelete("{courseId}")]
         [SwaggerOperation(Summary = "Delete a course", Description = "Remove a course by its ID")]
         public async Task<IActionResult> DeleteCourse(Guid courseId)
@@ -261,7 +262,6 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
-        [Authorize]
         [HttpGet]
         [SwaggerOperation(
             Summary = "Get all courses", 
