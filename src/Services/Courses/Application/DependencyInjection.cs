@@ -1,5 +1,6 @@
 ﻿using Codemy.Courses.Application.Interfaces;
 using Codemy.Courses.Application.Services;
+using Codemy.EnrollmentsProto;
 using Codemy.IdentityProto;
 using Codemy.SearchProto;
 using Microsoft.Extensions.Configuration;
@@ -24,6 +25,10 @@ namespace Codemy.Courses.Application
             services.AddGrpcClient<CourseIndexService.CourseIndexServiceClient>(options =>
             {
                 options.Address = new Uri(configuration["GrpcClients:Search"]);
+            });
+            services.AddGrpcClient<EnrollmentService.EnrollmentServiceClient>(options =>
+            {
+                options.Address = new Uri(configuration["GrpcClients:Enrollment"]);
             });
             return services;
         }

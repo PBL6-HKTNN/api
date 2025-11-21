@@ -37,6 +37,7 @@ message GetCourseByIdResponse {
 
 message GetValidateResponse {
   bool validate = 1;
+  bool isLastLesson = 2;
 }
 
 // Response cho GetAllCoursesForIndexing

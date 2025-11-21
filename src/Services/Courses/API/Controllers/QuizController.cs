@@ -153,6 +153,23 @@ namespace Codemy.Courses.API.Controllers
                 );
             }
         }
+        [HttpGet("list-results/{lessonId}")]
+        public async Task<IActionResult> GetListQuizResults(Guid lessonId)
+        {
+            try
+            {
+                var results = await _quizService.GetListQuizResultsAsync(lessonId);
+                return this.OkResponse(results.QuizAttempts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Quiz results.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred while retrieving Quiz results",
+                    ex.Message
+                );
+            }
+        }
 
         [HttpGet("Attempts/{quizId}")]
         public async Task<IActionResult> GetQuizAttempts(Guid quizId)

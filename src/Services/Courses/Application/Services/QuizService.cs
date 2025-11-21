@@ -145,6 +145,14 @@ namespace Codemy.Courses.Application.Services
                 }
             }
             quiz.totalMarks = totalMarks;
+            if (quiz.totalMarks < quiz.passingMarks)
+            {
+                return new QuizResponse
+                {
+                    Success = false,
+                    Message = "Total marks cannot be less than passing marks."
+                };
+            }
             await _quizRepository.AddAsync(quiz); 
             var result = await _unitOfWork.SaveChangesAsync();
             if (result <= 0)
@@ -200,6 +208,85 @@ namespace Codemy.Courses.Application.Services
                 Success = true,
                 Message = "Quiz deleted successfully"
             }; 
+        }
+
+        public async Task<ListQuizResult> GetListQuizResultsAsync(Guid lessonId)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new ListQuizResult
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var userId = Guid.Parse(userIdClaim);
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = userId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", userId);
+                return new ListQuizResult
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+            var quiz = _quizRepository.TableNoTracking.FirstOrDefault(q => q.lessonId == lessonId && !q.IsDeleted);
+            if (quiz == null)
+            {
+                return new ListQuizResult
+                {
+                    Success = false,
+                    Message = "Quiz not found for the lesson."
+                };
+            }
+            var quizAttempts = _quizAttemptRepository.TableNoTracking
+            .Where(qa =>
+                qa.quizId == quiz.Id &&
+                qa.userId == userId &&
+                (qa.status == QuizAttemptStatus.Completed ||
+                 qa.status == QuizAttemptStatus.Failed)
+            )
+            .OrderByDescending(qa => qa.completedAt)
+            .Take(3)
+            .ToList();
+            if (quizAttempts.Count == 0)
+            {
+                return new ListQuizResult
+                {
+                    Success = false,
+                    Message = "No quiz attempt found for the user."
+                };
+            }
+            List<QuizAttemptResult> quizAttemptResult = new List<QuizAttemptResult>();
+            foreach (var attempt in quizAttempts)
+            {
+                var userAnswers = _userAnswerRepository.TableNoTracking
+                    .Where(ua => ua.attemptId == attempt.Id)
+                    .ToList();
+                quizAttemptResult.Add(new QuizAttemptResult
+                {
+                    QuizId = attempt.quizId,
+                    Score = attempt.score,
+                    Passed = attempt.status == QuizAttemptStatus.Completed,
+                    UserAnswers = userAnswers
+                });
+            }
+            return new ListQuizResult
+            {
+                Success = true,
+                Message = "Quiz results retrieved successfully.",
+                QuizAttempts = quizAttemptResult
+            };
         }
 
         public async Task<QuizAttemptDtoResponse> GetQuizAttemptsAsync(Guid quizId)
@@ -501,9 +588,32 @@ namespace Codemy.Courses.Application.Services
                 var correctList = correctAnswers.ToList();
                 if (question.questionType == QuestionType.ShortAnswer)
                 {
-                    string correctText = correctList.FirstOrDefault()?.answerText?.Trim() ?? "";
-                    if (string.Equals(answer.answerText?.Trim(), correctText, StringComparison.OrdinalIgnoreCase))
+                    List<string> correctAnswersText = correctList
+                        .Where(x => x.isCorrect)
+                        .Select(x => x.answerText?.Trim())
+                        .Where(x => !string.IsNullOrEmpty(x))
+                        .ToList();
+                    if (!correctAnswersText.Any())
+                    {
+                        return new QuizResult
+                        {
+                            Success = false,
+                            Message = $"No correct answers found for question ID {answer.QuestionId}."
+                        };
+                    }    
+                    string correctText = string.Join(" ", correctAnswersText);
+                    if (string.IsNullOrEmpty(answer.answerText))
+                    {
+                        return new QuizResult
+                        {
+                            Success = false,
+                            Message = $"Answer text cannot be empty for question ID {answer.QuestionId}."
+                        };
+                    }
+                    if (correctText.Contains(answer.answerText?.Trim(), StringComparison.OrdinalIgnoreCase))
+                    {
                         totalScore += question.marks;
+                    }
                     var userAnswer = new UserAnswer
                     {
                         attemptId = quizAttempt.Id,
@@ -523,7 +633,7 @@ namespace Codemy.Courses.Application.Services
 
                     if (isCorrect)
                         totalScore += question.marks;
-                    userAnswers = selectedIds
+                    List<UserAnswer> selectedAnswers = selectedIds
                         .Select(id => new UserAnswer
                         {
                             answerId = id,
@@ -532,6 +642,7 @@ namespace Codemy.Courses.Application.Services
                             CreatedBy = userId,
                         })
                         .ToList();
+                    userAnswers.AddRange(selectedAnswers);
                 } 
             }
             Quiz quiz = await _quizRepository.GetByIdAsync(quizAttempt.quizId);

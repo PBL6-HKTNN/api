@@ -12,12 +12,20 @@ namespace Codemy.Courses.Application.Interfaces
     {
         Task<QuizResponse> CreateQuizAsync(CreateQuizRequest request);
         Task<QuizResponse> DeleteQuizAsync(Guid quizId);
+        Task<ListQuizResult> GetListQuizResultsAsync(Guid lessonId);
         Task<QuizAttemptDtoResponse> GetQuizAttemptsAsync(Guid quizId);
         Task<QuizDtoResponse> GetQuizByIdAsync(Guid id);
         Task<QuizDtoResponse> GetQuizByLessonIdAsync(Guid lessonId);
         Task<QuizResult> GetQuizResultsAsync(Guid lessonId);
         Task<QuizResult> SubmitQuizAsync(SubmitQuizRequest request);
         Task<QuizResponse> UpdateQuizAsync(Guid quizId, CreateQuizRequest request);
+    }
+
+    public class ListQuizResult
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<QuizAttemptResult>? QuizAttempts { get; set; }
     }
 
     public class QuizResult

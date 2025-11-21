@@ -18,7 +18,14 @@ namespace Codemy.Courses.Application.Interfaces
             string? sortBy = null,
             int page = 1,
             int pageSize = 10);
-        Task<Response> ValidateCourseAsync(ValidateCourseRequest request);
+        Task<ValidateCourseResponse> ValidateCourseAsync(ValidateCourseRequest request);
+    }
+
+    public class ValidateCourseResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public bool? isLastLesson { get; set; }
     }
 
     public class Response

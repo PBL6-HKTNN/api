@@ -10,6 +10,7 @@ namespace Codemy.Courses.Application.Interfaces
 {
     public interface ILessonService
     {
+        Task<LessonResponse> CheckLessonLocked(Guid lessonId);
         Task<LessonResponse> CreateLessonAsync(CreateLessonRequest request);
         Task<LessonResponse> DeleteLessonAsync(Guid lessonId);
         Task<LessonResponse> GetLessonById(Guid lessonId);

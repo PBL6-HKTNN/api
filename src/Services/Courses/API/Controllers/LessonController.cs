@@ -57,6 +57,32 @@ namespace Codemy.Courses.API.Controllers
                 );
             }
         }
+
+        [HttpGet("check-locked/{lessonId}")]
+        public async Task<IActionResult> CheckLessonLocked(Guid lessonId)
+        {
+            try
+            {
+                var result = await _lessonService.CheckLessonLocked(lessonId);
+                if (!result.Success)
+                {
+                    return this.NotFoundResponse(
+                        result.Message ?? "Lesson not found.",
+                        result.Message
+                    );
+                }
+                return this.OkResponse(result.Lesson);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking if lesson is locked.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during lesson lock check",
+                    ex.Message
+                );
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetLessons()
         {
