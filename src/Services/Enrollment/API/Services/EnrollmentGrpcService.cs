@@ -1,4 +1,5 @@
-﻿using Codemy.Enrollment.Application.Interfaces;
+﻿using Codemy.Enrollment.Application.DTOs;
+using Codemy.Enrollment.Application.Interfaces;
 using Codemy.EnrollmentsProto;
 namespace Codemy.Enrollment.API.Services
 {
