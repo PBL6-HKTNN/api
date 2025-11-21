@@ -30,6 +30,7 @@ namespace Codemy.Courses.Application
             {
                 options.Address = new Uri(configuration["GrpcClients:Enrollment"]);
             });
+
             return services;
         }
     }

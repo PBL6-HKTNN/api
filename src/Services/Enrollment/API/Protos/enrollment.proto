@@ -7,6 +7,9 @@ package enrollments;
 service EnrollmentService {
   rpc CreateEnrollment (CreateEnrollmentRequest) returns (CreateEnrollmentResponse);
   rpc GetCourseWithGrpc (GetCourseWithGrpcRequest) returns (GetCourseWithGrpcResponse);
+
+  rpc CheckEnrollments (CheckRequest) returns (CheckResponse);
+
 }
 
 // Request
@@ -20,6 +23,12 @@ message GetCourseWithGrpcRequest {
   string userId = 2;
 }
 
+message CheckRequest {
+  string userId = 1;
+  repeated string courseIds = 2;
+}
+
+
 // Response
 message CreateEnrollmentResponse {
   bool success = 1;
@@ -30,4 +39,10 @@ message GetCourseWithGrpcResponse {
   bool success = 1;
   string message = 2;
   string lessonId = 3;
-} 
+}
+
+message CheckResponse {
+  bool success = 1;
+  string message = 2;
+  repeated string enrolledCourseIds = 3;
+}
