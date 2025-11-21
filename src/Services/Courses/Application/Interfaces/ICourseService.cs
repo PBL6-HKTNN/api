@@ -11,7 +11,7 @@ namespace Codemy.Courses.Application.Interfaces
         Task<ResourceDtoResponse> GetLessonByCourseIdAsync(Guid courseId);
         Task<ModuleListResponse> GetModuleByCourseIdAsync(Guid courseId);
         Task<CourseReponse> UpdateCourseAsync(Guid courseId, CreateCourseRequest request);
-        Task<IEnumerable<Course>> GetCoursesAsync(
+        Task<IEnumerable<GetCoursesResponse>> GetCoursesAsync(
             Guid? categoryId = null,
             string? language = null,
             string? level = null,
