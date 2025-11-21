@@ -259,7 +259,7 @@ namespace Codemy.Courses.Application.Services
             .OrderByDescending(qa => qa.completedAt)
             .Take(3)
             .ToList();
-            if (quizAttempts == null)
+            if (quizAttempts.Count == 0)
             {
                 return new ListQuizResult
                 {
@@ -622,7 +622,6 @@ namespace Codemy.Courses.Application.Services
                         CreatedBy = userId,
                     };
                     userAnswers.Add(userAnswer);
-                    Console.WriteLine(answer.answerText?.Trim());
                 }
                 else
                 {
@@ -644,7 +643,6 @@ namespace Codemy.Courses.Application.Services
                         })
                         .ToList();
                     userAnswers.AddRange(selectedAnswers);
-                    Console.WriteLine($"Question ID: {answer.QuestionId}, Selected Answers: {string.Join(", ", selectedIds)}");
                 } 
             }
             Quiz quiz = await _quizRepository.GetByIdAsync(quizAttempt.quizId);

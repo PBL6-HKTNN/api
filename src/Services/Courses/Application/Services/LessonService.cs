@@ -418,7 +418,7 @@ namespace Codemy.Courses.Application.Services
 
             if (!userExists.Exists)
             {
-                _logger.LogError("Instructor with ID {InstructorId} does not exist.", userId);
+                _logger.LogError("User with ID {UserId} does not exist.", userId);
                 return new LessonResponse
                 {
                     Success = false,
@@ -463,18 +463,14 @@ namespace Codemy.Courses.Application.Services
                         CourseId = course.Id.ToString(),
                         UserId = userId.ToString()
                     });
-            if (!lesson.isPreview)
+            if (!lesson.isPreview && !enrollment.Success)
             {
-                //check enrollment                
-                if (!enrollment.Success)
-                    {
-                    _logger.LogError("User with ID {UserId} is not enrolled in course ID {CourseId}.", userId, course.Id);
-                    return new LessonResponse
-                    {
-                        Success = false,
-                        Message = "User is not enrolled in this course."
-                    };
-                }
+                _logger.LogError("User with ID {UserId} is not enrolled in course ID {CourseId}.", userId, course.Id);
+                return new LessonResponse
+                {
+                    Success = false,
+                    Message = "User is not enrolled in this course."
+                };
             }
             if (lesson.orderIndex == 1 && module.order == 1)
             {
@@ -518,16 +514,14 @@ namespace Codemy.Courses.Application.Services
                         Message = "Lesson is Locked"
                     };
                 }
-                else if (module.order == currentModule.order + 1)
+                else if (module.order == currentModule.order + 1 &&
+                         (currentLesson.orderIndex != currentModule.numberOfLessons || lesson.orderIndex != 1))
                 {
-                    if (currentLesson.orderIndex != currentModule.numberOfLessons || lesson.orderIndex != 1)
+                    return new LessonResponse
                     {
-                        return new LessonResponse
-                        {
-                            Success = false,
-                            Message = "Lesson is Locked"
-                        };
-                    }
+                        Success = false,
+                        Message = "Lesson is Locked"
+                    };
                 }
             }
             return new LessonResponse
