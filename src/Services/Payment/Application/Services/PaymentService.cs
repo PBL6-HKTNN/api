@@ -293,12 +293,12 @@ namespace Codemy.Payment.Application.Services
             };
         }
 
-        public async Task<CartResponse> GetCartAsync()
+        public async Task<CartDtoResponse> GetCartAsync()
         {
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null || !user.Identity?.IsAuthenticated == true)
             {
-                return new CartResponse
+                return new CartDtoResponse
                 {
                     Success = false,
                     Message = "User not authenticated or token missing."
@@ -317,7 +317,7 @@ namespace Codemy.Payment.Application.Services
             if (!userExists.Exists)
             {
                 _logger.LogError("User with ID {UserId} does not exist.", UserId);
-                return new CartResponse
+                return new CartDtoResponse
                 {
                     Success = false,
                     Message = "User does not exist."
@@ -326,11 +326,37 @@ namespace Codemy.Payment.Application.Services
 
             var cartItems = await _cartItemRepository.GetAllAsync(c => c.userId == UserId);
             var cartItemsFiltered = cartItems.Where(c => !c.IsDeleted);
-            return new CartResponse
+            List<CartDto> cartDtoList = new List<CartDto>();
+            foreach (var item in cartItemsFiltered)
+            {
+                var courseExists = await _courseClient.GetCourseByIdAsync(
+                    new GetCourseByIdRequest { CourseId = item.courseId.ToString() }
+                );
+                if (!courseExists.Exists)
+                {
+                    _logger.LogError("Course with ID {CourseId} does not exist.", item.courseId);
+                    return new CartDtoResponse
+                    {
+                        Success = false,
+                        Message = $"Course with ID {item.courseId} does not exist."
+                    };
+                }
+                CartDto cartDto = new CartDto
+                {
+                    id = item.Id,
+                    courseId = item.courseId,
+                    price = item.price,
+                    courseTitle = courseExists.Title,
+                    thumbnailUrl = courseExists.Thumbnail,
+                    description = courseExists.Description
+                };
+                cartDtoList.Add(cartDto);
+            }
+            return new CartDtoResponse
             {
                 Success = true,
                 Message = "Cart retrieved successfully.",
-                CartItems = cartItemsFiltered.ToList()
+                CartItems = cartDtoList
             };
         }
 
