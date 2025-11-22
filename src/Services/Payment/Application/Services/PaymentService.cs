@@ -118,7 +118,7 @@ namespace Codemy.Payment.Application.Services
                 };
             }
 
-            var cartItemExists = await _cartItemRepository.GetAllAsync(c => c.userId == UserId && c.courseId == courseId);
+            var cartItemExists = await _cartItemRepository.GetAllAsync(c => c.userId == UserId && c.courseId == courseId && !c.IsDeleted);
             if (cartItemExists != null && cartItemExists.Any())
             {
                 _logger.LogError("Course {CourseId} is already in the cart for user {UserId}.", courseId, UserId);
