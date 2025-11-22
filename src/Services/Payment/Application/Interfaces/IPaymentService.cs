@@ -8,7 +8,7 @@ namespace Codemy.Payment.Application.Interfaces
         Task<CartResponse> AddToCartAsync(Guid courseId);
         Task<PaymentResponse> CreatePaymentAsync(PaymentRequest paymentRequest);
         Task<CreatePaymentIntentResponse> CreatePaymentIntentAsync(PaymentIntentRequest request);
-        Task<CartResponse> GetCartAsync();
+        Task<CartDtoResponse> GetCartAsync();
         Task<ListPaymentResponse> GetListPaymentAsync();
         Task<PaymentResponse> GetPaymentAsync();
         Task<CartResponse> RemoveFromCart(Guid courseId);
@@ -43,6 +43,23 @@ namespace Codemy.Payment.Application.Interfaces
         public bool Success { get; set; }
         public string? Message { get; set; }
         public List<CartItem>? CartItems { get; set; }
+    }
+
+    public class CartDtoResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<CartDto>? CartItems { get; set; }
+    }
+
+    public class CartDto
+    {
+        public Guid id { get; set; }
+        public Guid courseId { get; set; }
+        public decimal price { get; set; }
+        public string courseTitle { get; set; }
+        public string thumbnailUrl { get; set; }
+        public string description { get; set; }
     }
 
     public class UpdatePaymentResponse
