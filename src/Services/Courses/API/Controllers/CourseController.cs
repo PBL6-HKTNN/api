@@ -53,6 +53,41 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
+        [HttpPost("lessons-completed")]
+        public async Task<IActionResult> GetLessonsCompleted(GetLessonsCompletedRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var course = await _courseService.GetLessonsCompletedAsync(request);
+                if (!course.Success)
+                {
+                    return this.NotFoundResponse(
+                        course.Message,
+                        course.Message ?? "Failed to retrieve completed lessons."
+                    );
+                }
+                return this.OkResponse(course.completedLessons);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving completed lessons.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during while retrieving completed lessons",
+                    ex.Message
+                );
+            }
+        }
+
         [HttpPost("validate")]
         [SwaggerOperation(Summary = "Validate course data", Description = "Validate if the lesson is the last lesson of a course")]
         public async Task<IActionResult> ValidateCourse([FromBody] ValidateCourseRequest request)

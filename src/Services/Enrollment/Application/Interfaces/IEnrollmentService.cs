@@ -18,6 +18,8 @@ namespace Codemy.Enrollment.Application.Interfaces
         Task<EnrollmentResponse> GetCourseWithGrpc(Guid courseId, Guid userId);
         Task<CoursesResponse> GetMyCoursesAsync(Guid userId, int page, int pageSize);
         Task<EnrollmentResponse> UpdateProgressAsync(UpdateProgressRequest request);
+        Task<EnrollmentResponse> UpdateCurrentView(UpdateCurrentViewRequest request);
+        Task<LessonCompletedResponse> GetLessonsCompletedByEnrollmentIdAsync(Guid enrollmentId);
     }
 
     public class EnrollmentResponse
@@ -32,5 +34,12 @@ namespace Codemy.Enrollment.Application.Interfaces
         public bool Success { get; set; }
         public string? Message { get; set; }
         public List<CourseDto>? Courses { get; set; }
+    }
+
+    public class LessonCompletedResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<Guid>? CompletedLessonIds { get; set; }
     }
 }

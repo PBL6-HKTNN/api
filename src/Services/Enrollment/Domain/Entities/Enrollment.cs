@@ -8,6 +8,7 @@ namespace Codemy.Enrollment.Domain.Entities
         public Guid studentId { get; set; }
         public Guid courseId { get; set; }
         public ProgressStatus progressStatus {get; set; }
+        public Guid? currentView { get; set; }
         public Guid? lessonId { get; set;}
         public EnrollmentStatus enrollmentStatus { get; set; }
         public DateTime enrollmentDate { get; set; }

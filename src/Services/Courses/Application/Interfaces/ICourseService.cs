@@ -19,6 +19,7 @@ namespace Codemy.Courses.Application.Interfaces
             int page = 1,
             int pageSize = 10);
         Task<ValidateCourseResponse> ValidateCourseAsync(ValidateCourseRequest request);
+        Task<LessonsCompletedResponse> GetLessonsCompletedAsync(GetLessonsCompletedRequest request);
     }
 
     public class ValidateCourseResponse
@@ -53,7 +54,12 @@ namespace Codemy.Courses.Application.Interfaces
         public Course course { get; set; }
         public List<ModuleDto> module { get; set; }
     }
-
+    public class LessonsCompletedResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<Guid> completedLessons { get; set; }
+    }
     public class ModuleDto
     {
         public Guid Id { get; set; }
