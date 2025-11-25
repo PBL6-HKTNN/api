@@ -542,5 +542,149 @@ namespace Codemy.Enrollment.Application.Services
             };
         }
 
+        public async Task<EnrollmentResponse> UpdateCurrentView(UpdateCurrentViewRequest request)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = UserId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", UserId);
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+            var courseExists = await _courseClient.GetCourseByIdAsync(
+                new GetCourseByIdRequest { CourseId = request.CourseId.ToString() }
+            );
+            if (!courseExists.Exists)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", request.CourseId);
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+
+            var existingEnrollment = await _enrollmentRepository
+                .FindAsync(e => e.courseId == request.CourseId && e.studentId == UserId);
+            if (existingEnrollment.Count == 0)
+            {
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "User is not enrolled in this course."
+                };
+            }
+            var enrollment = existingEnrollment.First();
+            var validate = _courseClient.ValidateCourseAsync(
+                new ProtoValidateRequest { CourseId = request.CourseId.ToString(), LessonId = request.CurrentLessonId.ToString() }
+            );
+            if (!validate.Validate)
+            {
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "Lesson does not belong to this course."
+                };
+            }
+            enrollment.currentView = request.CurrentLessonId;
+            _enrollmentRepository.Update(enrollment);
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result <= 0)
+            {
+                _logger.LogError("Failed to update current view for enrollment {EnrollmentId}.", enrollment.Id);
+                return new EnrollmentResponse
+                {
+                    Success = false,
+                    Message = "Failed to update current view."
+                };
+            }
+            return new EnrollmentResponse
+            {
+                Success = true,
+                Enrollment = enrollment
+            };
+        }
+
+        public async Task<LessonCompletedResponse> GetLessonsCompletedByEnrollmentIdAsync(Guid enrollmentId)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new LessonCompletedResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = UserId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", UserId);
+                return new LessonCompletedResponse
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+            var existingEnrollment = await _enrollmentRepository.GetByIdAsync(enrollmentId);
+            if (existingEnrollment == null)
+            {
+                return new LessonCompletedResponse
+                {
+                    Success = false,
+                    Message = "User is not enrolled in this course."
+                };
+            }
+            var lessonsCompleted = await _courseClient.GetLessonsCompletedAsync(
+                new GetValidateRequest
+                {
+                    CourseId = existingEnrollment.courseId.ToString(),
+                    LessonId = existingEnrollment.lessonId?.ToString() ?? ""
+                }
+            );
+            if (!lessonsCompleted.Success)
+            {
+                return new LessonCompletedResponse
+                {
+                    Success = false,
+                    Message = "Failed to retrieve completed lessons."
+                };
+            }
+            return new LessonCompletedResponse
+            {
+                Success = true,
+                CompletedLessonIds = lessonsCompleted.CompletedLessons.Select(id => Guid.Parse(id)).ToList()
+            };
+        }
     }
 }

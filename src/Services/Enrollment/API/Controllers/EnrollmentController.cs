@@ -59,6 +59,43 @@ namespace Codemy.Enrollment.API.Controllers
             }
         }
 
+        [HttpPost("update-current-view")]
+        public async Task<IActionResult> UpdateCurrentView(UpdateCurrentViewRequest request)
+        {
+            try
+            {
+                var result = await _enrollmentService.UpdateCurrentView(request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to update current view.");
+                }
+                return this.OkResponse(result.Enrollment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating progress.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
+        [HttpGet("lessons-completed/{enrollmentId}")]
+        public async Task<IActionResult> GetLessonsCompletedByEnrollmentId(Guid enrollmentId)
+        {
+            try
+            {
+                var result = await _enrollmentService.GetLessonsCompletedByEnrollmentIdAsync(enrollmentId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to get lessons completed.");
+                }
+                return this.OkResponse(result.CompletedLessonIds);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting lessons completed by enrollment ID.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
 
         [HttpPost("enroll/{courseId}")]
         public async Task<IActionResult> EnrollInCourse(Guid courseId)

@@ -3,14 +3,15 @@ using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
 using Codemy.Courses.Domain.Entities;
 using Codemy.Courses.Domain.Enums;
+using Codemy.EnrollmentsProto;
 using Codemy.IdentityProto;
-using Microsoft.AspNetCore.Http;
 using Codemy.SearchProto;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Sprache;
 using System.Security.Claims;
 using Module = Codemy.Courses.Domain.Entities.Module;
-using Microsoft.EntityFrameworkCore;
-using Codemy.EnrollmentsProto;
 
 namespace Codemy.Courses.Application.Services
 {
@@ -321,7 +322,6 @@ namespace Codemy.Courses.Application.Services
 
         public async Task<CourseReponse> UpdateCourseAsync(Guid courseId, CreateCourseRequest request)
         {
-
             var result = await _courseRepository.GetByIdAsync(courseId);
             if (result == null)
             {
@@ -541,5 +541,62 @@ namespace Codemy.Courses.Application.Services
             return result;
         }
 
+        public async Task<LessonsCompletedResponse> GetLessonsCompletedAsync(GetLessonsCompletedRequest request)
+        {
+            var validate = await ValidateCourseAsync(new ValidateCourseRequest
+            {
+                CourseId = request.CourseId,
+                LessonId = request.LessonId
+            });
+            if (!validate.Success)
+            {
+                return new LessonsCompletedResponse
+                {
+                    Success = false,
+                    Message = "Course or Lesson is invalid."
+                };
+            }
+
+            var currentLesson = await _lessonRepository.GetByIdAsync(request.LessonId);
+            var currentModule = await _moduleRepository.GetByIdAsync(currentLesson.moduleId);
+
+            var course = await _courseRepository.GetByIdAsync(request.CourseId);
+            var modules = await _moduleRepository.GetAllAsync(m => m.courseId == request.CourseId);
+            var filteredModules = modules.Where(m => !m.IsDeleted && m.order <= currentModule.order);
+            List<Guid> completedLessons = new List<Guid>();
+            foreach (var module in filteredModules)
+            {
+                var lessons = await _lessonRepository.GetAllAsync(l => l.moduleId == module.Id);
+                var filteredLessons = lessons.Where(l => !l.IsDeleted);
+                if (module.order == currentModule.order)
+                {
+                    foreach (var lesson in filteredLessons)
+                    {
+                        if (lesson.orderIndex < currentLesson.orderIndex)
+                        {
+                            completedLessons.Add(lesson.Id);
+                        }
+                        else if (lesson.orderIndex == currentLesson.orderIndex)
+                        {
+                            completedLessons.Add(lesson.Id);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var lesson in filteredLessons)
+                    {
+                        completedLessons.Add(lesson.Id);
+                    }
+                }
+            }
+            return new LessonsCompletedResponse
+            {
+                Success = true,
+                Message = "Completed lessons retrieved successfully.",
+                completedLessons = completedLessons
+            };
+        }
     }
 }

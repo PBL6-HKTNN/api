@@ -1,6 +1,7 @@
 ﻿using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
 using Codemy.CoursesProto;
+using LessonsCompletedResponse = Codemy.CoursesProto.LessonsCompletedResponse;
 
 namespace Codemy.Courses.API.Services
 {
@@ -49,6 +50,30 @@ namespace Codemy.Courses.API.Services
             return new GetValidateResponse { Validate = false };
         }
 
+        public override async Task<LessonsCompletedResponse> GetLessonsCompleted(GetValidateRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var lessonsCompleted = await _courseService.GetLessonsCompletedAsync(new GetLessonsCompletedRequest
+            {
+                CourseId = Guid.Parse(request.CourseId),
+                LessonId = Guid.Parse(request.LessonId)
+            });
+            var response = new LessonsCompletedResponse
+            {
+                Success = lessonsCompleted.Success,
+                Message = lessonsCompleted.Message
+            };
+
+            // Only add completed lessons when success is true
+            if (lessonsCompleted.Success && lessonsCompleted.completedLessons != null)
+            {
+                // Convert Guid -> string because gRPC repeated string requires string
+                response.CompletedLessons.AddRange(
+                    lessonsCompleted.completedLessons.Select(g => g.ToString())
+                );
+            }
+
+            return response;
+        }
         public override async Task<GetAllCoursesForIndexingResponse> GetAllCoursesForIndexing(Google.Protobuf.WellKnownTypes.Empty request, Grpc.Core.ServerCallContext context)
         {
             var courses = await _courseService.GetCoursesAsync();

@@ -9,7 +9,7 @@ import "google/protobuf/empty.proto";
 service CoursesService {
   rpc GetCourseById (GetCourseByIdRequest) returns (GetCourseByIdResponse);
   rpc ValidateCourseAsync (GetValidateRequest) returns (GetValidateResponse);
-
+  rpc GetLessonsCompleted (GetValidateRequest) returns (LessonsCompletedResponse);
   // RPC mới để lấy tất cả course cho search index
   rpc GetAllCoursesForIndexing (google.protobuf.Empty) returns (GetAllCoursesForIndexingResponse);
 }
@@ -38,6 +38,12 @@ message GetCourseByIdResponse {
 message GetValidateResponse {
   bool validate = 1;
   bool isLastLesson = 2;
+}
+
+message LessonsCompletedResponse {
+  bool success = 1;
+  string message = 2;
+  repeated string completedLessons = 3;
 }
 
 // Response cho GetAllCoursesForIndexing
