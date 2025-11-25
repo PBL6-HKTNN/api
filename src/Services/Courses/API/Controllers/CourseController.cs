@@ -73,16 +73,16 @@ namespace Codemy.Courses.API.Controllers
                 {
                     return this.NotFoundResponse(
                         course.Message,
-                        course.Message ?? "The completed lesson does not exist."
+                        course.Message ?? "Failed to retrieve completed lessons."
                     );
                 }
                 return this.OkResponse(course.completedLessons);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving course.");
+                _logger.LogError(ex, "Error retrieving completed lessons.");
                 return this.InternalServerErrorResponse(
-                    "Internal server error occurred during register",
+                    "Internal server error occurred during while retrieving completed lessons",
                     ex.Message
                 );
             }

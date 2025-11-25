@@ -73,7 +73,7 @@ namespace Codemy.Enrollment.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating progress.");
+                _logger.LogError(ex, "Error updating current view.");
                 return this.InternalServerErrorResponse("Internal server error.");
             }
         }

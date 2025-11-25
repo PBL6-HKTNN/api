@@ -560,7 +560,6 @@ namespace Codemy.Courses.Application.Services
             var currentLesson = await _lessonRepository.GetByIdAsync(request.LessonId);
             var currentModule = await _moduleRepository.GetByIdAsync(currentLesson.moduleId);
 
-            var course = await _courseRepository.GetByIdAsync(request.CourseId);
             var modules = await _moduleRepository.GetAllAsync(m => m.courseId == request.CourseId);
             var filteredModules = modules.Where(m => !m.IsDeleted && m.order <= currentModule.order);
             List<Guid> completedLessons = new List<Guid>();
@@ -568,9 +567,10 @@ namespace Codemy.Courses.Application.Services
             {
                 var lessons = await _lessonRepository.GetAllAsync(l => l.moduleId == module.Id);
                 var filteredLessons = lessons.Where(l => !l.IsDeleted);
+                var orderedLessons = filteredLessons.OrderBy(x => x.orderIndex);
                 if (module.order == currentModule.order)
                 {
-                    foreach (var lesson in filteredLessons)
+                    foreach (var lesson in orderedLessons)
                     {
                         if (lesson.orderIndex < currentLesson.orderIndex)
                         {
@@ -585,7 +585,7 @@ namespace Codemy.Courses.Application.Services
                 }
                 else
                 {
-                    foreach (var lesson in filteredLessons)
+                    foreach (var lesson in orderedLessons)
                     {
                         completedLessons.Add(lesson.Id);
                     }

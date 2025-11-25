@@ -662,14 +662,32 @@ namespace Codemy.Enrollment.Application.Services
                 return new LessonCompletedResponse
                 {
                     Success = false,
-                    Message = "User is not enrolled in this course."
+                    Message = "Enrollment does not exist."
+                };
+            }
+            if (existingEnrollment.studentId != UserId)
+            {
+                return new LessonCompletedResponse
+                {
+                    Success = false,
+                    Message = "User is not authorized to access this enrollment."
+                    };
+            }
+            if (existingEnrollment.lessonId == null)
+            {
+                // User hasn't started the course yet; no lessons completed.
+                return new LessonCompletedResponse
+                {
+                    Success = true,
+                    CompletedLessonIds = new List<Guid>(),
+                    Message = "User has not started any lessons in this course."
                 };
             }
             var lessonsCompleted = await _courseClient.GetLessonsCompletedAsync(
                 new GetValidateRequest
                 {
                     CourseId = existingEnrollment.courseId.ToString(),
-                    LessonId = existingEnrollment.lessonId?.ToString() ?? ""
+                    LessonId = existingEnrollment.lessonId.ToString()
                 }
             );
             if (!lessonsCompleted.Success)
