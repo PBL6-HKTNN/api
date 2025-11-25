@@ -8,8 +8,7 @@ using Codemy.Payment.Application.Interfaces;
 using Codemy.Payment.Domain.Entities;
 using Codemy.Payment.Domain.Enums;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging; 
-using System.Net.WebSockets;
+using Microsoft.Extensions.Logging;
 using Stripe;
 using System.Security.Claims;
 using IdentityService = Codemy.IdentityProto.IdentityService;
@@ -532,6 +531,89 @@ namespace Codemy.Payment.Application.Services
             };
         }
 
+        public async Task<PaymentResponse> GetPaymentByIdAsync(Guid paymentId)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new PaymentResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = UserId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", UserId);
+                return new PaymentResponse
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+
+            var payment = await _paymentRepository.GetAllAsync(p => p.userId == UserId && p.Id == paymentId && !p.IsDeleted);
+            if (payment == null || !payment.Any())
+            {
+                _logger.LogError("No payments found for paymentId {PaymentId}.", paymentId);
+                return new PaymentResponse
+                {
+                    Success = false,
+                    Message = "No payments found."
+                };
+            }
+            
+            var orderItems = await _orderItemRepository.GetAllAsync(oi => oi.paymentId == paymentId);
+            List<OrderItemDto> orderItemDtos = new List<OrderItemDto>();
+            foreach (var orderItem in orderItems)
+            {
+                Guid courseId = orderItem.courseId;
+                var courseExists = await _courseClient.GetCourseByIdAsync(
+                     new GetCourseByIdRequest { CourseId = courseId.ToString() }
+                     );
+                if (!courseExists.Exists)
+                {
+                    _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
+                    return new PaymentResponse
+                    {
+                        Success = false,
+                        Message = $"Course with ID {courseId} does not exist."
+                    };
+                }
+                OrderItemDto orderItemDto = new OrderItemDto
+                {
+                    courseId = orderItem.courseId,
+                    instructorId = Guid.Parse(courseExists.InstructorId),
+                    price = orderItem.price,
+                    courseTitle = courseExists.Title,
+                    thumbnailUrl = courseExists.Thumbnail,
+                    description = courseExists.Description
+                };
+                orderItemDtos.Add(orderItemDto);
+            }
+
+            return new PaymentResponse
+            {
+                Success = true,
+                Message = "Payment retrieved successfully.",
+                Payment = new PaymentDto
+                {
+                    Payment = payment.First(),
+                    orderItems = orderItemDtos
+                }
+            };
+        }
+
         public async Task<CartResponse> RemoveFromCart(Guid courseId)
         {
             var user = _httpContextAccessor.HttpContext?.User;
@@ -576,7 +658,7 @@ namespace Codemy.Payment.Application.Services
                 };
             }
 
-            var cartItemexists = await _cartItemRepository.GetAllAsync(c => c.userId == UserId && c.courseId == courseId);
+            var cartItemexists = await _cartItemRepository.GetAllAsync(c => c.userId == UserId && c.courseId == courseId && !c.IsDeleted);
             if (cartItemexists == null || !cartItemexists.Any())
             {
                 _logger.LogError("Cart item for course {CourseId} not found for user {UserId}.", courseId, UserId);
@@ -609,6 +691,93 @@ namespace Codemy.Payment.Application.Services
             };
         }
 
+        public async Task<UpdatePaymentResponse> UpdatePaymentStripe(UpdatePaymentRequest request)
+        {
+            var payment = await _paymentRepository.GetByIdAsync(request.PaymentId);
+            if (payment == null)
+            {
+                _logger.LogError("Payment with ID {PaymentId} not found.", request.PaymentId);
+                return new UpdatePaymentResponse
+                {
+                    Success = false,
+                    Message = "Payment not found."
+                };
+            }
+            if (payment.orderStatus == OrderStatus.Cancelled || payment.orderStatus == OrderStatus.Completed)
+            {
+                _logger.LogError("Payment with ID {PaymentId} is not in a pending state or a failed state.", request.PaymentId);
+                return new UpdatePaymentResponse
+                {
+                    Success = false,
+                    Message = "Only pending payments and failed payments can be updated."
+                };
+            }
+            if (payment.orderStatus == OrderStatus.Pending)
+            {
+                if (request.status == OrderStatus.Pending)
+                {
+                    _logger.LogError("Payment with ID {PaymentId} is already in Pending state.", request.PaymentId);
+                    return new UpdatePaymentResponse
+                    {
+                        Success = false,
+                        Message = "Payment is already in Pending state."
+                    };
+                }
+                payment.orderStatus = request.status;
+                payment.UpdatedAt = DateTime.UtcNow;
+                if (request.status == OrderStatus.Completed)
+                {
+                    var orderItems = await _orderItemRepository.GetAllAsync(oi => oi.paymentId == payment.Id);
+                    foreach (var item in orderItems)
+                    {
+                        var enrollmentResponse = await _paymentGrpcEnrollmentService.CreateEnrollmentAsync(item.courseId);
+                        if (!enrollmentResponse.Success)
+                        {
+                            _logger.LogError("Failed to create enrollment for course {CourseId} after payment completion.", item.courseId);
+                            return new UpdatePaymentResponse
+                            {
+                                Success = false,
+                                Message = $"Failed to create enrollment for course {item.courseId}."
+                            };
+                        }
+                    }
+                }
+                _paymentRepository.Update(payment);
+            }
+            else if (payment.orderStatus == OrderStatus.Failed)
+            {
+                if (request.status != OrderStatus.Pending)
+                {
+                    _logger.LogError("Payment with ID {PaymentId} can only be updated to Pending from Failed state.", request.PaymentId);
+                    return new UpdatePaymentResponse
+                    {
+                        Success = false,
+                        Message = "Only pending status can be set from Failed state."
+                    };
+                }
+                payment.orderStatus = request.status;
+                payment.UpdatedAt = DateTime.UtcNow;
+                payment.paymentDate = DateTime.UtcNow;
+                _paymentRepository.Update(payment);
+            }
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result <= 0)
+            {
+                _logger.LogError("Failed to update payment status for payment ID {PaymentId}.", request.PaymentId);
+                return new UpdatePaymentResponse
+                {
+                    Success = false,
+                    Message = "Failed to update payment status."
+                };
+            }
+            _logger.LogInformation("Payment status updated successfully for payment ID {PaymentId}.", request.PaymentId);
+            return new UpdatePaymentResponse
+            {
+                Success = true,
+                Message = "Payment status updated successfully.",
+                Payment = payment
+            };
+        }
         public async Task<UpdatePaymentResponse> UpdatePaymentStatusAsync(UpdatePaymentRequest request)
         {
             var user = _httpContextAccessor.HttpContext?.User;

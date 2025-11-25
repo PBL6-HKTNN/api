@@ -35,7 +35,7 @@ namespace Codemy.Enrollment.Infrastructure
 
             services.AddHttpClient<CourseClient>(client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7024"); // địa chỉ CourseService
+                client.BaseAddress = new Uri(configuration["Clients:Courses"]); // địa chỉ CourseService
             });
 
             return services;
