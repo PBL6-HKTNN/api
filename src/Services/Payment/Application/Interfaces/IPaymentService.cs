@@ -11,8 +11,10 @@ namespace Codemy.Payment.Application.Interfaces
         Task<CartDtoResponse> GetCartAsync();
         Task<ListPaymentResponse> GetListPaymentAsync();
         Task<PaymentResponse> GetPaymentAsync();
+        Task<PaymentResponse> GetPaymentByIdAsync(Guid paymentId);
         Task<CartResponse> RemoveFromCart(Guid courseId);
         Task<UpdatePaymentResponse> UpdatePaymentStatusAsync(UpdatePaymentRequest request);
+        Task<UpdatePaymentResponse> UpdatePaymentStripe(UpdatePaymentRequest request);
         Task UpdateStatusPaymentAutomatic();
     }
 

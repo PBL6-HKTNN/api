@@ -145,6 +145,18 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
+      "DownstreamPathTemplate": "/api/files/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "file-searvice",
+          "Port": 5043
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/api/files/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
       "DownstreamPathTemplate": "/search/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
@@ -156,8 +168,5 @@
       "UpstreamPathTemplate": "/gateway/Search/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     }
-  ],
-  "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:7000"
-  }
+  ]
 }

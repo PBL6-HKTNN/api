@@ -103,7 +103,6 @@ if (app.Environment.IsDevelopment())
           .AllowAnyHeader());
 }
 
-app.UseHttpsRedirection();
 
 app.UsePathBase("/api");
 app.UseRouting();

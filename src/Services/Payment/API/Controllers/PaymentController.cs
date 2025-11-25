@@ -1,11 +1,10 @@
 ﻿using Codemy.BuildingBlocks.Core;
 using Codemy.Payment.Application.DTOs;
 using Codemy.Payment.Application.Interfaces;
+using Codemy.Payment.Domain.Entities;
 using Codemy.Payment.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
-using Stripe.Forwarding;
-using System.Runtime.CompilerServices;
 
 
 namespace Codemy.Payment.API.Controllers
@@ -134,6 +133,25 @@ namespace Codemy.Payment.API.Controllers
             }
         }
 
+        [HttpGet("payment/{paymentId}")]
+        public async Task<IActionResult> GetPaymentById(Guid paymentId)
+        {
+            try
+            {
+                var result = await _paymentService.GetPaymentByIdAsync(paymentId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve payment.");
+                }
+                return this.OkResponse(result.Payment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving payment.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
         [HttpGet("list-payments")]
         public async Task<IActionResult> GetListPayment()
         {
@@ -244,7 +262,7 @@ namespace Codemy.Payment.API.Controllers
                 }
                 try
                 {
-                    var result = await _paymentService.UpdatePaymentStatusAsync(new UpdatePaymentRequest { PaymentId = paymentId, status = status});
+                    var result = await _paymentService.UpdatePaymentStripe(new UpdatePaymentRequest { PaymentId = paymentId, status = status});
                     if (!result.Success)
                     {
                         return this.BadRequestResponse(result.Message ?? "Failed to update payment intent.");
