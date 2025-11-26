@@ -249,6 +249,7 @@ namespace Codemy.Payment.API.Controllers
                 }
                 var paymentIdString = intent.Metadata["paymentId"];
                 var paymentId = Guid.Parse(paymentIdString);
+                var userId = Guid.Parse(intent.Metadata["userId"]);
                 OrderStatus status = OrderStatus.Pending;
                 if (stripeEvent.Type == Stripe.EventTypes.PaymentIntentSucceeded)
                 {
@@ -262,7 +263,7 @@ namespace Codemy.Payment.API.Controllers
                 }
                 try
                 {
-                    var result = await _paymentService.UpdatePaymentStripe(new UpdatePaymentRequest { PaymentId = paymentId, status = status});
+                    var result = await _paymentService.UpdatePaymentStripe(new UpdatePaymentStripeRequest { PaymentId = paymentId, status = status, UserId = userId});
                     if (!result.Success)
                     {
                         return this.BadRequestResponse(result.Message ?? "Failed to update payment intent.");

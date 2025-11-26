@@ -691,7 +691,7 @@ namespace Codemy.Payment.Application.Services
             };
         }
 
-        public async Task<UpdatePaymentResponse> UpdatePaymentStripe(UpdatePaymentRequest request)
+        public async Task<UpdatePaymentResponse> UpdatePaymentStripe(UpdatePaymentStripeRequest request)
         {
             var payment = await _paymentRepository.GetByIdAsync(request.PaymentId);
             if (payment == null)
@@ -730,7 +730,7 @@ namespace Codemy.Payment.Application.Services
                     var orderItems = await _orderItemRepository.GetAllAsync(oi => oi.paymentId == payment.Id);
                     foreach (var item in orderItems)
                     {
-                        var enrollmentResponse = await _paymentGrpcEnrollmentService.CreateEnrollmentAsync(item.courseId);
+                        var enrollmentResponse = await _paymentGrpcEnrollmentService.CreateEnrollmentAsync(item.courseId, request.UserId);
                         if (!enrollmentResponse.Success)
                         {
                             _logger.LogError("Failed to create enrollment for course {CourseId} after payment completion.", item.courseId);
