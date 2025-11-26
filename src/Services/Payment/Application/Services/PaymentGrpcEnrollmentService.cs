@@ -39,5 +39,15 @@ namespace Codemy.Payment.Application.Services
             var enrollmentResponse = await _enrollmentClient.CreateEnrollmentAsync(enrollmentRequest);
             return enrollmentResponse;
         }
+        public async Task<CreateEnrollmentResponse> CreateEnrollmentAsync(Guid courseId, Guid userId)
+        {
+            var enrollmentRequest = new CreateEnrollmentRequest
+            {
+                CourseId = courseId.ToString(),
+                UserId = userId.ToString()
+            };
+            var enrollmentResponse = await _enrollmentClient.CreateEnrollmentAsync(enrollmentRequest);
+            return enrollmentResponse;
+        }
     }
 }
