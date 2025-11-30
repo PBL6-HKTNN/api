@@ -13,7 +13,6 @@ namespace Codemy.Identity.Infrastructure.Persistence
     public class IdentityDbContext : DbContext
     {
         private readonly IEnumerable<Type> _entityTypes;
-        private readonly PasswordHasher<string> _hasher = new();
 
         public IdentityDbContext(DbContextOptions<IdentityDbContext> options) : base(options)
         {
@@ -71,7 +70,7 @@ namespace Codemy.Identity.Infrastructure.Persistence
             {
                 new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444441"),  Name = "CATEGORY_CREATE", Code = "CATEGORY_CREATE", Description = "Create a new category" },
                 new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444442"),  Name = "CATEGORY_READ", Code = "CATEGORY_READ", Description = "Read category" },
-                new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444443"),  Name = "CATEGORY_UPDATE", Code = "CATEGORY_UPDATE", Description = "Update catogory information" },
+                new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444443"),  Name = "CATEGORY_UPDATE", Code = "CATEGORY_UPDATE", Description = "Update category information" },
                 new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444444"),  Name = "CATEGORY_DELETE", Code = "CATEGORY_DELETE", Description = "Delete category" },
 
                 new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444445"),  Name = "COURSE_CREATE", Code = "COURSE_CREATE", Description = "Create a new course" },

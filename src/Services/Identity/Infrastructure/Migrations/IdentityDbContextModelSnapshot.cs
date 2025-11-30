@@ -89,7 +89,7 @@ namespace Codemy.Identity.Infrastructure.Migrations
                             Id = new Guid("44444444-4444-4444-4444-444444444443"),
                             Code = "CATEGORY_UPDATE",
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Update catogory information",
+                            Description = "Update category information",
                             IsDeleted = false,
                             Name = "CATEGORY_UPDATE"
                         },

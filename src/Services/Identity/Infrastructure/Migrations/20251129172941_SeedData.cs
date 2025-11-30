@@ -134,7 +134,7 @@ namespace Codemy.Identity.Infrastructure.Migrations
                 {
                     { new Guid("44444444-4444-4444-4444-444444444441"), "CATEGORY_CREATE", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, null, "Create a new category", false, "CATEGORY_CREATE", null, null },
                     { new Guid("44444444-4444-4444-4444-444444444442"), "CATEGORY_READ", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, null, "Read category", false, "CATEGORY_READ", null, null },
-                    { new Guid("44444444-4444-4444-4444-444444444443"), "CATEGORY_UPDATE", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, null, "Update catogory information", false, "CATEGORY_UPDATE", null, null },
+                    { new Guid("44444444-4444-4444-4444-444444444443"), "CATEGORY_UPDATE", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, null, "Update category information", false, "CATEGORY_UPDATE", null, null },
                     { new Guid("44444444-4444-4444-4444-444444444444"), "CATEGORY_DELETE", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, null, "Delete category", false, "CATEGORY_DELETE", null, null },
                     { new Guid("44444444-4444-4444-4444-444444444445"), "COURSE_CREATE", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, null, "Create a new course", false, "COURSE_CREATE", null, null },
                     { new Guid("44444444-4444-4444-4444-444444444446"), "COURSE_READ", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, null, "Read course", false, "COURSE_READ", null, null },
