@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Codemy.BuildingBlocks.EventBus.Events;
 using Codemy.BuildingBlocks.EventBus.RabbitMQ;
+using Codemy.BuildingBlocks.Core.Models;
 
 namespace Codemy.Courses.API.Controllers
 {
@@ -24,6 +25,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("get/{courseId}")]
+        [RequireAction("COURSE_READ")]
         [SwaggerOperation(Summary = "Get course by ID", Description = "Retrieve a specific course by its ID")]
         public async Task<IActionResult> GetCourseById(Guid courseId)
         {
@@ -54,6 +56,8 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpPost("lessons-completed")]
+        [RequireAction("COURSE_READ")]
+        [SwaggerOperation(Summary = "Get completed lessons", Description = "Retrieve a list of completed lessons for a specific course and user")]
         public async Task<IActionResult> GetLessonsCompleted(GetLessonsCompletedRequest request)
         {
             if (!ModelState.IsValid)
@@ -89,6 +93,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpPost("validate")]
+        [RequireAction("COURSE_READ")]
         [SwaggerOperation(Summary = "Validate course data", Description = "Validate if the lesson is the last lesson of a course")]
         public async Task<IActionResult> ValidateCourse([FromBody] ValidateCourseRequest request)
         {
@@ -124,6 +129,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("getModules/{courseId}")]
+        [RequireAction("COURSE_READ")]
         [SwaggerOperation(Summary = "Get modules by course ID", Description = "Retrieve a list of modules for a specific course")]
         public async Task<IActionResult> GetModuleByCourseIdAsync(Guid courseId)
         {
@@ -154,6 +160,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("getLessons/{courseId}")]
+        [RequireAction("COURSE_READ")]
         public async Task<IActionResult> GetLessonByCourseIdAsync(Guid courseId)
         {
             if (courseId == Guid.Empty)
@@ -182,6 +189,7 @@ namespace Codemy.Courses.API.Controllers
         }
         [Authorize]
         [HttpPost("create")]
+        [RequireAction("COURSE_CREATE")]
         [SwaggerOperation(Summary = "Create a new course", Description = "Add a new course to the system")]
         public async Task<IActionResult> CreateCourse([FromBody] CreateCourseRequest request)
         {
@@ -236,6 +244,7 @@ namespace Codemy.Courses.API.Controllers
         }
         [Authorize]
         [HttpPost("update/{courseId}")]
+        [RequireAction("COURSE_UPDATE")]
         [SwaggerOperation(Summary = "Update a course", Description = "Modify an existing course by its ID")]
         public async Task<IActionResult> UpdateCourse(Guid courseId, [FromBody] CreateCourseRequest request)
         {
@@ -272,6 +281,7 @@ namespace Codemy.Courses.API.Controllers
         }
         [Authorize]
         [HttpDelete("{courseId}")]
+        [RequireAction("COURSE_DELETE")]
         [SwaggerOperation(Summary = "Delete a course", Description = "Remove a course by its ID")]
         public async Task<IActionResult> DeleteCourse(Guid courseId)
         {

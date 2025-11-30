@@ -1,4 +1,5 @@
 ﻿using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Models;
 using Codemy.Courses.Application.DTOs; 
 using Codemy.Courses.Application.Interfaces;
 using Microsoft.AspNetCore.Cors.Infrastructure; 
@@ -18,6 +19,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpPost("create")]
+        [RequireAction("CATEGORY_CREATE")]
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest request)
         {
             if (!ModelState.IsValid)
@@ -53,7 +55,8 @@ namespace Codemy.Courses.API.Controllers
                 );
             }
         }
-        [HttpGet] 
+        [HttpGet]
+        [RequireAction("CATEGORY_READ")]
         public async Task<IActionResult> GetCategories()
         {
             try

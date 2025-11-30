@@ -1,4 +1,5 @@
-﻿using Codemy.Identity.API.Services;
+﻿using Codemy.BuildingBlocks.Core.Models;
+using Codemy.Identity.API.Services;
 using Codemy.Identity.Application;
 using Codemy.Identity.Infrastructure;
 using DotNetEnv;
@@ -70,5 +71,6 @@ app.UseRouting();
 app.UseAuthentication(); 
 app.UseAuthorization(); 
 app.MapGrpcService<IdentityGrpcService>();
+app.UseMiddleware<PermissionMiddleware>();
 app.MapControllers();
 app.Run();

@@ -1,10 +1,11 @@
-using System.Security.Claims;
 using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Models;
 using Codemy.Review.Application.Interfaces;
 using Codemy.Review.Application.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Security.Claims;
 
 namespace Codemy.Review.API.Controllers
 {
@@ -21,6 +22,7 @@ namespace Codemy.Review.API.Controllers
 
         [HttpPost]
         [Authorize]
+        [RequireAction("REVIEW_CREATE")]
         [SwaggerOperation(Summary = "Create a new review", Description = "Submit a new review for a course")]
         public async Task<IActionResult> Create([FromBody] CreateReviewRequest request)
         {
@@ -30,6 +32,7 @@ namespace Codemy.Review.API.Controllers
         }
 
         [HttpGet("course/{courseId}")]
+        [RequireAction("REVIEW_READ")]
         [Authorize]
         [SwaggerOperation(Summary = "Get reviews by course ID", Description = "Retrieve all reviews for a specific course")]
         public async Task<IActionResult> GetByCourse(Guid courseId)
@@ -39,6 +42,7 @@ namespace Codemy.Review.API.Controllers
         }
 
         [HttpGet("course/{courseId}/average")]
+        [RequireAction("REVIEW_READ")]
         [Authorize]
         [SwaggerOperation(Summary = "Get average rating by course ID", Description = "Retrieve the average rating for a specific course")]
         public async Task<IActionResult> GetAverage(Guid courseId)

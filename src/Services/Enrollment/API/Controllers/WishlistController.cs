@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc; 
+﻿using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Models;
 using Codemy.Enrollment.Application.Interfaces;
-using Codemy.BuildingBlocks.Core;
+using Microsoft.AspNetCore.Mvc; 
 namespace Codemy.Enrollment.API.Controllers
 {
     [ApiController]
@@ -17,6 +18,7 @@ namespace Codemy.Enrollment.API.Controllers
         }
 
         [HttpPost("add/{courseId}")]
+        [RequireAction("WISHLIST_CREATE")]
         public async Task<IActionResult> AddToWishlist(Guid courseId)
         {
             try
@@ -40,6 +42,7 @@ namespace Codemy.Enrollment.API.Controllers
         }
 
         [HttpGet("get")]
+        [RequireAction("WISHLIST_READ")]
         public async Task<IActionResult> GetWishlist()
         {
             try
@@ -59,6 +62,7 @@ namespace Codemy.Enrollment.API.Controllers
         }
 
         [HttpDelete("remove/{courseId}")]
+        [RequireAction("WISHLIST_DELETE")]
         public async Task<IActionResult> RemoveFromWishlist(Guid courseId)
         {
             try
@@ -77,6 +81,7 @@ namespace Codemy.Enrollment.API.Controllers
             }
         }
         [HttpGet("Check/{courseId}")]
+        [RequireAction("WISHLIST_READ")]
         public async Task<IActionResult> CheckCourseInWishlist(Guid courseId)
         {
             try

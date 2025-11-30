@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Codemy.BuildingBlocks.Core;
-using Codemy.Enrollment.Application.Interfaces;
+﻿using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Models;
 using Codemy.Enrollment.Application.DTOs;
+using Codemy.Enrollment.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace Codemy.Enrollment.API.Controllers
@@ -22,6 +23,7 @@ namespace Codemy.Enrollment.API.Controllers
 
         [HttpPost("getCourse/{courseId}")]
         [EndpointDescription("Check course enrollment status")]
+        [RequireAction("ENROLLMENT_READ")]
         public async Task<IActionResult> GetCourseByCourseId(Guid courseId)
         {
             try
@@ -41,6 +43,7 @@ namespace Codemy.Enrollment.API.Controllers
         }
 
         [HttpPost("updateProgress")]
+        [RequireAction("ENROLLMENT_UPDATE")]
         public async Task<IActionResult> UpdateProgress(UpdateProgressRequest request)
         {
             try
@@ -60,6 +63,7 @@ namespace Codemy.Enrollment.API.Controllers
         }
 
         [HttpPost("update-current-view")]
+        [RequireAction("ENROLLMENT_UPDATE")]
         public async Task<IActionResult> UpdateCurrentView(UpdateCurrentViewRequest request)
         {
             try
@@ -79,6 +83,7 @@ namespace Codemy.Enrollment.API.Controllers
         }
 
         [HttpGet("lessons-completed/{enrollmentId}")]
+        [RequireAction("ENROLLMENT_READ")]
         public async Task<IActionResult> GetLessonsCompletedByEnrollmentId(Guid enrollmentId)
         {
             try
@@ -98,6 +103,7 @@ namespace Codemy.Enrollment.API.Controllers
         }
 
         [HttpPost("enroll/{courseId}")]
+        [RequireAction("ENROLLMENT_CREATE")]
         public async Task<IActionResult> EnrollInCourse(Guid courseId)
         {
             try
@@ -121,6 +127,7 @@ namespace Codemy.Enrollment.API.Controllers
         }
 
         [HttpPost("update")]
+        [RequireAction("ENROLLMENT_UPDATE")]
         public async Task<IActionResult> UpdateEnrollmentStatus(UpdateEnrollmentRequest request)
         {
             try
@@ -140,6 +147,7 @@ namespace Codemy.Enrollment.API.Controllers
         }
 
         [HttpGet("my-courses")]
+        [RequireAction("ENROLLMENT_READ")]
         [Authorize]
         public async Task<IActionResult> GetMyCourses(int page = 1, int pageSize = 10)
         {

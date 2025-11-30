@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Action = Codemy.Identity.Domain.Entities.Action;
 using PasswordVerificationResult = Microsoft.AspNetCore.Identity.PasswordVerificationResult;
 
 namespace Codemy.Identity.Application.Services
@@ -18,7 +19,11 @@ namespace Codemy.Identity.Application.Services
     internal class AuthenticationService : IAuthenticationService 
     { 
         private readonly ILogger<AuthenticationService> _logger;
-        private readonly IRepository<User> _userRepository; 
+        private readonly IRepository<User> _userRepository;
+        private readonly IRepository<UserPermissionGroup> _userPermissionRepository;
+        private readonly IRepository<Permission> _permissionRepository;
+        private readonly IRepository<PermissionGroup> _permissionGroupRepository;
+        private readonly IRepository<Action> _actionRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly string _jwtSecret;
         private readonly string _jwtIssuer;
@@ -30,11 +35,19 @@ namespace Codemy.Identity.Application.Services
         public AuthenticationService( 
             ILogger<AuthenticationService> logger,
             IRepository<User> userRepository, 
+            IRepository<UserPermissionGroup> userPermissionRepository,
+            IRepository<Permission> permissionRepository,
+            IRepository<PermissionGroup> permissionGroupRepository,
+            IRepository<Action> actionRepository,
             IUnitOfWork unitOfWork,
             EmailSender emailSender)
         { 
             _logger = logger;
             _userRepository = userRepository; 
+            _userPermissionRepository = userPermissionRepository;
+            _permissionRepository = permissionRepository;
+            _permissionGroupRepository = permissionGroupRepository;
+            _actionRepository = actionRepository;
             _unitOfWork = unitOfWork;
             _emailSender = emailSender;
 
@@ -90,7 +103,7 @@ namespace Codemy.Identity.Application.Services
                 }   
 
                 // Generate JWT token
-                var jwtToken = GenerateJwtTokenAsync(user);
+                var jwtToken = await GenerateJwtTokenAsync(user);
 
                 _logger.LogInformation("Authentication successful for user: {Email}", user.email);
 
@@ -176,18 +189,50 @@ namespace Codemy.Identity.Application.Services
             return user;
         }
 
-        public string GenerateJwtTokenAsync(User user)
+        public async Task<string> GenerateJwtTokenAsync(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtSecret);
 
+            // 1. Get permissions from user
+            var userPermissions = await _userPermissionRepository
+                .FindAsync(p => p.UserId == user.Id);
+
+            // 2. Get permissions from role
+            var rolePermissions = await _userPermissionRepository
+                .FindAsync(p => p.RoleId == user.role);
+
+            // 3. Merge + remove duplicates by PermissionId
+            var allPermissionGroups = userPermissions
+                .Concat(rolePermissions)
+                .GroupBy(p => p.PermissionId)
+                .Select(g => g.First())
+                .ToList();
+
+            List<Guid> permissionIds = allPermissionGroups.Select(g => g.PermissionId).ToList();
+
+            List<Action> actions = new List<Action>();
+            //qua bảng permissionGroup lấy action rồi qua action lấy name bỏ vào token
+            foreach (var permission in permissionIds)
+            {
+                var permissions = await _permissionGroupRepository.FindAsync(p => p.permissionId == permission);
+                foreach (var permissionItem in permissions)
+                {
+                    Guid actionId = permissionItem.actionId;
+                    Action action = await _actionRepository.GetByIdAsync(actionId);
+                    actions.Add(action);
+                }
+            }
+            List<string> actionNames = actions.Select(a => a.Name).Distinct().ToList();
+            Console.WriteLine("User Actions: " + string.Join(", ", actionNames));
             var claims = new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Email, user.email),
                 new(ClaimTypes.Name, $"{user.name}"),  
                 new(ClaimTypes.Role, user.role.ToString()),
-                new("google_id", user.googleId), 
+                new("google_id", user.googleId),
+                new("permissions", string.Join(",", actionNames))
             };
 
             if (!string.IsNullOrEmpty(user.profilePicture))
@@ -268,7 +313,7 @@ namespace Codemy.Identity.Application.Services
             return new AuthenticationResult
             {
                 Success = true,
-                Token = GenerateJwtTokenAsync(user),
+                Token = await GenerateJwtTokenAsync(user),
                 User = user,
                 Message = "Register successful"
             };
@@ -315,7 +360,7 @@ namespace Codemy.Identity.Application.Services
                     return new AuthenticationResult
                     {
                         Success = true,
-                        Token = GenerateJwtTokenAsync(user),
+                        Token = await GenerateJwtTokenAsync(user),
                         User = user,
                         Message = "Login successful"
                     };
@@ -351,7 +396,7 @@ namespace Codemy.Identity.Application.Services
                     return new AuthenticationResult
                     {
                         Success = true,
-                        Token = GenerateJwtTokenAsync(user),
+                        Token = await GenerateJwtTokenAsync(user),
                         User = user,
                         Message = "Verify email successful"
                     };
