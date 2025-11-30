@@ -13,6 +13,7 @@ namespace Codemy.Identity.Application
         {
             // Application-level services
             services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<IPermissionService, PermissionService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<EmailSender>();
 

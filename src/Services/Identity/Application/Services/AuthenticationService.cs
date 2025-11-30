@@ -209,7 +209,7 @@ namespace Codemy.Identity.Application.Services
                 .Select(g => g.First())
                 .ToList();
 
-            List<Guid> permissionIds = allPermissionGroups.Select(g => g.PermissionId).ToList();
+            List<Guid> permissionIds = allPermissionGroups.Where(g => !g.IsDeleted).Select(g => g.PermissionId).ToList();
 
             List<Action> actions = new List<Action>();
             //qua bảng permissionGroup lấy action rồi qua action lấy name bỏ vào token
