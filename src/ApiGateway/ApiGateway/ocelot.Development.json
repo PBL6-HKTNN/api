@@ -109,6 +109,18 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
+      "DownstreamPathTemplate": "/Permission/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5197
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/Permission/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
       "DownstreamPathTemplate": "/Email/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

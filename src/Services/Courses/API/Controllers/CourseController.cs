@@ -135,7 +135,7 @@ namespace Codemy.Courses.API.Controllers
         {
             if (courseId == Guid.Empty)
             {
-                return BadRequest("Invalid course ID.");
+                return this.BadRequestResponse("Invalid course ID.");
             }
             try
             {

@@ -17,6 +17,7 @@ JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 // Add authentication
 Env.Load();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

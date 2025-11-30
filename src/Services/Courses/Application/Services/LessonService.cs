@@ -260,6 +260,13 @@ namespace Codemy.Courses.Application.Services
                 lesson.orderIndex -= 1;
                 _lessonRepository.Update(lesson);
             }
+            var module =  await _moduleRepository.GetByIdAsync(result.moduleId);
+            module.numberOfLessons -= 1;
+            module.duration -= result.duration;
+            var course = await _courseRepository.GetByIdAsync(module.courseId);
+            course.duration -= result.duration;
+            _moduleRepository.Update(module);
+            _courseRepository.Update(course);
             var saveResult = await _unitOfWork.SaveChangesAsync();
             if (saveResult <= 0)
             {

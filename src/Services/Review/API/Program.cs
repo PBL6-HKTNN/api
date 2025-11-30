@@ -1,11 +1,12 @@
+using Codemy.BuildingBlocks.Core.Models;
 using Codemy.Review.Application;
 using Codemy.Review.Infrastructure;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using System.IdentityModel.Tokens.Jwt;
-using DotNetEnv;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -110,6 +111,8 @@ app.UseRouting();
 app.UseAuthentication();
 
 app.UseAuthorization();
+app.UseMiddleware<PermissionMiddleware>();
+
 app.MapControllers();
 
 app.Run();

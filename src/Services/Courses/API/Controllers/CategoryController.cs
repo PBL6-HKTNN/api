@@ -2,6 +2,7 @@
 using Codemy.BuildingBlocks.Core.Models;
 using Codemy.Courses.Application.DTOs; 
 using Codemy.Courses.Application.Interfaces;
+using Codemy.Courses.Domain.Entities;
 using Microsoft.AspNetCore.Cors.Infrastructure; 
 using Microsoft.AspNetCore.Mvc;
 namespace Codemy.Courses.API.Controllers
@@ -64,7 +65,7 @@ namespace Codemy.Courses.API.Controllers
                 var result = await _categoryService.GetCategories();
                 if (result.Categories.Count == 0)
                 {
-                    return this.NotFoundResponse( "Categories not found.",
+                    return this.NotFoundResponse("Categories not found.",
                         "No categories available in the system."
                     );
                 }
@@ -80,5 +81,105 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
+        [HttpGet("get/{categoryId}")]
+        [RequireAction("CATEGORY_READ")]
+        public async Task<IActionResult> GetCategoryById(Guid categoryId)
+        {
+            if (categoryId == Guid.Empty)
+            {
+                return this.BadRequestResponse("Invalid category ID.");
+            }
+            try
+            {
+                var result = await _categoryService.GetCategoryById(categoryId);
+                if (!result.Success)
+                {
+                    return this.NotFoundResponse(result.Message,
+                        $"No category found with ID: {categoryId}"
+                    );
+                }
+                return this.OkResponse(result.Category);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error get category by id.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during category retrieval by id",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpPost("update/{categoryId}")]
+        [RequireAction("CATEGORY_UPDATE")]
+        public async Task<IActionResult> UpdateCategory(Guid categoryId, [FromBody] CreateCategoryRequest request)
+        {
+            if (categoryId == Guid.Empty)
+            {
+                return this.BadRequestResponse("Invalid category ID.");
+            }
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+
+            try
+            {
+                var result = await _categoryService.UpdateCategoryById(categoryId, request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to update category.",
+                        "Category update failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.Category);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error update category.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during update category",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpDelete("delete/{categoryId}")]
+        [RequireAction("CATEGORY_DELETE")]
+        public async Task<IActionResult> DeleteCategory(Guid categoryId)
+        {
+            if (categoryId == Guid.Empty)
+            {
+                return this.BadRequestResponse("Invalid category ID.");
+            }
+
+            try
+            {
+                var result = await _categoryService.DeleteCategoryById(categoryId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to delete category.",
+                        "Category delete failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.Category);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error delete category.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during delete category",
+                    ex.Message
+                );
+            }
+        }
     }
 }

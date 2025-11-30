@@ -3,6 +3,7 @@ using System;
 using Codemy.Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Codemy.Identity.Infrastructure.Migrations
 {
     [DbContext(typeof(IdentityDbContext))]
-    partial class IdentityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251130144500_Permission")]
+    partial class Permission
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1154,7 +1157,7 @@ namespace Codemy.Identity.Infrastructure.Migrations
                             Id = new Guid("44444444-4444-4444-4444-444444444572"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsDeleted = false,
-                            actionId = new Guid("44444444-4444-4444-4444-444444444579"),
+                            actionId = new Guid("44444444-4444-4444-4444-444444444479"),
                             permissionId = new Guid("44444444-4444-4444-4444-444444444572")
                         },
                         new
@@ -1162,7 +1165,7 @@ namespace Codemy.Identity.Infrastructure.Migrations
                             Id = new Guid("44444444-4444-4444-4444-444444444573"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsDeleted = false,
-                            actionId = new Guid("44444444-4444-4444-4444-444444444580"),
+                            actionId = new Guid("44444444-4444-4444-4444-444444444480"),
                             permissionId = new Guid("44444444-4444-4444-4444-444444444572")
                         },
                         new
@@ -1170,7 +1173,7 @@ namespace Codemy.Identity.Infrastructure.Migrations
                             Id = new Guid("44444444-4444-4444-4444-444444444574"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsDeleted = false,
-                            actionId = new Guid("44444444-4444-4444-4444-444444444581"),
+                            actionId = new Guid("44444444-4444-4444-4444-444444444481"),
                             permissionId = new Guid("44444444-4444-4444-4444-444444444572")
                         },
                         new
@@ -1178,7 +1181,7 @@ namespace Codemy.Identity.Infrastructure.Migrations
                             Id = new Guid("44444444-4444-4444-4444-444444444575"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsDeleted = false,
-                            actionId = new Guid("44444444-4444-4444-4444-444444444582"),
+                            actionId = new Guid("44444444-4444-4444-4444-444444444482"),
                             permissionId = new Guid("44444444-4444-4444-4444-444444444572")
                         });
                 });
