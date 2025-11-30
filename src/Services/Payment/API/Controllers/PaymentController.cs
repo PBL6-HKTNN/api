@@ -1,4 +1,5 @@
 ﻿using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Models;
 using Codemy.Payment.Application.DTOs;
 using Codemy.Payment.Application.Interfaces;
 using Codemy.Payment.Domain.Entities;
@@ -23,6 +24,7 @@ namespace Codemy.Payment.API.Controllers
         }
 
         [HttpGet("getCart")]
+        [RequireAction("PAYMENT_READ")]
         public async Task<IActionResult> GetCart()
         {
             try
@@ -42,6 +44,7 @@ namespace Codemy.Payment.API.Controllers
         }
 
         [HttpPost("addToCart/{courseId}")]
+        [RequireAction("PAYMENT_CREATE")]
         public async Task<IActionResult> AddToCart(Guid courseId)
         {
             try
@@ -63,6 +66,7 @@ namespace Codemy.Payment.API.Controllers
                 return this.InternalServerErrorResponse("Internal server error.");
             }
         }
+        [RequireAction("PAYMENT_DELETE")]
         [HttpDelete("removeFromCart/{courseId}")]
         public async Task<IActionResult> RemoveFromCart(Guid courseId)
         {
@@ -83,6 +87,7 @@ namespace Codemy.Payment.API.Controllers
         }
 
         [HttpPost("createPayment")]
+        [RequireAction("PAYMENT_CREATE")]
         public async Task<IActionResult> CreatePayment([FromBody] PaymentRequest paymentRequest)
         {
             if (!ModelState.IsValid)
@@ -115,6 +120,7 @@ namespace Codemy.Payment.API.Controllers
             }
         }
         [HttpGet("payment")]
+        [RequireAction("PAYMENT_READ")]
         public async Task<IActionResult> GetPayment()
         {
             try
@@ -134,6 +140,7 @@ namespace Codemy.Payment.API.Controllers
         }
 
         [HttpGet("payment/{paymentId}")]
+        [RequireAction("PAYMENT_READ")]
         public async Task<IActionResult> GetPaymentById(Guid paymentId)
         {
             try
@@ -153,6 +160,7 @@ namespace Codemy.Payment.API.Controllers
         }
 
         [HttpGet("list-payments")]
+        [RequireAction("PAYMENT_READ")]
         public async Task<IActionResult> GetListPayment()
         {
             try
@@ -172,6 +180,7 @@ namespace Codemy.Payment.API.Controllers
         }
 
         [HttpPost("update-payment")]
+        [RequireAction("PAYMENT_UPDATE")]
         public async Task<IActionResult> UpdatePaymentStatus(UpdatePaymentRequest request)
         {
             if (!ModelState.IsValid)
@@ -201,6 +210,7 @@ namespace Codemy.Payment.API.Controllers
         }
 
         [HttpPost("create-payment-intent")]
+        [RequireAction("PAYMENT_CREATE")]
         public async Task<IActionResult> CreatePaymentIntent([FromBody] PaymentIntentRequest request)
         {
             if (!ModelState.IsValid)
@@ -276,7 +286,6 @@ namespace Codemy.Payment.API.Controllers
                     return this.InternalServerErrorResponse("Internal server error.");
                 }
             }
-
             return Ok();
         }
 

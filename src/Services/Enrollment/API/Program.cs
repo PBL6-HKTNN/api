@@ -1,4 +1,5 @@
-﻿using Codemy.Enrollment.API.Services;
+﻿using Codemy.BuildingBlocks.Core.Models;
+using Codemy.Enrollment.API.Services;
 using Codemy.Enrollment.Application;
 using Codemy.Enrollment.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -96,6 +97,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthorization();
 app.MapGrpcService<EnrollmentGrpcService>();
+app.UseMiddleware<PermissionMiddleware>();
 app.MapControllers();
 
 app.Run();

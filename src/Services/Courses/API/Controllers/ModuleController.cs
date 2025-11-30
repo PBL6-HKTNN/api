@@ -1,8 +1,9 @@
-﻿using Codemy.Courses.Application.DTOs;
+﻿using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Models;
+using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Codemy.BuildingBlocks.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Codemy.Courses.API.Controllers
 {
@@ -20,6 +21,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpPost("create")]
+        [RequireAction("MODULE_CREATE")]
         public async Task<IActionResult> CreateModule([FromBody] CreateModuleRequest request)
         {
             if (!ModelState.IsValid)
@@ -58,6 +60,7 @@ namespace Codemy.Courses.API.Controllers
             }
         }
         [HttpGet]
+        [RequireAction("MODULE_READ")]
         public async Task<IActionResult> GetModules()
         {
             try
@@ -81,6 +84,7 @@ namespace Codemy.Courses.API.Controllers
             }
         }
         [HttpGet("{moduleId}")]
+        [RequireAction("MODULE_READ")]
         public async Task<IActionResult> GetLessonByModuleId(Guid moduleId)
         {
             try
@@ -106,6 +110,7 @@ namespace Codemy.Courses.API.Controllers
             }
         }
         [HttpGet("get/{moduleId}")]
+        [RequireAction("MODULE_READ")]
         public async Task<IActionResult> GetModuleById(Guid moduleId)
         {
             try
@@ -130,6 +135,7 @@ namespace Codemy.Courses.API.Controllers
             }
         }
         [HttpPost("update/{moduleId}")]
+        [RequireAction("MODULE_UPDATE")]
         public async Task<IActionResult> UpdateModule(Guid moduleId, [FromBody] CreateModuleRequest request)
         {
             if (!ModelState.IsValid)
@@ -165,6 +171,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpDelete("{moduleId}")]
+        [RequireAction("MODULE_DELETE")]
         public async Task<IActionResult> DeleteModule(Guid moduleId)
         {
             try

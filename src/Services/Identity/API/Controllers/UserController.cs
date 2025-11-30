@@ -1,4 +1,5 @@
 using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Models;
 using Codemy.Identity.API.DTOs.User;
 using Codemy.Identity.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -18,6 +19,7 @@ namespace Codemy.Identity.API.Controllers
         }
 
         [Authorize]
+        [RequireAction("USER_UPDATE")]
         [HttpPut("{id}/profile")]
         public async Task<IActionResult> UpdateProfile(Guid id, [FromBody] UpdateProfileRequest request)
         {
@@ -34,6 +36,7 @@ namespace Codemy.Identity.API.Controllers
 
         [Authorize]
         [HttpPost("{id}/avatar")]
+        [RequireAction("USER_UPDATE")]
         public async Task<IActionResult> UploadAvatar(Guid id, IFormFile file)
         {
             if (file == null || file.Length == 0)
