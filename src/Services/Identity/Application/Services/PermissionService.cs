@@ -4,10 +4,7 @@ using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Domain.Entities;
 using Codemy.Identity.Domain.Enums;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.Logging;
-using System.Net.WebSockets;
-using System.Runtime.InteropServices;
 using System.Security.Claims;
 using Action = Codemy.Identity.Domain.Entities.Action;
 
@@ -89,7 +86,7 @@ namespace Codemy.Identity.Application.Services
                     Id = Guid.NewGuid(),
                     UserId = request.UserId,
                     PermissionId = request.PermissionId,
-
+                    CreatedBy = UserId,
                 };
                 await _userPermissionRepository.AddAsync(userPermissionGroup);
                 _logger.LogInformation($"Assigned permission {request.PermissionId} to user {request.UserId}");
@@ -101,6 +98,7 @@ namespace Codemy.Identity.Application.Services
                     Id = Guid.NewGuid(),
                     RoleId = (Role)request.RoleId,
                     PermissionId = request.PermissionId,
+                    CreatedBy = UserId,
                 };
                 await _userPermissionRepository.AddAsync(userPermissionGroup);
                 _logger.LogInformation($"Assigned permission {request.PermissionId} to role {request.RoleId}");
@@ -351,6 +349,30 @@ namespace Codemy.Identity.Application.Services
                     Message = "Permission not found."
                 };
             }
+
+            List<Action> actions = new List<Action>();
+            foreach (Guid id in request.actionIds)
+            {
+                var action = await _actionRepository.GetByIdAsync(id);
+                if (action == null)
+                {
+                    return new PermissionResponse
+                    {
+                        Success = false,
+                        Message = $"Action with ID {id} does not exist."
+                    };
+                }
+                if (action.IsDeleted)
+                {
+                    return new PermissionResponse
+                    {
+                        Success = false,
+                        Message = $"Action with ID {id} is deleted."
+                    };
+                }
+                actions.Add(action);
+            }
+
             permission.permissionName = request.name;
             _permissionRepository.Update(permission);
             var existingPermissionGroups = await _permissionGroupRepository.FindAsync(pg => pg.permissionId == permissionId && !pg.IsDeleted);
@@ -384,7 +406,6 @@ namespace Codemy.Identity.Application.Services
                     Message = "Failed to update permission."
                 };
             }
-            var actions = await _actionRepository.FindAsync(a => request.actionIds.Contains(a.Id) && !a.IsDeleted);
 
             return new PermissionResponse
             {
@@ -394,7 +415,7 @@ namespace Codemy.Identity.Application.Services
                 {
                     Id = permission.Id,
                     permissionName = permission.permissionName,
-                    actions = actions.ToList()
+                    actions = actions
                 }
             };
         }

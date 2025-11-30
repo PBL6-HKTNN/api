@@ -287,7 +287,8 @@ namespace Codemy.Identity.Infrastructure.Persistence
                 new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444166"), RoleId = Role.Admin, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444503")},
 
                 new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444167"), RoleId = Role.Admin, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444572")},
-                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444168"), RoleId = Role.Student, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444542")},
+
+                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444168"), RoleId = Role.Admin, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444542")},
 
 
             };
@@ -305,7 +306,7 @@ namespace Codemy.Identity.Infrastructure.Persistence
 
                 new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444182"), RoleId = Role.Instructor, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444562")},
                 
-                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444183"), RoleId = Role.Student, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444542")},
+                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444183"), RoleId = Role.Instructor, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444542")},
 
 
             };
