@@ -451,6 +451,7 @@ namespace Codemy.Courses.Application.Services
 
         public async Task<IEnumerable<GetCoursesResponse>> GetCoursesAsync(
             Guid? categoryId = null,
+            Guid? instructorId = null,
             string? language = null,
             string? level = null,
             string? sortBy = null,
@@ -477,6 +478,9 @@ namespace Codemy.Courses.Application.Services
 
             if (categoryId.HasValue)
                 query = query.Where(c => c.categoryId == categoryId.Value);
+
+            if (instructorId.HasValue)
+                query = query.Where(c => c.instructorId == instructorId.Value);
 
             if (!string.IsNullOrEmpty(language))
                 query = query.Where(c => c.language == language);

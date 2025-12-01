@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 public class GetCoursesRequest
 {
     public Guid? CategoryId { get; set; }
-
+    public Guid? InstructorId { get; set; }
     [RegularExpression("^(en|vi|jp)$", ErrorMessage = "Language must be one of: en, vi, jp.")]
     public string? Language { get; set; }
 
