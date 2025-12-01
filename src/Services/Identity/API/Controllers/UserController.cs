@@ -1,6 +1,7 @@
 using Codemy.BuildingBlocks.Core;
 using Codemy.BuildingBlocks.Core.Models;
 using Codemy.Identity.API.DTOs.User;
+using Codemy.Identity.Application.DTOs.User;
 using Codemy.Identity.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -45,6 +46,34 @@ namespace Codemy.Identity.API.Controllers
             using var stream = file.OpenReadStream();
             var avatarUrl = await _userService.UploadAvatarAsync(id, stream, file.FileName);
             return this.OkResponse(new { AvatarUrl = avatarUrl });
+        }
+
+        [Authorize]
+        [HttpGet("{id}")]
+        [RequireAction("USER_READ")]
+        public async Task<IActionResult> GetUserById(Guid id)
+        {
+            var user = await _userService.GetUserByIdAsync(id);
+            return this.OkResponse(user);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [RequireAction("USER_READ")]
+        public async Task<IActionResult> GetAllUsers([FromQuery] GetUsersRequest request)
+        {
+            var result = await _userService.GetAllUsersAsync(
+                request.Name,
+                request.Email,
+                request.Role,
+                request.Status,
+                request.EmailVerified,
+                request.SortBy,
+                request.Page,
+                request.PageSize
+            );
+
+            return this.OkResponse(result);
         }
     }
 }
