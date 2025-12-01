@@ -13,7 +13,7 @@ namespace Codemy.Identity.API.Controllers
         private readonly IRequestService _requestService;
         private readonly ILogger<RequestController> _logger;
         public RequestController(
-            IRequestService requestService
+            IRequestService requestService,
             ILogger<RequestController> logger)
         {
             _requestService = requestService;
@@ -41,6 +41,32 @@ namespace Codemy.Identity.API.Controllers
                 _logger.LogError(ex, "Error retrieving requests.");
                 return this.InternalServerErrorResponse(
                     "Internal server error occurred during request retrieval",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpGet("/request-type")]
+        [RequireAction("REQUEST_READ")]
+        public async Task<IActionResult> GetRequestTypes()
+        {
+            try
+            {
+                var result = await _requestService.GetRequestTypesAsync();
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to retrieve request types.",
+                        "Request retrieval failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.types);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving request types.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during request type retrieval",
                     ex.Message
                 );
             }
