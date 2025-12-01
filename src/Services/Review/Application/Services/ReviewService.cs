@@ -36,7 +36,11 @@ namespace Codemy.Review.Application.Services
                 courseId = request.CourseId,
                 userId = userId,
                 rating = request.Rating,
-                comment = request.Comment
+                comment = request.Comment,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = userId,
+                UpdatedBy = userId
             };
 
             await _repo.AddAsync(review);
