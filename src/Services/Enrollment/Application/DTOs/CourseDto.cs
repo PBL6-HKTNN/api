@@ -8,5 +8,7 @@ namespace Codemy.Enrollment.Application.DTOs
         public string? Thumbnail { get; set; }
         public decimal Price { get; set; }
         public Guid InstructorId { get; set; }
+        public int ProgressStatus { get; set; }
+        public int EnrollmentStatus { get; set; }
     }
 }

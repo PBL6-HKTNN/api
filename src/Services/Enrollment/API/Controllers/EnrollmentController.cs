@@ -149,7 +149,7 @@ namespace Codemy.Enrollment.API.Controllers
         [HttpGet("my-courses")]
         [RequireAction("ENROLLMENT_READ")]
         [Authorize]
-        public async Task<IActionResult> GetMyCourses(int page = 1, int pageSize = 10)
+        public async Task<IActionResult> GetMyCourses([FromQuery] GetMyCourseRequest request)
         {
             try
             {
@@ -159,11 +159,14 @@ namespace Codemy.Enrollment.API.Controllers
                     return this.Unauthorized("User identifier claim is missing or invalid.");
                 }
 
-                var result = await _enrollmentService.GetMyCoursesAsync(userId, page, pageSize);
+                // Call service to get courses
+                var result = await _enrollmentService.GetMyCoursesAsync(userId, request);
+
                 if (!result.Success)
                 {
                     return this.BadRequest(result.Message ?? "Failed to get my courses.");
                 }
+
                 return this.OkResponse(result.Courses);
             }
             catch (Exception)
@@ -171,5 +174,6 @@ namespace Codemy.Enrollment.API.Controllers
                 return this.InternalServerErrorResponse("Internal server error.");
             }
         }
+
     }
 }

@@ -354,7 +354,7 @@ namespace Codemy.Enrollment.Application.Services
             };
         }
 
-        public async Task<CoursesResponse> GetMyCoursesAsync(Guid userId, int page = 1, int pageSize = 10)
+        public async Task<CoursesResponse> GetMyCoursesAsync(Guid userId, GetMyCourseRequest request)
         {
             if (userId == Guid.Empty)
             {
@@ -365,11 +365,17 @@ namespace Codemy.Enrollment.Application.Services
                 };
             }
 
-            var enrollments = await _enrollmentRepository
-                .FindAsync(e => e.studentId == userId);
+            // Get all enrollments for the user
+            var enrollments = await _enrollmentRepository.FindAsync(e => e.studentId == userId);
 
-            var courseIds = enrollments.Select(e => e.courseId).ToList();
-            if (!courseIds.Any())
+            // Apply filter 
+            if (request.ProgressStatus.HasValue)
+                enrollments = enrollments.Where(e => e.progressStatus == request.ProgressStatus.Value).ToList();
+
+            if (request.EnrollmentStatus.HasValue)
+                enrollments = enrollments.Where(e => e.enrollmentStatus == request.EnrollmentStatus.Value).ToList();
+
+            if (!enrollments.Any())
             {
                 return new CoursesResponse
                 {
@@ -378,19 +384,28 @@ namespace Codemy.Enrollment.Application.Services
                 };
             }
 
-            var pagedCourseIds = courseIds
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+            // Apply sort
+            enrollments = request.SortBy switch
+            {
+                SortByOption.Date when request.SortDescending => enrollments.OrderByDescending(e => e.enrollmentDate).ToList(),
+                SortByOption.Date => enrollments.OrderBy(e => e.enrollmentDate).ToList(),
+                _ => enrollments
+            };
+
+            // Pagination
+            var pagedEnrollments = enrollments
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
                 .ToList();
 
             var courses = new List<CourseDto>();
 
-            foreach (var courseId in pagedCourseIds)
+            foreach (var enrollment in pagedEnrollments)
             {
                 try
                 {
                     var courseResponse = await _courseClient.GetCourseByIdAsync(
-                        new GetCourseByIdRequest { CourseId = courseId.ToString() }
+                        new GetCourseByIdRequest { CourseId = enrollment.courseId.ToString() }
                     );
 
                     if (courseResponse.Exists && courseResponse.CourseId != null)
@@ -402,13 +417,15 @@ namespace Codemy.Enrollment.Application.Services
                             Title = courseResponse.Title,
                             Thumbnail = courseResponse.Thumbnail,
                             Description = courseResponse.Description,
-                            Price = decimal.TryParse(courseResponse.Price, out var price) ? price : 0
+                            Price = decimal.TryParse(courseResponse.Price, out var price) ? price : 0,
+                            ProgressStatus = (int)enrollment.progressStatus,
+                            EnrollmentStatus = (int)enrollment.enrollmentStatus
                         });
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Error fetching course {CourseId}", courseId);
+                    _logger.LogWarning(ex, "Error fetching course {CourseId}", enrollment.courseId);
                 }
             }
 

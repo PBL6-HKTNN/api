@@ -16,7 +16,7 @@ namespace Codemy.Enrollment.Application.Interfaces
         Task<EnrollmentResponse> GetCourseAsync(Guid courseId);
         Task<CheckEnrollmentsResponse> CheckEnrollmentsAsync(CheckEnrollmentsRequest request);
         Task<EnrollmentResponse> GetCourseWithGrpc(Guid courseId, Guid userId);
-        Task<CoursesResponse> GetMyCoursesAsync(Guid userId, int page, int pageSize);
+        Task<CoursesResponse> GetMyCoursesAsync(Guid userId, GetMyCourseRequest request);
         Task<EnrollmentResponse> UpdateProgressAsync(UpdateProgressRequest request);
         Task<EnrollmentResponse> UpdateCurrentView(UpdateCurrentViewRequest request);
         Task<LessonCompletedResponse> GetLessonsCompletedByEnrollmentIdAsync(Guid enrollmentId);

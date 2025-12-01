@@ -1,5 +1,8 @@
-﻿namespace Codemy.Courses.Domain.Enums
+﻿using System.Text.Json.Serialization;
+
+namespace Codemy.Courses.Domain.Enums
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Status
     {
         Draft,
