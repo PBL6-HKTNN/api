@@ -112,7 +112,7 @@ namespace Codemy.Identity.API.Controllers
                         "Request creation failed due to business logic constraints."
                     );
                 }
-                return this.OkResponse(result.requestDTO);
+                return this.OkResponse(result.request);
             }
             catch (Exception ex)
             {
@@ -138,7 +138,7 @@ namespace Codemy.Identity.API.Controllers
                         "Request update failed due to business logic constraints."
                     );
                 }
-                return this.OkResponse(result.requestDTO);
+                return this.OkResponse(result.request);
             }
             catch (Exception ex)
             {
@@ -171,6 +171,32 @@ namespace Codemy.Identity.API.Controllers
                 _logger.LogError(ex, "Error deleting request.");
                 return this.InternalServerErrorResponse(
                     "Internal server error occurred during request deletion",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpPost("delete/{requestId}")]
+        [RequireAction("REQUEST_RESOLVE")]
+        public async Task<IActionResult> ResolveRequest(Guid requestId, [FromBody] ResolveRequestDTO updateRequestDTO)
+        {
+            try
+            {
+                var result = await _requestService.ResolveRequestAsync(requestId, updateRequestDTO);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to resolve request.",
+                        "Request deletion failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse("Request resolved successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error resolve request.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during request resolve",
                     ex.Message
                 );
             }

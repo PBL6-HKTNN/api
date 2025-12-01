@@ -36,6 +36,7 @@ namespace Codemy.Identity.Application.Services
 
         public async Task<RequestResponse> CreateRequestAsync(CreateRequestDTO createRequestDTO)
         {
+            throw new NotImplementedException();
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null || !user.Identity?.IsAuthenticated == true)
             {
@@ -92,7 +93,7 @@ namespace Codemy.Identity.Application.Services
             {
                 // check course có tồn tại
                 // check user có phải instructor và là instructor của course đó ko
-                if (userExists.role != Role.Instructor || )
+                if (userExists.role != Role.Instructor)
                 {
                     return new RequestResponse
                     {
@@ -179,6 +180,11 @@ namespace Codemy.Identity.Application.Services
                 Message = "Request types retrieved successfully.",
                 types = requestTypeFiltered
             };
+        }
+
+        public Task<RequestResponse> ResolveRequestAsync(Guid requestId, ResolveRequestDTO updateRequestDTO)
+        {
+            throw new NotImplementedException();
         }
 
         public Task<RequestResponse> UpdateRequestAsync(Guid requestId, UpdateRequestDTO updateRequestDTO)
