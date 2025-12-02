@@ -9,8 +9,10 @@ namespace Codemy.Identity.Application.Interfaces
     {
         Task<RequestResponse> CreateRequestAsync(CreateRequestDTO createRequestDTO);
         Task<RequestResponse> DeleteRequestAsync(Guid requestId);
+        Task<ListRequestResponse> GetMyRequestsAsync();
         Task<RequestResponse> GetRequestByIdAsync(Guid requestId);
         Task<ListRequestResponse> GetRequestsAsync();
+        Task<ListRequestResponse> GetRequestsResolvedByMe();
         Task<ListRequestTypeResponse> GetRequestTypesAsync();
         Task<RequestResponse> ResolveRequestAsync(Guid requestId, ResolveRequestDTO updateRequestDTO);
         Task<RequestResponse> UpdateRequestAsync(Guid requestId, UpdateRequestDTO updateRequestDTO);

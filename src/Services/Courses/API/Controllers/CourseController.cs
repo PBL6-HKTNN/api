@@ -24,6 +24,78 @@ namespace Codemy.Courses.API.Controllers
             _logger = logger;
         }
 
+        [HttpPut("/change-status")]
+        [RequireAction("COURSE_UPDATE")]
+        [SwaggerOperation(Summary = "Change course status", Description = "Update the status of a specific course")]
+        public async Task<IActionResult> ChangeCourseStatus([FromBody] ChangeCourseStatusRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _courseService.ChangeCourseStatusAsync(request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to change course status."
+                    );
+                }
+                return this.OkResponse(result.Course);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error changing course status.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during status change",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpPut("/change-status")]
+        [RequireAction("RESOLVE_REQUEST")]
+        [SwaggerOperation(Summary = "Change course status by mod", Description = "Mod update the status of a specific course")]
+        public async Task<IActionResult> ModChangeCourseStatus([FromBody] ChangeCourseStatusRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _courseService.ModChangeCourseStatus(request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to change course status."
+                    );
+                }
+                return this.OkResponse(result.Course);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error changing course status.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during status change",
+                    ex.Message
+                );
+            }
+        }
+
         [HttpGet("get/{courseId}")]
         [RequireAction("COURSE_READ")]
         [SwaggerOperation(Summary = "Get course by ID", Description = "Retrieve a specific course by its ID")]
@@ -123,6 +195,43 @@ namespace Codemy.Courses.API.Controllers
                 _logger.LogError(ex, "Error validating course.");
                 return this.InternalServerErrorResponse(
                     "Internal server error occurred during course validation",
+                    ex.Message
+                );
+            }
+        }
+
+
+        [HttpPost("auto-check-before-submit")]
+        [RequireAction("COURSE_CREATE")]
+        [SwaggerOperation(Summary = "Auto check infor course before creating request", Description = "Validate if the course is the acceptable to create request public")]
+        public async Task<IActionResult> AutoCheckCourse([FromBody] AutoCheckCourseRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _courseService.AutoCheckCourseAsync(request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Course check failed."
+                    );
+                }
+                return this.OkResponse("Course is valid.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking course.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during course check",
                     ex.Message
                 );
             }

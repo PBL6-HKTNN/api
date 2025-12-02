@@ -1,10 +1,12 @@
 ﻿using Codemy.BuildingBlocks.Core;
+using Codemy.CoursesProto;
 using Codemy.Identity.Application.DTOs.Request;
 using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Domain.Entities;
 using Codemy.Identity.Domain.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Net.WebSockets;
 using System.Security.Claims;
 
 namespace Codemy.Identity.Application.Services
@@ -17,6 +19,8 @@ namespace Codemy.Identity.Application.Services
         private readonly IRepository<RequestType> _requestTypeRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly CoursesService.CoursesServiceClient _courseClient;
+        private readonly EmailSender _emailSender;
 
         public RequestService(
             ILogger<RequestService> logger,
@@ -24,7 +28,9 @@ namespace Codemy.Identity.Application.Services
             IRepository<Request> requestRepository,
             IRepository<RequestType> requestTypeRepository,
             IHttpContextAccessor httpContextAccessor,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            CoursesService.CoursesServiceClient courseClient,
+            EmailSender emailSender)
         {
             _logger = logger;
             _userRepository = userRepository;
@@ -32,11 +38,12 @@ namespace Codemy.Identity.Application.Services
             _requestTypeRepository = requestTypeRepository;
             _httpContextAccessor = httpContextAccessor;
             _unitOfWork = unitOfWork;
+            _courseClient = courseClient;
+            _emailSender = emailSender;
         }
 
         public async Task<RequestResponse> CreateRequestAsync(CreateRequestDTO createRequestDTO)
         {
-            throw new NotImplementedException();
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null || !user.Identity?.IsAuthenticated == true)
             {
@@ -84,16 +91,25 @@ namespace Codemy.Identity.Application.Services
                     };
                 }
             }
-            request.UserId = UserId;
-            request.Description = createRequestDTO.Description;
-            request.RequestTypeId = createRequestDTO.RequestTypeId;
-            request.CreatedBy = UserId;
+
 
             if (requestType.Type == RequestTypeEnum.PublicCourseRequest || requestType.Type == RequestTypeEnum.HideCourseRequest)
             {
                 // check course có tồn tại
+                var courseResponse = await _courseClient.GetCourseByIdAsync(new GetCourseByIdRequest
+                {
+                    CourseId = createRequestDTO.courseId.ToString()
+                });
+                if (!courseResponse.Exists)
+                {
+                    return new RequestResponse
+                    {
+                        Success = false,
+                        Message = "Course does not exist."
+                    };
+                }
                 // check user có phải instructor và là instructor của course đó ko
-                if (userExists.role != Role.Instructor)
+                if (userExists.role != Role.Instructor || UserId != Guid.Parse(courseResponse.InstructorId))
                 {
                     return new RequestResponse
                     {
@@ -101,9 +117,48 @@ namespace Codemy.Identity.Application.Services
                         Message = "Only Student can request to upgrade to Instructor."
                     };
                 }
+                request.CourseId = createRequestDTO.courseId;
             }
 
-            
+            if (requestType.Type == RequestTypeEnum.PublicCourseRequest)
+            {
+                //check thông tin khóa học
+                var resultCheckCourseSpam = await _courseClient.AutoCheckCourse(new GetCourseByIdRequest
+                {
+                    CourseId = createRequestDTO.courseId.ToString()
+                });
+                if (!resultCheckCourseSpam.Success)
+                {
+                    return new RequestResponse
+                    {
+                        Success = false,
+                        Message = resultCheckCourseSpam.Message
+                    };
+                }
+            }
+
+            request.UserId = UserId;
+            request.Description = createRequestDTO.Description;
+            request.RequestTypeId = createRequestDTO.RequestTypeId;
+            request.Status = RequestStatus.Reviewing;
+            request.CreatedBy = UserId;
+            await _requestRepository.AddAsync(request);
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result <= 0)
+            {
+                return new RequestResponse
+                {
+                    Success = false,
+                    Message = "Failed to create request.",
+                    request = null
+                };
+            }
+            return new RequestResponse
+            {
+                Success = true,
+                Message = "Request created successfully.",
+                request = request
+            };
         }
 
         public async Task<RequestResponse> DeleteRequestAsync(Guid requestId)
@@ -135,6 +190,32 @@ namespace Codemy.Identity.Application.Services
                 Success = true,
                 Message = "Request deleted successfully.",
                 request = request
+            };
+        }
+
+        public async Task<ListRequestResponse> GetMyRequestsAsync()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new ListRequestResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing.",
+                    requests = null
+                };
+            }
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+            var UserId = Guid.Parse(userIdClaim);
+
+            var requests = await _requestRepository.GetAllAsync(r => r.UserId == UserId && !r.IsDeleted);
+            return new ListRequestResponse
+            {
+                Success = true,
+                Message = "User requests retrieved successfully.",
+                requests = requests.ToList()
             };
         }
 
@@ -170,6 +251,32 @@ namespace Codemy.Identity.Application.Services
             };
         }
 
+        public async Task<ListRequestResponse> GetRequestsResolvedByMe()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new ListRequestResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing.",
+                    requests = null
+                };
+            }
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+            var UserId = Guid.Parse(userIdClaim);
+
+            var requests = await _requestRepository.GetAllAsync(r => r.UpdatedBy == UserId && !r.IsDeleted);
+            return new ListRequestResponse
+            {
+                Success = true,
+                Message = "User requests retrieved successfully.",
+                requests = requests.ToList()
+            };
+        }
+
         public async Task<ListRequestTypeResponse> GetRequestTypesAsync()
         {
             var requestTypes = await _requestTypeRepository.GetAllAsync();
@@ -182,14 +289,194 @@ namespace Codemy.Identity.Application.Services
             };
         }
 
-        public Task<RequestResponse> ResolveRequestAsync(Guid requestId, ResolveRequestDTO updateRequestDTO)
+        public async Task<RequestResponse> ResolveRequestAsync(Guid requestId, ResolveRequestDTO updateRequestDTO)
         {
             throw new NotImplementedException();
-        }
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new RequestResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing.",
+                };
+            }
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+            var UserId = Guid.Parse(userIdClaim);
 
-        public Task<RequestResponse> UpdateRequestAsync(Guid requestId, UpdateRequestDTO updateRequestDTO)
+            var request = await _requestRepository.GetByIdAsync(requestId);
+            if (request == null || request.IsDeleted)
+            {
+                return new RequestResponse
+                {
+                    Success = false,
+                    Message = "Request not found.",
+                    request = null
+                };
+            }
+            if (request.Status != RequestStatus.Reviewing)
+            {
+                return new RequestResponse
+                {
+                    Success = false,
+                    Message = "Request has already been resolved.",
+                    request = null
+                };
+
+            }
+            var requestType = await _requestTypeRepository.GetByIdAsync(request.RequestTypeId);
+            if (requestType == null || requestType.IsDeleted)
+            {
+                return new RequestResponse
+                {
+                    Success = false,
+                    Message = "Invalid request type.",
+                    request = null
+                };
+            }
+
+
+            if (updateRequestDTO.Status == RequestStatus.Rejected)
+            {
+                request.Status = updateRequestDTO.Status;
+                request.UpdatedBy = UserId;
+                request.Response = updateRequestDTO.Response;
+            }
+            else if (updateRequestDTO.Status == RequestStatus.Approved)
+            {
+                RequestTypeEnum type = requestType.Type;
+
+                switch (type)
+                {
+                    case RequestTypeEnum.UpgradeToInstructor:
+                        var userUpgrade = await _userRepository.GetByIdAsync(request.UserId);
+                        if (userUpgrade != null && !userUpgrade.IsDeleted)
+                        {
+                            userUpgrade.role = Role.Instructor;
+                            _userRepository.Update(userUpgrade);
+                            request.Status = updateRequestDTO.Status;
+                            request.UpdatedBy = UserId;
+                            request.Response = updateRequestDTO.Response;
+                        }
+                        else
+                        {
+                            return new RequestResponse
+                            {
+                                Success = false,
+                                Message = "User not found for upgrade.",
+                            };
+                        }
+                        break;
+                    case RequestTypeEnum.PublicCourseRequest:
+                        var courseResponse = await _courseClient.GetCourseByIdAsync(new GetCourseByIdRequest
+                        {
+                            CourseId = request.CourseId.ToString()
+                        });
+                        if (courseResponse.Exists)
+                        {
+                            //var updateCourseRequest = new UpdateCourseVisibilityRequest
+                            //{
+                            //    CourseId = request.CourseId.ToString(),
+                            //    IsPublic = true
+                            //};
+                            //await _courseClient.UpdateCourseVisibilityAsync(updateCourseRequest);
+                        }
+                        else
+                        {
+                            return new RequestResponse
+                            {
+                                Success = false,
+                                Message = "Course not found for visibility update.",
+                            };
+                        }
+                        break;
+                    case RequestTypeEnum.HideCourseRequest:
+                        //check course exists
+                        //check enrollment -> email thông báo -> set course to private
+                        break;
+                    case RequestTypeEnum.ReportCourseRequest:
+                        // Handle reported course logic if needed
+                        break;
+                    case RequestTypeEnum.ReportReviewRequest:
+                        // Handle reported review logic if needed
+                        break;
+                }
+            }
+            var emailTo = await _userRepository.GetByIdAsync(request.UserId);
+
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result <= 0)
+            {
+                return new RequestResponse
+                {
+                    Success = false,
+                    Message = "Failed to resolve request.",
+                };
+            }
+            if (request.CourseId.HasValue)
+            {
+                await _emailSender.InformRequestResolved(
+                    user.FindFirst(ClaimTypes.Email)?.Value,
+                    emailTo.email,
+                    requestId,
+                    requestType.Type.ToString(),
+                    request.Status.ToString(),
+                    request.Description,
+                    request.Response,
+                    request.CourseId
+                    );
+            }
+            else
+                await _emailSender.InformRequestResolved(
+                    user.FindFirst(ClaimTypes.Email)?.Value,
+                    emailTo.email,
+                    requestId,
+                    requestType.Type.ToString(),
+                    request.Status.ToString(),
+                    request.Description,
+                    request.Response
+                    );
+        
+            return new RequestResponse
+            {
+                Success = true,
+                Message = "Request resolved successfully.",
+                request = request
+             };
+         }
+
+    public async Task<RequestResponse> UpdateRequestAsync(Guid requestId, UpdateRequestDTO updateRequestDTO)
         {
-            throw new NotImplementedException();
+            var request = await _requestRepository.GetByIdAsync(requestId);
+            if (request == null || request.IsDeleted)
+            {
+                return new RequestResponse
+                {
+                    Success = false,
+                    Message = "Request not found.",
+                    request = null
+                };
+            }
+            request.Description = updateRequestDTO.Description;
+            _requestRepository.Update(request);
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result <= 0)
+            {
+                return new RequestResponse
+                {
+                    Success = false,
+                    Message = "Failed to update request.",
+                    request = null
+                };
+            }
+            return new RequestResponse
+            {
+                Success = true,
+                Message = "Request updated successfully.",
+                request = request
+            };
         }
     }
 }

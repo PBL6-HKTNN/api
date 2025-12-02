@@ -30,5 +30,6 @@
   </ItemGroup>
 	<ItemGroup>
 		<Protobuf Include="..\..\Notification\API\Protos\notification.proto" GrpcServices="Client" />
+		<Protobuf Include="..\..\Courses\API\Protos\courses.proto" GrpcServices="Client" />
 	</ItemGroup>
 </Project>

@@ -84,6 +84,7 @@ namespace Codemy.Courses.Application.Services
                 description = request.description,
                 thumbnail = request.thumbnail,
                 categoryId = request.categoryId,
+                status = Status.Draft,
                 price = request.price,
                 language = request.language,
                 numberOfModules = 0,
@@ -596,6 +597,121 @@ namespace Codemy.Courses.Application.Services
                 Success = true,
                 Message = "Completed lessons retrieved successfully.",
                 completedLessons = completedLessons
+            };
+        }
+
+        public async Task<CourseReponse> ChangeCourseStatusAsync(ChangeCourseStatusRequest request)
+        {
+            var course = await _courseRepository.GetByIdAsync(request.CourseId);
+            if (course == null || course.IsDeleted)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", request.CourseId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+            if ((course.status == Status.Published || course.status == Status.Archived)
+                 && request.Status == (int)Status.Draft)
+            {
+                course.status = Status.Draft;
+                _courseRepository.Update(course);
+            }
+            else if (course.status == Status.Draft && request.Status == (int)Status.Archived)
+            {
+                course.status = Status.Draft;
+                _courseRepository.Update(course);
+            }
+            else
+            {
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Don't have permission to update this status."
+                };
+            }
+                var result = await _unitOfWork.SaveChangesAsync();
+            if (result < 0)
+            {
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Failed to update status course due to database error"
+                };
+            }
+            else
+                return new CourseReponse
+                {
+                    Success = true,
+                    Message = "Update status course successfully.",
+                    Course = course
+                };
+        }
+
+        public async Task<CourseReponse> ModChangeCourseStatus(ChangeCourseStatusRequest request)
+        {
+            var course = await _courseRepository.GetByIdAsync(request.CourseId);
+            if (course == null || course.IsDeleted)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", request.CourseId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+            if (request.Status == (int)Status.Archived)
+            {
+                //gọi hàm handle việc khóa (check tg học xong lâu nhất và gọi batch tự động chạy cũng như mail thông báo khóa)
+
+            }
+            else
+            {
+                course.status = (Status)request.Status;
+            }
+            course.UpdatedBy = request.ModeratorId;
+            _courseRepository.Update(course);
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result < 0)
+            {
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Failed to update status course due to database error"
+                };
+            }
+            else
+                return new CourseReponse
+                {
+                    Success = true,
+                    Message = "Update status course successfully.",
+                    Course = course
+                };
+        }
+
+        public async Task<Response> AutoCheckCourseAsync(AutoCheckCourseRequest request)
+        {
+            Course course = await _courseRepository.GetByIdAsync(request.CourseId);
+            if (course == null || course.IsDeleted)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", request.CourseId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+
+            var modules = await _moduleRepository.GetAllAsync(m => m.courseId == request.CourseId);
+            var filteredModules = modules.Where(m => !m.IsDeleted).ToList();
+
+            //check total module, total lesson có được tính là khóa k phải spam k
+
+            return new Response
+            {
+                Success = true,
+                Message = "Auto check completed successfully."
             };
         }
     }

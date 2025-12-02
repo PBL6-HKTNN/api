@@ -46,6 +46,58 @@ namespace Codemy.Identity.API.Controllers
             }
         }
 
+        [HttpGet("/my-request")]
+        [RequireAction("REQUEST_READ")]
+        public async Task<IActionResult> GetMyRequests()
+        {
+            try
+            {
+                var result = await _requestService.GetMyRequestsAsync();
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to retrieve requests.",
+                        "Request retrieval failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.requests);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving requests.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during request retrieval",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpGet("/request-resolved-by-me")]
+        [RequireAction("REQUEST_READ")]
+        public async Task<IActionResult> GetRequestsResolvedByMe()
+        {
+            try
+            {
+                var result = await _requestService.GetRequestsResolvedByMe();
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to retrieve requests.",
+                        "Request retrieval failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.requests);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving requests.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during request retrieval",
+                    ex.Message
+                );
+            }
+        }
+
         [HttpGet("/request-type")]
         [RequireAction("REQUEST_READ")]
         public async Task<IActionResult> GetRequestTypes()
@@ -76,6 +128,13 @@ namespace Codemy.Identity.API.Controllers
         [RequireAction("REQUEST_READ")]
         public async Task<IActionResult> GetRequestById(Guid requestId)
         {
+            if (requestId == Guid.Empty)
+            {
+                return this.BadRequestResponse(
+                    "Invalid request ID provided.",
+                    "The request ID cannot be empty."
+                );
+            }
             try
             {
                 var result = await _requestService.GetRequestByIdAsync(requestId);
@@ -102,6 +161,16 @@ namespace Codemy.Identity.API.Controllers
         [RequireAction("REQUEST_CREATE")]
         public async Task<IActionResult> CreateRequest([FromBody] CreateRequestDTO createRequestDTO)
         {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
             try
             {
                 var result = await _requestService.CreateRequestAsync(createRequestDTO);
@@ -128,6 +197,16 @@ namespace Codemy.Identity.API.Controllers
         [RequireAction("REQUEST_UPDATE")]
         public async Task<IActionResult> UpdateRequest(Guid requestId, [FromBody] UpdateRequestDTO updateRequestDTO)
         {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
             try
             {
                 var result = await _requestService.UpdateRequestAsync(requestId, updateRequestDTO);
@@ -176,10 +255,20 @@ namespace Codemy.Identity.API.Controllers
             }
         }
 
-        [HttpPost("delete/{requestId}")]
+        [HttpPost("resolve/{requestId}")]
         [RequireAction("REQUEST_RESOLVE")]
         public async Task<IActionResult> ResolveRequest(Guid requestId, [FromBody] ResolveRequestDTO updateRequestDTO)
         {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
             try
             {
                 var result = await _requestService.ResolveRequestAsync(requestId, updateRequestDTO);

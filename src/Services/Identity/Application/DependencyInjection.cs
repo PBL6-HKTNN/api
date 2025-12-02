@@ -1,9 +1,9 @@
-﻿using Codemy.Identity.Application.Interfaces;
+﻿using Codemy.CoursesProto;
+using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Application.Services;
 using Codemy.NotificationProto;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace Codemy.Identity.Application
 {
@@ -21,7 +21,12 @@ namespace Codemy.Identity.Application
             services.AddGrpcClient<NotificationService.NotificationServiceClient>(options =>
             { 
                 options.Address = new Uri(configuration["GrpcClients:Notification"]);
-            }); 
+            });
+
+            services.AddGrpcClient<CoursesService.CoursesServiceClient>(options =>
+            {
+                options.Address = new Uri(configuration["GrpcClients:Courses"]);
+            });
 
             return services;
         }

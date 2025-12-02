@@ -98,5 +98,37 @@ namespace Codemy.Courses.API.Services
 
             return response;
         }
+
+        public override async Task<GetCourseByIdResponse> ModUpdateStatus(ModChangeCourseStatusRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var course = await _courseService.ModChangeCourseStatus(
+                new ChangeCourseStatusRequest
+                {
+                    CourseId = Guid.Parse(request.CourseId),
+                    Status = Int16.Parse(request.Status),
+                    ModeratorId = Guid.Parse(request.ModeratorId)
+                });
+            if (!course.Success)
+            {
+                return new GetCourseByIdResponse
+                {
+                    Exists = false
+                };
+            }
+            else return new GetCourseByIdResponse
+            {
+                CourseId = course.Course.Id.ToString(),
+            };
+        }
+
+        public override async Task<AutoCheckCourseResponse> AutoCheckCourse(GetCourseByIdRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var result = await _courseService.AutoCheckCourseAsync(new AutoCheckCourseRequest { CourseId = Guid.Parse(request.CourseId));
+            return new AutoCheckCourseResponse
+            {
+                Success = result.Success,
+                Message = result.Message ?? string.Empty
+            };
+        }
     }
 }
