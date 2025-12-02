@@ -425,6 +425,7 @@ namespace Codemy.Courses.API.Controllers
         {
             var result = await _courseService.GetCoursesAsync(
                 request.CategoryId,
+                request.InstructorId,
                 request.Language,
                 request.Level,
                 request.SortBy,
