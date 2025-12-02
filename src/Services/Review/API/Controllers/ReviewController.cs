@@ -26,9 +26,16 @@ namespace Codemy.Review.API.Controllers
         [SwaggerOperation(Summary = "Create a new review", Description = "Submit a new review for a course")]
         public async Task<IActionResult> Create([FromBody] CreateReviewRequest request)
         {
-            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            await _service.AddReviewAsync(request, userId);
-            return this.OkResponse(new { message = "Review created successfully" });
+            try
+            {
+                var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                await _service.AddReviewAsync(request, userId);
+                return this.OkResponse(new { message = "Review created successfully" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return this.NotFoundResponse(ex.Message);
+            }
         }
 
         [HttpGet("course/{courseId}")]
@@ -37,8 +44,15 @@ namespace Codemy.Review.API.Controllers
         [SwaggerOperation(Summary = "Get reviews by course ID", Description = "Retrieve all reviews for a specific course")]
         public async Task<IActionResult> GetByCourse(Guid courseId)
         {
-            var reviews = await _service.GetReviewsByCourseIdAsync(courseId);
-            return this.OkResponse(reviews);
+            try
+            {
+                var reviews = await _service.GetReviewsByCourseIdAsync(courseId);
+                return this.OkResponse(reviews);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return this.NotFoundResponse(ex.Message);
+            }
         }
 
         [HttpGet("course/{courseId}/average")]
@@ -47,8 +61,15 @@ namespace Codemy.Review.API.Controllers
         [SwaggerOperation(Summary = "Get average rating by course ID", Description = "Retrieve the average rating for a specific course")]
         public async Task<IActionResult> GetAverage(Guid courseId)
         {
-            var avg = await _service.GetAverageRatingAsync(courseId);
-            return this.OkResponse(new { courseId, averageRating = avg });
+            try
+            {
+                var avg = await _service.GetAverageRatingAsync(courseId);
+                return this.OkResponse(new { courseId, averageRating = avg });
+            }
+            catch(KeyNotFoundException ex)
+            {
+                return this.NotFoundResponse(ex.Message);
+            }
         }
     }
 }

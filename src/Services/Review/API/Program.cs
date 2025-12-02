@@ -42,7 +42,7 @@ builder.WebHost.ConfigureKestrel(options =>
     options.ListenAnyIP(5042, o => o.Protocols = HttpProtocols.Http2);
     options.ListenAnyIP(7048, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
 });
-builder.Services.AddApplication();
+builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
