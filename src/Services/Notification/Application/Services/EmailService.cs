@@ -1,9 +1,9 @@
 ﻿using Codemy.BuildingBlocks.Core.Extensions;
+using Codemy.Notification.Application.DTOs;
 using Codemy.Notification.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using Newtonsoft.Json.Linq;
-using static System.Net.WebRequestMethods;
 namespace Codemy.Notification.Application.Services
 {
   internal class EmailService : IEmailService
@@ -79,5 +79,68 @@ namespace Codemy.Notification.Application.Services
       await smtp.DisconnectAsync(true);
     }
 
-  }
+        public async Task InformRequestResolved(EmailInformRequestContent content)
+        {
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(content.From));
+            email.To.Add(MailboxAddress.Parse(content.To));
+            email.Subject = "Request Update Notification";
+
+            var body = $@"
+            <html>
+              <body style='font-family:Segoe UI, sans-serif;'>
+                <h2>Request Update</h2>
+
+                <p>Hello,</p>
+
+                <p>Your request has been processed. Below are the details:</p>
+
+                <table style='border-collapse:collapse; font-size:14px;'>
+                  <tr>
+                    <td style='padding:6px 12px; font-weight:bold;'>Request ID:</td>
+                    <td style='padding:6px 12px;'>{content.RequestId}</td>
+                  </tr>
+                  <tr>
+                    <td style='padding:6px 12px; font-weight:bold;'>Request Type:</td>
+                    <td style='padding:6px 12px;'>{content.RequestType}</td>
+                  </tr>
+                  <tr>
+                    <td style='padding:6px 12px; font-weight:bold;'>Description:</td>
+                    <td style='padding:6px 12px;'>{content.Description}</td>
+                  </tr>
+                  <tr>
+                    <td style='padding:6px 12px; font-weight:bold;'>Status:</td>
+                    <td style='padding:6px 12px; color:#007bff;'>{content.Status}</td>
+                  </tr>
+                  {(content.Response != null ? $@"
+                  <tr>
+                    <td style='padding:6px 12px; font-weight:bold;'>Response:</td>
+                    <td style='padding:6px 12px;'>{content.Response}</td>
+                  </tr>" : "")}
+                  {(content.CourseId != null ? $@"
+                  <tr>
+                    <td style='padding:6px 12px; font-weight:bold;'>Course ID:</td>
+                    <td style='padding:6px 12px;'>{content.CourseId}</td>
+                  </tr>" : "")}
+                </table>
+
+                <p>If you have any questions, feel free to contact us.</p>
+
+                <br/>
+
+                <p>From: <strong>{content.From}</strong></p>
+                <p>Thank you,<br/><strong>Codemy Team</strong></p>
+              </body>
+            </html>";
+
+
+            email.Body = new TextPart("html") { Text = body };
+
+            using var smtp = new MailKit.Net.Smtp.SmtpClient();
+            await smtp.ConnectAsync(_smtp_host, _smtp_port, MailKit.Security.SecureSocketOptions.StartTls);
+            await smtp.AuthenticateAsync(_smtp_user, _smtp_password);
+            await smtp.SendAsync(email);
+            await smtp.DisconnectAsync(true);
+        }
+    }
 }

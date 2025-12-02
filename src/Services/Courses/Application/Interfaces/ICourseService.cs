@@ -21,6 +21,9 @@ namespace Codemy.Courses.Application.Interfaces
             int pageSize = 10);
         Task<ValidateCourseResponse> ValidateCourseAsync(ValidateCourseRequest request);
         Task<LessonsCompletedResponse> GetLessonsCompletedAsync(GetLessonsCompletedRequest request);
+        Task<CourseReponse> ChangeCourseStatusAsync(ChangeCourseStatusRequest request);
+        Task<CourseReponse> ModChangeCourseStatus(ChangeCourseStatusRequest request);
+        Task<Response> AutoCheckCourseAsync(AutoCheckCourseRequest request);
     }
 
     public class ValidateCourseResponse

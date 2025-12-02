@@ -2,6 +2,7 @@
 using Codemy.Courses.Application.Services;
 using Codemy.EnrollmentsProto;
 using Codemy.IdentityProto;
+using Codemy.NotificationProto;
 using Codemy.SearchProto;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,10 @@ namespace Codemy.Courses.Application
             {
                 options.Address = new Uri(configuration["GrpcClients:Enrollment"]);
             });
-
+            services.AddGrpcClient<NotificationService.NotificationServiceClient>(options =>
+            {
+                options.Address = new Uri(configuration["GrpcClients:Notification"]);
+            });
             return services;
         }
     }

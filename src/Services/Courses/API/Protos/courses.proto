@@ -10,6 +10,8 @@ service CoursesService {
   rpc GetCourseById (GetCourseByIdRequest) returns (GetCourseByIdResponse);
   rpc ValidateCourseAsync (GetValidateRequest) returns (GetValidateResponse);
   rpc GetLessonsCompleted (GetValidateRequest) returns (LessonsCompletedResponse);
+  rpc ModUpdateStatus (ModChangeCourseStatusRequest) returns (GetCourseByIdResponse);
+  rpc AutoCheckCourseAsync (GetCourseByIdRequest) returns (AutoCheckCourseResponse);
   // RPC mới để lấy tất cả course cho search index
   rpc GetAllCoursesForIndexing (google.protobuf.Empty) returns (GetAllCoursesForIndexingResponse);
 }
@@ -22,6 +24,12 @@ message GetCourseByIdRequest {
 message GetValidateRequest {
   string courseId = 1;
   string lessonId = 2;
+}
+
+message ModChangeCourseStatusRequest{
+	string courseId = 1;
+	string status = 2;
+	string moderatorId = 3;
 }
 
 // Response
@@ -44,6 +52,11 @@ message LessonsCompletedResponse {
   bool success = 1;
   string message = 2;
   repeated string completedLessons = 3;
+}
+
+message AutoCheckCourseResponse {
+  bool success = 1;
+  string message = 2;
 }
 
 // Response cho GetAllCoursesForIndexing

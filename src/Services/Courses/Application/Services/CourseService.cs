@@ -84,6 +84,7 @@ namespace Codemy.Courses.Application.Services
                 description = request.description,
                 thumbnail = request.thumbnail,
                 categoryId = request.categoryId,
+                status = Status.Draft,
                 price = request.price,
                 language = request.language,
                 numberOfModules = 0,
@@ -600,6 +601,163 @@ namespace Codemy.Courses.Application.Services
                 Success = true,
                 Message = "Completed lessons retrieved successfully.",
                 completedLessons = completedLessons
+            };
+        }
+
+        public async Task<CourseReponse> ChangeCourseStatusAsync(ChangeCourseStatusRequest request)
+        {
+            var course = await _courseRepository.GetByIdAsync(request.CourseId);
+            if (course == null || course.IsDeleted)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", request.CourseId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+            var mod = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = request.ModeratorId.ToString() }
+            );
+            if (!mod.Exists)
+            {
+                _logger.LogError("Moderator with ID {ModeratorId} does not exist or is not a moderator.", request.ModeratorId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Moderator does not exist or is not a moderator."
+                };
+            }
+            if ( course.status == Status.Archived
+                 && request.Status == (int)Status.Draft)
+            {
+                course.status = Status.Draft;
+                _courseRepository.Update(course);
+                _logger.LogInformation("Course with ID {CourseId} status changed to Draft.", request.CourseId);
+            }
+            else if (course.status == Status.Draft && request.Status == (int)Status.Archived)
+            {
+                course.status = Status.Archived;
+                _courseRepository.Update(course);
+                _logger.LogInformation("Course with ID {CourseId} cannot be changed directly from Draft to Archived.", request.CourseId);
+            }
+            else
+            {
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "You don't have permission to change the course status in this way."
+                };
+            }
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result < 0)
+            {
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Failed to update status course due to database error"
+                };
+            }
+            else
+                return new CourseReponse
+                {
+                    Success = true,
+                    Message = "Update status course successfully.",
+                    Course = course
+                };
+        }
+
+        public async Task<CourseReponse> ModChangeCourseStatus(ChangeCourseStatusRequest request)
+        {
+            var course = await _courseRepository.GetByIdAsync(request.CourseId);
+            if (course == null || course.IsDeleted)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", request.CourseId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+            if (course.status == Status.Published && request.Status == (int)Status.Draft)
+            {
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Cannot change status from Published to Draft."
+                };
+            }
+            if (request.Status == (int)Status.Archived)
+            {
+                //gọi hàm handle việc khóa (check tg học xong lâu nhất và gọi batch tự động chạy cũng như mail thông báo khóa)
+
+            }
+            else
+            {
+                course.status = (Status)request.Status;
+            }
+            course.UpdatedBy = request.ModeratorId;
+            _courseRepository.Update(course);
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result < 0)
+            {
+                _logger.LogError("Failed to update status for Course ID {CourseId}.", request.CourseId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Failed to update status course due to database error"
+                };
+            }
+            else
+            {
+                _logger.LogInformation("Course with ID {CourseId} status changed to {Status}.", request.CourseId, request.Status);
+
+                return new CourseReponse
+                {
+                    Success = true,
+                    Message = "Update status course successfully.",
+                    Course = course
+                };
+            }
+        }
+
+        public async Task<Response> AutoCheckCourseAsync(AutoCheckCourseRequest request)
+        {
+            Course course = await _courseRepository.GetByIdAsync(request.CourseId);
+            if (course == null || course.IsDeleted)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", request.CourseId);
+                return new Response
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+
+            var modules = await _moduleRepository.GetAllAsync(m => m.courseId == request.CourseId);
+            var filteredModules = modules.Where(m => !m.IsDeleted).ToList();
+
+            //check total module, total lesson có được tính là khóa k phải spam k
+            int totalModules = filteredModules.Count;
+            int totalLessons = 0;
+            foreach (var module in filteredModules)
+            {
+                var lessons = await _lessonRepository.GetAllAsync(l => l.moduleId == module.Id);
+                var filteredLessons = lessons.Where(l => !l.IsDeleted).ToList();
+                totalLessons += filteredLessons.Count;
+            }
+            if (totalModules < 1 || totalLessons < 5)
+            {
+                return new Response
+                {
+                    Success = false,
+                    Message = "Course is not enable to public."
+                };
+            }
+            return new Response
+            {
+                Success = true,
+                Message = "Auto check completed successfully."
             };
         }
     }

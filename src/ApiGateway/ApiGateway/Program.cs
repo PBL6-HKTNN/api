@@ -31,6 +31,15 @@ app.UseCors(policy =>
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/health", () => Results.Ok("Healthy"));
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.Equals("/health", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.StatusCode = 200;
+        await context.Response.WriteAsync("Healthy");
+        return;
+    }
+    await next();
+});
 await app.UseOcelot();
 app.Run();

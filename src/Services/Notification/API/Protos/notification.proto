@@ -8,6 +8,7 @@ package notification;
 service NotificationService {
   rpc SendEmail (SendEmailRequest) returns (SendEmailResponse);
   rpc SendResetPasswordToken (SendEmailRequest) returns (SendEmailResponse);
+  rpc InformRequestResolved (SendEmailResultRequest) returns (SendEmailResponse);
 }
 
 // The request message
@@ -15,6 +16,17 @@ message SendEmailRequest {
   string from = 1;
   string to = 2;
   string token = 3;  
+}
+
+message SendEmailResultRequest{
+  string from = 1;
+  string to = 2;
+  string requestId = 3;
+  string requestType = 4;
+  string description = 5;
+  string status = 6;
+  string response = 7;
+  string courseId = 8;
 }
 
 // The response message

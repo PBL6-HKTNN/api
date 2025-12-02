@@ -105,6 +105,15 @@ namespace Codemy.Identity.Infrastructure.Persistence
                 new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444469"),  Name = "WISHLIST_DELETE", Code = "WISHLIST_DELETE", Description = "Delete wishlist" },
 
                 new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444470"),  Name = "USER_UPDATE", Code = "USER_UPDATE", Description = "Update user information" },
+                new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444583"),  Name = "USER_READ", Code = "USER_READ", Description = "Read user information" },
+                new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444584"),  Name = "USER_CREATE", Code = "USER_CREATE", Description = "Create user" },
+                new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444585"),  Name = "USER_DELETE", Code = "USER_DELETE", Description = "Delete user" },
+
+                new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444586"),  Name = "REQUEST_UPDATE", Code = "REQUEST_UPDATE", Description = "Update request information" },
+                new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444587"),  Name = "REQUEST_READ", Code = "REQUEST_READ", Description = "Read request information" },
+                new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444588"),  Name = "REQUEST_CREATE", Code = "REQUEST_CREATE", Description = "Create request" },
+                new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444589"),  Name = "REQUEST_DELETE", Code = "REQUEST_DELETE", Description = "Delete request" },
+                new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444590"),  Name = "REQUEST_RESOLVE", Code = "REQUEST_RESOLVE", Description = "Resolve request" },
 
                 new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444471"),  Name = "PAYMENT_CREATE", Code = "PAYMENT_CREATE", Description = "Create a new payment" },
                 new Action { Id = Guid.Parse("44444444-4444-4444-4444-444444444472"),  Name = "PAYMENT_READ", Code = "PAYMENT_READ", Description = "Read payment" },
@@ -149,6 +158,16 @@ namespace Codemy.Identity.Infrastructure.Persistence
                 new Permission { Id = Guid.Parse("44444444-4444-4444-4444-444444444502"), permissionName = "Payment Permission" },
 
                 new Permission { Id = Guid.Parse("44444444-4444-4444-4444-444444444503"), permissionName = "Review Permission" },
+                
+                new Permission { Id = Guid.Parse("44444444-4444-4444-4444-444444444577"), permissionName = "Admin User Permission" },
+
+                new Permission { Id = Guid.Parse("44444444-4444-4444-4444-444444444576"), permissionName = "Request Permission" },
+
+                new Permission { Id = Guid.Parse("44444444-4444-4444-4444-444444444578"), permissionName = "Admin Request Permission" },
+
+                new Permission { Id = Guid.Parse("44444444-4444-4444-4444-444444444579"), permissionName = "Moderator Request Permission" },
+                
+                new Permission { Id = Guid.Parse("44444444-4444-4444-4444-444444444580"), permissionName = "User Read Permission" },
 
                 new Permission { Id = Guid.Parse("44444444-4444-4444-4444-444444444572"), permissionName = "Permission Management Permission" },
 
@@ -207,7 +226,26 @@ namespace Codemy.Identity.Infrastructure.Persistence
                 new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444531"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444500"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444468")},
                 new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444532"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444500"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444469")},
 
-                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444533"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444501"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444470")},
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444601"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444501"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444470")},
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444602"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444501"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444583")},
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444603"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444501"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444584")},
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444604"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444501"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444585")},
+
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444605"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444580"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444583")},
+
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444606"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444577"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444584")},
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444607"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444577"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444585")},
+
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444608"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444576"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444586")},
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444609"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444576"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444587")},
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444610"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444576"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444588")},
+
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444611"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444578"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444589")},
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444614"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444578"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444587")},
+
+
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444612"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444579"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444590")},
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444613"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444579"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444587")},
 
                 new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444534"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444502"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444471")},
                 new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444535"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444502"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444472")},
@@ -290,10 +328,22 @@ namespace Codemy.Identity.Infrastructure.Persistence
 
                 new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444168"), RoleId = Role.Admin, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444542")},
 
+                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444169"), RoleId = Role.Admin, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444580")},
+
+                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444171"), RoleId = Role.Admin, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444577")},
+
+                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444172"), RoleId = Role.Admin, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444578")},
 
             };
             modelBuilder.Entity<UserPermissionGroup>().HasData(adminPermissions);
 
+            List<UserPermissionGroup> modPerrmissions = new List<UserPermissionGroup>
+            {
+                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444133"), RoleId = Role.Moderator, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444580")},
+                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444134"), RoleId = Role.Moderator, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444579")},
+
+            };
+            modelBuilder.Entity<UserPermissionGroup>().HasData(modPerrmissions);
 
             List<UserPermissionGroup> insPermissions = new List<UserPermissionGroup>
             {
@@ -308,6 +358,9 @@ namespace Codemy.Identity.Infrastructure.Persistence
                 
                 new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444183"), RoleId = Role.Instructor, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444542")},
 
+                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444184"), RoleId = Role.Instructor, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444580")},
+
+                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444185"), RoleId = Role.Instructor, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444576")},
 
             };
             modelBuilder.Entity<UserPermissionGroup>().HasData(insPermissions);
@@ -316,6 +369,10 @@ namespace Codemy.Identity.Infrastructure.Persistence
             {
 
                 new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444192"), RoleId = Role.Student, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444542")},
+
+                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444193"), RoleId = Role.Student, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444580")},
+
+                new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444194"), RoleId = Role.Student, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444576")},
 
             };
             modelBuilder.Entity<UserPermissionGroup>().HasData(userPermissions);

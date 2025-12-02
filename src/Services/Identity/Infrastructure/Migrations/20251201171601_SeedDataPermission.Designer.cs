@@ -3,6 +3,7 @@ using System;
 using Codemy.Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Codemy.Identity.Infrastructure.Migrations
 {
     [DbContext(typeof(IdentityDbContext))]
-    partial class IdentityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251201171601_SeedDataPermission")]
+    partial class SeedDataPermission
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1392,9 +1395,6 @@ namespace Codemy.Identity.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("CourseId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1970,22 +1970,6 @@ namespace Codemy.Identity.Infrastructure.Migrations
                             IsDeleted = false,
                             PermissionId = new Guid("44444444-4444-4444-4444-444444444578"),
                             RoleId = 0
-                        },
-                        new
-                        {
-                            Id = new Guid("44444444-4444-4444-4444-444444444133"),
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsDeleted = false,
-                            PermissionId = new Guid("44444444-4444-4444-4444-444444444580"),
-                            RoleId = 1
-                        },
-                        new
-                        {
-                            Id = new Guid("44444444-4444-4444-4444-444444444134"),
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsDeleted = false,
-                            PermissionId = new Guid("44444444-4444-4444-4444-444444444579"),
-                            RoleId = 1
                         },
                         new
                         {

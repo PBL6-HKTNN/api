@@ -37,5 +37,16 @@ namespace Codemy.Notification.API.Controllers
             await _emailService.SendResetPasswordToken(content.From, content.To, content.Token);
             return Ok();
         }
+
+        [HttpPost("resolved-request")]
+        public async Task<IActionResult> InformRequestResolved([FromBody] EmailInformRequestContent content)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            await _emailService.InformRequestResolved(content);
+            return Ok();
+        }
     }
 }
