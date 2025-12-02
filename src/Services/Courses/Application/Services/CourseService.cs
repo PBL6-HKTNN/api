@@ -646,7 +646,7 @@ namespace Codemy.Courses.Application.Services
                 return new CourseReponse
                 {
                     Success = false,
-                    Message = "Don't have permission to update this status."
+                    Message = "You don't have permission to change the course status in this way."
                 };
             }
             var result = await _unitOfWork.SaveChangesAsync();

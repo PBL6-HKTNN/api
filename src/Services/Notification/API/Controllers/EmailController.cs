@@ -38,7 +38,7 @@ namespace Codemy.Notification.API.Controllers
             return Ok();
         }
 
-        [HttpPost("resoleved-request")]
+        [HttpPost("resolved-request")]
         public async Task<IActionResult> InformRequestResolved([FromBody] EmailInformRequestContent content)
         {
             if (!ModelState.IsValid)

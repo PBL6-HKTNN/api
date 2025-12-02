@@ -23,10 +23,10 @@ message SendEmailResultRequest{
   string to = 2;
   string requestId = 3;
   string requestType = 4;
-  string Description = 5;
-  string Status = 6;
-  string Response = 7;
-  string CourseId = 8;
+  string description = 5;
+  string status = 6;
+  string response = 7;
+  string courseId = 8;
 }
 
 // The response message

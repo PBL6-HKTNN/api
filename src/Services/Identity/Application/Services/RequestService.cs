@@ -453,8 +453,8 @@ namespace Codemy.Identity.Application.Services
                     emailTo.email,
                     updateRequestDTO.RequestId,
                     requestType.Type.ToString(),
-                    request.Status.ToString(),
                     request.Description,
+                    request.Status.ToString(),
                     request.Response,
                     request.CourseId
                     );
@@ -465,8 +465,8 @@ namespace Codemy.Identity.Application.Services
                     emailTo.email,
                     updateRequestDTO.RequestId,
                     requestType.Type.ToString(),
-                    request.Status.ToString(),
                     request.Description,
+                    request.Status.ToString(),
                     request.Response
                     );
         
