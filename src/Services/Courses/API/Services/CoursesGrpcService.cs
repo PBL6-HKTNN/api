@@ -118,12 +118,13 @@ namespace Codemy.Courses.API.Services
             else return new GetCourseByIdResponse
             {
                 CourseId = course.Course.Id.ToString(),
+                Exists = true
             };
         }
 
-        public override async Task<AutoCheckCourseResponse> AutoCheckCourse(GetCourseByIdRequest request, Grpc.Core.ServerCallContext context)
+        public override async Task<AutoCheckCourseResponse> AutoCheckCourseAsync(GetCourseByIdRequest request, Grpc.Core.ServerCallContext context)
         {
-            var result = await _courseService.AutoCheckCourseAsync(new AutoCheckCourseRequest { CourseId = Guid.Parse(request.CourseId));
+            var result = await _courseService.AutoCheckCourseAsync(new AutoCheckCourseRequest { CourseId = Guid.Parse(request.CourseId) });
             return new AutoCheckCourseResponse
             {
                 Success = result.Success,

@@ -15,6 +15,7 @@ namespace Codemy.Identity.Application
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IPermissionService, PermissionService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IRequestService, RequestService>();
             services.AddScoped<EmailSender>();
 
             // gRPC client - Notification service
@@ -22,7 +23,7 @@ namespace Codemy.Identity.Application
             { 
                 options.Address = new Uri(configuration["GrpcClients:Notification"]);
             });
-
+            
             services.AddGrpcClient<CoursesService.CoursesServiceClient>(options =>
             {
                 options.Address = new Uri(configuration["GrpcClients:Courses"]);

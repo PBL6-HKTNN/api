@@ -8,6 +8,6 @@ namespace Codemy.Identity.Application.DTOs.Request
         public required Guid RequestTypeId { get; set; }
         [Required]
         public required string Description { get; set; }
-        public Guid courseId { get; set; }
+        public Guid? courseId { get; set; }
     }
 }

@@ -8,7 +8,7 @@ package notification;
 service NotificationService {
   rpc SendEmail (SendEmailRequest) returns (SendEmailResponse);
   rpc SendResetPasswordToken (SendEmailRequest) returns (SendEmailResponse);
-  rpc InformRequestResolved (SendEmailResultRequest) returns (SendEmailResponse);)
+  rpc InformRequestResolved (SendEmailResultRequest) returns (SendEmailResponse);
 }
 
 // The request message

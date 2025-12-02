@@ -98,7 +98,7 @@ namespace Codemy.Notification.Application.Services
                 <table style='border-collapse:collapse; font-size:14px;'>
                   <tr>
                     <td style='padding:6px 12px; font-weight:bold;'>Request ID:</td>
-                    <td style='padding:6px 12px;'>{content.requestId}</td>
+                    <td style='padding:6px 12px;'>{content.RequestId}</td>
                   </tr>
                   <tr>
                     <td style='padding:6px 12px; font-weight:bold;'>Request Type:</td>

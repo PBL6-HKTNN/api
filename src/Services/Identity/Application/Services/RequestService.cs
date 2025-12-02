@@ -79,9 +79,12 @@ namespace Codemy.Identity.Application.Services
                     Message = "Invalid request type."
                 };
             }
+            _logger.LogInformation($"Creating request of type: {requestType.Type} for user: {UserId}");
             Request request = new Request();
             if (requestType.Type == RequestTypeEnum.UpgradeToInstructor)
             {
+                _logger.LogInformation("Processing UpgradeToInstructor request.");
+                _logger.LogInformation($"Type:{ RequestTypeEnum.UpgradeToInstructor}");
                 if (userExists.role != Role.Student)
                 {
                     return new RequestResponse
@@ -111,10 +114,12 @@ namespace Codemy.Identity.Application.Services
                 // check user có phải instructor và là instructor của course đó ko
                 if (userExists.role != Role.Instructor || UserId != Guid.Parse(courseResponse.InstructorId))
                 {
+                    _logger.LogInformation($"Role: {userExists.role}, InstructorId: {courseResponse.InstructorId}, UserId: {UserId}");
+                    _logger.LogWarning($"User {UserId} is not instructor of course {createRequestDTO.courseId}. Instructor Id of course: {courseResponse.InstructorId}");
                     return new RequestResponse
                     {
                         Success = false,
-                        Message = "Only Student can request to upgrade to Instructor."
+                        Message = "Current user is not instructor of this course."
                     };
                 }
                 request.CourseId = createRequestDTO.courseId;
@@ -123,7 +128,7 @@ namespace Codemy.Identity.Application.Services
             if (requestType.Type == RequestTypeEnum.PublicCourseRequest)
             {
                 //check thông tin khóa học
-                var resultCheckCourseSpam = await _courseClient.AutoCheckCourse(new GetCourseByIdRequest
+                var resultCheckCourseSpam = _courseClient.AutoCheckCourseAsync(new GetCourseByIdRequest
                 {
                     CourseId = createRequestDTO.courseId.ToString()
                 });
@@ -289,9 +294,9 @@ namespace Codemy.Identity.Application.Services
             };
         }
 
-        public async Task<RequestResponse> ResolveRequestAsync(Guid requestId, ResolveRequestDTO updateRequestDTO)
+        public async Task<RequestResponse> ResolveRequestAsync(ResolveRequestDTO updateRequestDTO)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null || !user.Identity?.IsAuthenticated == true)
             {
@@ -306,7 +311,7 @@ namespace Codemy.Identity.Application.Services
                            ?? user.FindFirst("userId")?.Value;
             var UserId = Guid.Parse(userIdClaim);
 
-            var request = await _requestRepository.GetByIdAsync(requestId);
+            var request = await _requestRepository.GetByIdAsync(updateRequestDTO.RequestId);
             if (request == null || request.IsDeleted)
             {
                 return new RequestResponse
@@ -376,12 +381,37 @@ namespace Codemy.Identity.Application.Services
                         });
                         if (courseResponse.Exists)
                         {
-                            //var updateCourseRequest = new UpdateCourseVisibilityRequest
-                            //{
-                            //    CourseId = request.CourseId.ToString(),
-                            //    IsPublic = true
-                            //};
-                            //await _courseClient.UpdateCourseVisibilityAsync(updateCourseRequest);
+                            //check course is spam or not
+                            var checkSpam = _courseClient.AutoCheckCourseAsync(new GetCourseByIdRequest
+                            {
+                                CourseId = request.CourseId.ToString()
+                            });
+                            if (!checkSpam.Success)
+                            {
+                                return new RequestResponse
+                                {
+                                    Success = false,
+                                    Message = "Course failed spam check, cannot be made public.",
+                                };
+                            }
+                            var updateVisibilityResponse = await _courseClient.ModUpdateStatusAsync(new ModChangeCourseStatusRequest
+                            {
+                                CourseId = request.CourseId.ToString(),
+                                Status = "1", // Assuming 1 represents 'Public' status
+                                ModeratorId = UserId.ToString()
+                            });
+                            _logger.LogInformation($"Course visibility update response: {updateVisibilityResponse.CourseId}");
+                            if (updateVisibilityResponse.CourseId != null)
+                            {
+                                request.Status = updateRequestDTO.Status;
+                                request.UpdatedBy = UserId;
+                                request.Response = updateRequestDTO.Response;
+                            }
+                            else return new RequestResponse
+                            {
+                                Success = false,
+                                Message = "Failed to update course visibility.",
+                            };
                         }
                         else
                         {
@@ -417,10 +447,11 @@ namespace Codemy.Identity.Application.Services
             }
             if (request.CourseId.HasValue)
             {
+                _logger.LogInformation($"Sending email with course ID {request.CourseId}");
                 await _emailSender.InformRequestResolved(
                     user.FindFirst(ClaimTypes.Email)?.Value,
                     emailTo.email,
-                    requestId,
+                    updateRequestDTO.RequestId,
                     requestType.Type.ToString(),
                     request.Status.ToString(),
                     request.Description,
@@ -432,7 +463,7 @@ namespace Codemy.Identity.Application.Services
                 await _emailSender.InformRequestResolved(
                     user.FindFirst(ClaimTypes.Email)?.Value,
                     emailTo.email,
-                    requestId,
+                    updateRequestDTO.RequestId,
                     requestType.Type.ToString(),
                     request.Status.ToString(),
                     request.Description,

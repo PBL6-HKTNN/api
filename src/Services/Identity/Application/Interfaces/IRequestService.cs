@@ -14,7 +14,7 @@ namespace Codemy.Identity.Application.Interfaces
         Task<ListRequestResponse> GetRequestsAsync();
         Task<ListRequestResponse> GetRequestsResolvedByMe();
         Task<ListRequestTypeResponse> GetRequestTypesAsync();
-        Task<RequestResponse> ResolveRequestAsync(Guid requestId, ResolveRequestDTO updateRequestDTO);
+        Task<RequestResponse> ResolveRequestAsync(ResolveRequestDTO updateRequestDTO);
         Task<RequestResponse> UpdateRequestAsync(Guid requestId, UpdateRequestDTO updateRequestDTO);
     }
 

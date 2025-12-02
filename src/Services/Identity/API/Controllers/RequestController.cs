@@ -46,7 +46,7 @@ namespace Codemy.Identity.API.Controllers
             }
         }
 
-        [HttpGet("/my-request")]
+        [HttpGet("my-request")]
         [RequireAction("REQUEST_READ")]
         public async Task<IActionResult> GetMyRequests()
         {
@@ -72,7 +72,7 @@ namespace Codemy.Identity.API.Controllers
             }
         }
 
-        [HttpGet("/request-resolved-by-me")]
+        [HttpGet("request-resolved-by-me")]
         [RequireAction("REQUEST_READ")]
         public async Task<IActionResult> GetRequestsResolvedByMe()
         {
@@ -98,7 +98,7 @@ namespace Codemy.Identity.API.Controllers
             }
         }
 
-        [HttpGet("/request-type")]
+        [HttpGet("request-type")]
         [RequireAction("REQUEST_READ")]
         public async Task<IActionResult> GetRequestTypes()
         {
@@ -255,9 +255,9 @@ namespace Codemy.Identity.API.Controllers
             }
         }
 
-        [HttpPost("resolve/{requestId}")]
+        [HttpPost("resolve")]
         [RequireAction("REQUEST_RESOLVE")]
-        public async Task<IActionResult> ResolveRequest(Guid requestId, [FromBody] ResolveRequestDTO updateRequestDTO)
+        public async Task<IActionResult> ResolveRequest([FromBody] ResolveRequestDTO updateRequestDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -271,12 +271,12 @@ namespace Codemy.Identity.API.Controllers
             }
             try
             {
-                var result = await _requestService.ResolveRequestAsync(requestId, updateRequestDTO);
+                var result = await _requestService.ResolveRequestAsync(updateRequestDTO);
                 if (!result.Success)
                 {
                     return this.BadRequestResponse(
                         result.Message ?? "Failed to resolve request.",
-                        "Request deletion failed due to business logic constraints."
+                        "Request resolve failed due to business logic constraints."
                     );
                 }
                 return this.OkResponse("Request resolved successfully.");

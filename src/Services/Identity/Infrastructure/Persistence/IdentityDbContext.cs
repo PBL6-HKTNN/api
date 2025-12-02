@@ -241,6 +241,8 @@ namespace Codemy.Identity.Infrastructure.Persistence
                 new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444610"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444576"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444588")},
 
                 new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444611"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444578"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444589")},
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444614"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444578"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444587")},
+
 
                 new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444612"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444579"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444590")},
                 new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444613"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444579"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444587")},
@@ -341,6 +343,7 @@ namespace Codemy.Identity.Infrastructure.Persistence
                 new UserPermissionGroup{ Id = Guid.Parse("44444444-4444-4444-4444-444444444134"), RoleId = Role.Moderator, PermissionId =  Guid.Parse("44444444-4444-4444-4444-444444444579")},
 
             };
+            modelBuilder.Entity<UserPermissionGroup>().HasData(modPerrmissions);
 
             List<UserPermissionGroup> insPermissions = new List<UserPermissionGroup>
             {

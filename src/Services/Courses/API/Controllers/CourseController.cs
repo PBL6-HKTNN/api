@@ -24,7 +24,7 @@ namespace Codemy.Courses.API.Controllers
             _logger = logger;
         }
 
-        [HttpPut("/change-status")]
+        [HttpPut("change-status")]
         [RequireAction("COURSE_UPDATE")]
         [SwaggerOperation(Summary = "Change course status", Description = "Update the status of a specific course")]
         public async Task<IActionResult> ChangeCourseStatus([FromBody] ChangeCourseStatusRequest request)
@@ -60,8 +60,8 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
-        [HttpPut("/change-status")]
-        [RequireAction("RESOLVE_REQUEST")]
+        [HttpPut("mod-change-status")]
+        [RequireAction("REQUEST_RESOLVE")]
         [SwaggerOperation(Summary = "Change course status by mod", Description = "Mod update the status of a specific course")]
         public async Task<IActionResult> ModChangeCourseStatus([FromBody] ChangeCourseStatusRequest request)
         {
