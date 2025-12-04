@@ -18,5 +18,6 @@ namespace Codemy.Courses.Domain.Entities
         public string language { get; set; }
         public int numberOfReviews { get; set; }
         public decimal averageRating { get; set; }
+        //public bool isRequestedBanned { get; set; }
     }
 }

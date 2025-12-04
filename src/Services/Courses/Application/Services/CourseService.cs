@@ -93,7 +93,8 @@ namespace Codemy.Courses.Application.Services
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 CreatedBy = request.instructorId,
-                UpdatedBy = request.instructorId
+                UpdatedBy = request.instructorId,
+                //isRequestedBanned = false,
             };
             await _courseRepository.AddAsync(course);
             var result = await _unitOfWork.SaveChangesAsync();

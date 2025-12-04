@@ -4,20 +4,46 @@ using Codemy.Identity.Application.DTOs.User;
 using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Domain.Entities;
 using Codemy.Identity.Domain.Enums;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using Action = Codemy.Identity.Domain.Entities.Action;
 
 namespace Codemy.Identity.Application.Services
 {
     public class UserService : IUserService
     {
         private readonly IRepository<User> _userRepository;
+        private readonly IRepository<UserPermissionGroup> _userPermissionGroupRepository;
+        private readonly IRepository<Permission> _permissionRepository;
+        private readonly IRepository<PermissionGroup> _permissionGroupRepository;
+        private readonly IRepository<Action> _actionRepository;
+
+        private readonly ILogger<UserService> _logger;
         private readonly IFileStorageClient _fileStorageClient;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UserService(IRepository<User> userRepository, IFileStorageClient fileStorageClient, IUnitOfWork unitOfWork)
+        public UserService(
+            IRepository<User> userRepository,
+            IRepository<UserPermissionGroup> userPermissionGroupRepository,
+            IRepository<Permission> permissionRepository,
+            IRepository<PermissionGroup> permissionGroupRepository,
+            IRepository<Action> actionRepository,
+            ILogger<UserService> logger,
+            IFileStorageClient fileStorageClient,
+            IHttpContextAccessor httpContextAccessor,
+            IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
+            _userPermissionGroupRepository = userPermissionGroupRepository;
+            _permissionRepository = permissionRepository;
+            _permissionGroupRepository = permissionGroupRepository;
+            _actionRepository = actionRepository;
+            _logger = logger;
             _fileStorageClient = fileStorageClient;
+            _httpContextAccessor = httpContextAccessor;
             _unitOfWork = unitOfWork;
         }
 
@@ -116,10 +142,10 @@ namespace Codemy.Identity.Application.Services
 
             query = sortBy switch
             {
-                "name"   => query.OrderBy(u => u.name),
-                "email"  => query.OrderBy(u => u.email),
+                "name" => query.OrderBy(u => u.name),
+                "email" => query.OrderBy(u => u.email),
                 "rating" => query.OrderByDescending(u => u.rating),
-                _        => query.OrderByDescending(u => u.CreatedAt)
+                _ => query.OrderByDescending(u => u.CreatedAt)
             };
 
             int skip = (page - 1) * pageSize;
@@ -144,6 +170,169 @@ namespace Codemy.Identity.Application.Services
             });
 
             return result;
+        }
+
+        public async Task<UserResponse> EditInformationUser(EditInformationRequest request)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new UserResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+
+            var userExists = await _userRepository.GetByIdAsync(UserId);
+            if (userExists == null || userExists.IsDeleted)
+            {
+                return new UserResponse
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+
+            if (request.name == null && request.bio == null)
+            {
+                return new UserResponse
+                {
+                    Success = false,
+                    Message = "No information provided to update."
+                };
+            }
+
+            if (request.name != null)
+            {
+                userExists.name = request.name;
+            }
+
+            if (request.bio != null)
+            {
+                userExists.bio = request.bio;
+            }
+
+            _userRepository.Update(userExists);
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result > 0)
+            {
+                return new UserResponse
+                {
+                    Success = true,
+                    Message = "User information updated successfully.",
+                    User = userExists
+                };
+            }
+            else
+            {
+                return new UserResponse
+                {
+                    Success = false,
+                    Message = "Failed to update user information."
+                };
+            }
+        }
+
+        public async Task<UserDTOResponse> GetUserInfoByIdAsync(Guid id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null || user.IsDeleted)
+            {
+                return new UserDTOResponse
+                {
+                    Success = false,
+                    Message = "User not found."
+                };
+            }
+
+            var userPermissions = await _userPermissionGroupRepository
+                .FindAsync(p => p.UserId == user.Id);
+
+            // 2. Get permissions from role
+            var rolePermissions = await _userPermissionGroupRepository
+                .FindAsync(p => p.RoleId == user.role);
+
+            // 3. Merge + remove duplicates by PermissionId
+            var allPermissionGroups = userPermissions
+                .Concat(rolePermissions)
+                .GroupBy(p => p.PermissionId)
+                .Select(g => g.First())
+                .ToList();
+            var permissions = new List<Permission>();
+            foreach (var upg in allPermissionGroups)
+            {
+                _logger.LogInformation("Fetching permission with ID: {PermissionId} for user with ID: {UserId}", upg.PermissionId, id);
+                var permission = await _permissionRepository.GetByIdAsync(upg.PermissionId);
+                if (permission != null && !permission.IsDeleted)
+                {
+                    permissions.Add(permission);
+                }
+            }
+            return new UserDTOResponse
+            {
+                Success = true,
+                User = user,
+                Permissions = permissions
+            };
+        }
+
+        public async Task<ListActionResponse> GetListActionByUserIdAsync(Guid id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null || user.IsDeleted)
+            {
+                return new ListActionResponse
+                {
+                    Success = false,
+                    Message = "User not found."
+                };
+            }
+
+            // 1. Get permissions from user
+            var userPermissions = await _userPermissionGroupRepository
+                .FindAsync(p => p.UserId == user.Id);
+
+            // 2. Get permissions from role
+            var rolePermissions = await _userPermissionGroupRepository
+                .FindAsync(p => p.RoleId == user.role);
+
+            // 3. Merge + remove duplicates by PermissionId
+            var allPermissionGroups = userPermissions
+                .Concat(rolePermissions)
+                .GroupBy(p => p.PermissionId)
+                .Select(g => g.First())
+                .ToList();
+
+            List<Guid> permissionIds = allPermissionGroups.Where(g => !g.IsDeleted).Select(g => g.PermissionId).ToList();
+
+            List<Action> actions = new List<Action>();
+
+            foreach (var permission in permissionIds)
+            {
+                var permissions = await _permissionGroupRepository.FindAsync(p => p.permissionId == permission);
+                foreach (var permissionItem in permissions)
+                {
+                    Guid actionId = permissionItem.actionId;
+                    Action action = await _actionRepository.GetByIdAsync(actionId);
+                    if (action != null)
+                    {
+                        actions.Add(action);
+                    }
+                }
+            }
+
+            return new ListActionResponse
+            {
+                Success = true,
+                Actions = actions.DistinctBy(a => a.Id).ToList()
+            };
         }
     }
 }
