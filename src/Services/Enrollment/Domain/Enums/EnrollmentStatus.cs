@@ -2,7 +2,6 @@
 
 namespace Codemy.Enrollment.Domain.Enums
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum EnrollmentStatus
     {
         Active,

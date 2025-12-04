@@ -2,7 +2,6 @@
 
 namespace Codemy.Courses.Domain.Enums
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Status
     {
         Draft,
