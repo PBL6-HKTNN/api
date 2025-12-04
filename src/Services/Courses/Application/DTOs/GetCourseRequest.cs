@@ -11,7 +11,7 @@ public class GetCoursesRequest
     [RegularExpression("^(Beginner|Intermediate|Advanced)$", ErrorMessage = "Level must be one of: Beginner, Intermediate, Advanced.")]
     public string? Level { get; set; }
 
-    [RegularExpression("^(name|date|rating)$", ErrorMessage = "SortBy must be one of: name, date, rating.")]
+    [RegularExpression("^(price|rating)$", ErrorMessage = "SortBy must be one of: price, rating.")]
     public string? SortBy { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Page must be greater than 0.")]
