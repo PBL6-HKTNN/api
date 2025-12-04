@@ -32,6 +32,7 @@ namespace Codemy.Courses.API.Services
                 Description = course.Course.description,
                 Thumbnail = course.Course.thumbnail,
                 Price = course.Course.price.ToString(),
+                Duration = course.Course.duration.ToString()
             };
         }
 

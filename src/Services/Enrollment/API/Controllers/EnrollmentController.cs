@@ -42,6 +42,27 @@ namespace Codemy.Enrollment.API.Controllers
             }
         }
 
+        [HttpPost("get-last-date-Course/{courseId}")]
+        [EndpointDescription("Check last date of course")]
+        [RequireAction("ENROLLMENT_READ")]
+        public async Task<IActionResult> CheckLastDateCourse(Guid courseId)
+        {
+            try
+            {
+                var result = await _enrollmentService.CheckLastDateCourseAsync(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to get last date of course.");
+                }
+                return this.OkResponse(result.LastDate);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting last date of course by course ID.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
         [HttpPost("updateProgress")]
         [RequireAction("ENROLLMENT_UPDATE")]
         public async Task<IActionResult> UpdateProgress(UpdateProgressRequest request)

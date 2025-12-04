@@ -7,7 +7,6 @@ package enrollments;
 service EnrollmentService {
   rpc CreateEnrollment (CreateEnrollmentRequest) returns (CreateEnrollmentResponse);
   rpc GetCourseWithGrpc (GetCourseWithGrpcRequest) returns (GetCourseWithGrpcResponse);
-
   rpc CheckEnrollments (CheckRequest) returns (CheckResponse);
 
 }

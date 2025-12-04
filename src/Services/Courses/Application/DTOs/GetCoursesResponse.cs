@@ -17,5 +17,6 @@ namespace Codemy.Courses.Application.DTOs
         public int numberOfReviews { get; set; }
         public decimal averageRating { get; set; }
         public bool IsEnrolled { get; set; }
+        public bool isRequestedBanned { get; set; }
     }
 }

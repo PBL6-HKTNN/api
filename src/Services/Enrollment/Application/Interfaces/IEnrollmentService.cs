@@ -20,6 +20,14 @@ namespace Codemy.Enrollment.Application.Interfaces
         Task<EnrollmentResponse> UpdateProgressAsync(UpdateProgressRequest request);
         Task<EnrollmentResponse> UpdateCurrentView(UpdateCurrentViewRequest request);
         Task<LessonCompletedResponse> GetLessonsCompletedByEnrollmentIdAsync(Guid enrollmentId);
+        Task<LastDateResponse> CheckLastDateCourseAsync(Guid courseId);
+    }
+
+    public class LastDateResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public DateTime? LastDate { get; set; }
     }
 
     public class EnrollmentResponse

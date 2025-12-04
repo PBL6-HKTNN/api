@@ -65,7 +65,11 @@ namespace Codemy.Enrollment.Application.Services
                     Message = "User is already enrolled in this course."
                 };
             }
+            //expected end date = enrollment date + course duration (in days)
+            TimeSpan duration = TimeSpan.Parse(courseExists.Duration);
 
+            int days = duration.Hours + 10;
+            DateTime expectedEndDate = DateTime.UtcNow.AddDays(days);
             Enrollments enrollments = new Enrollments
             {
                 Id = Guid.NewGuid(),
@@ -75,7 +79,8 @@ namespace Codemy.Enrollment.Application.Services
                 enrollmentStatus = EnrollmentStatus.Active,
                 enrollmentDate = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = UserId
+                CreatedBy = UserId,
+                expectedEndDate = expectedEndDate, 
             };
             await _enrollmentRepository.AddAsync(enrollments);
             var result = await _unitOfWork.SaveChangesAsync();
@@ -719,6 +724,28 @@ namespace Codemy.Enrollment.Application.Services
             {
                 Success = true,
                 CompletedLessonIds = lessonsCompleted.CompletedLessons.Select(id => Guid.Parse(id)).ToList()
+            };
+        }
+
+        public async Task<LastDateResponse> CheckLastDateCourseAsync(Guid courseId)
+        {
+            var enrollments = await _enrollmentRepository.FindAsync(e => e.courseId == courseId && !e.IsDeleted);
+            if (enrollments.Count == 0)
+            {
+                return new LastDateResponse
+                {
+                    Success = false,
+                    Message = "No enrollments found for the specified course.",
+                    LastDate = null
+                };
+            }
+            var lastEnrollment = enrollments.OrderByDescending(e => e.enrollmentDate).First();
+
+            return new LastDateResponse
+            {
+                Success = true,
+                Message = "Last enrollment date retrieved successfully.",
+                LastDate = lastEnrollment.enrollmentDate
             };
         }
     }
