@@ -321,7 +321,10 @@ namespace Codemy.Identity.Application.Services
                 {
                     Guid actionId = permissionItem.actionId;
                     Action action = await _actionRepository.GetByIdAsync(actionId);
-                    actions.Add(action);
+                    if (action != null)
+                    {
+                        actions.Add(action);
+                    }
                 }
             }
 
