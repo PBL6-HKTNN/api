@@ -625,6 +625,8 @@ namespace Codemy.Enrollment.Application.Services
                 };
             }
             enrollment.currentView = request.CurrentLessonId;
+            if(request.WatchedSeconds != null)
+                enrollment.watchedSeconds = request.WatchedSeconds;
             _enrollmentRepository.Update(enrollment);
             var result = await _unitOfWork.SaveChangesAsync();
             if (result <= 0)
