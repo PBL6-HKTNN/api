@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Codemy.BuildingBlocks.Core.Models
 {
@@ -13,27 +14,47 @@ namespace Codemy.BuildingBlocks.Core.Models
 
         public async Task Invoke(HttpContext context)
         {
-            var endpoint = context.GetEndpoint();
-            var actionAttr = endpoint?.Metadata.GetMetadata<RequireActionAttribute>();
-
-            if (actionAttr != null)
+            try
             {
-                var userActions = context.User.Claims
-                    .Where(c => c.Type == "permissions")
-                    .SelectMany(c => c.Value.Split(','))
-                    .Select(x => x.Trim())
-                    .ToList();
+                var endpoint = context.GetEndpoint();
+                var actionAttr = endpoint?.Metadata.GetMetadata<RequireActionAttribute>();
 
-                if (!userActions.Contains(actionAttr.ActionCode))
+                if (actionAttr != null)
                 {
-                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    await context.Response.WriteAsync("You do not have permission.");
-                    return;
-                }
-            }
+                    var userActions = context.User.Claims
+                        .Where(c => c.Type == "permissions")
+                        .SelectMany(c => c.Value.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                        .Select(x => x.Trim())
+                        .ToList();
 
-            await _next(context);
+                    if (!userActions.Contains(actionAttr.ActionCode))
+                    {
+
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        await context.Response.WriteAsJsonAsync(new
+                        {
+                            status = context.Response.StatusCode,
+                            isSuccess = false,
+                            error = $"You do not have permission: {actionAttr.ActionCode}"
+                        });
+
+                        return;
+                    }
+                }
+
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    status = context.Response.StatusCode,
+                    error = "Internal server error occurred during permission validation.",
+                    isSuccess = false,
+                });
+            }
         }
     }
-
 }

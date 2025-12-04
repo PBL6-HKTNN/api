@@ -97,7 +97,6 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("get/{courseId}")]
-        [RequireAction("COURSE_READ")]
         [SwaggerOperation(Summary = "Get course by ID", Description = "Retrieve a specific course by its ID")]
         public async Task<IActionResult> GetCourseById(Guid courseId)
         {
@@ -238,7 +237,6 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("getModules/{courseId}")]
-        [RequireAction("COURSE_READ")]
         [SwaggerOperation(Summary = "Get modules by course ID", Description = "Retrieve a list of modules for a specific course")]
         public async Task<IActionResult> GetModuleByCourseIdAsync(Guid courseId)
         {
@@ -269,7 +267,6 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("getLessons/{courseId}")]
-        [RequireAction("COURSE_READ")]
         public async Task<IActionResult> GetLessonByCourseIdAsync(Guid courseId)
         {
             if (courseId == Guid.Empty)
