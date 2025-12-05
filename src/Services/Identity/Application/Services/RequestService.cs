@@ -1,5 +1,6 @@
 ﻿using Codemy.BuildingBlocks.Core;
 using Codemy.CoursesProto;
+using Codemy.EnrollmentsProto;
 using Codemy.Identity.Application.DTOs.Request;
 using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Domain.Entities;
@@ -20,6 +21,7 @@ namespace Codemy.Identity.Application.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUnitOfWork _unitOfWork;
         private readonly CoursesService.CoursesServiceClient _courseClient;
+        private readonly EnrollmentService.EnrollmentServiceClient _enrollmentClient;
         private readonly EmailSender _emailSender;
 
         public RequestService(
@@ -424,7 +426,33 @@ namespace Codemy.Identity.Application.Services
                         break;
                     case RequestTypeEnum.HideCourseRequest:
                         //check course exists
-                        //check enrollment -> email thông báo -> set course to private
+                        var courseResp = await _courseClient.GetCourseByIdAsync(new GetCourseByIdRequest
+                        {
+                            CourseId = request.CourseId.ToString()
+                        });
+                        if (courseResp.Exists)
+                        {
+                            //check enrollment 
+                            var lastDateResp = await _enrollmentClient.GetLastDateCourseAsync(new GetLastDateCoureRequest
+                            {
+                                CourseId = request.CourseId.ToString()
+                            });
+
+                            //email thông báo
+                            // bật cờ isRequestedBanned
+                            //-> set course to private
+                        }
+                        else
+                        {
+                            return new RequestResponse
+                            {
+                                Success = false,
+                                Message = "Course not found for visibility update.",
+                            };
+                        }
+
+
+                        
                         break;
                     case RequestTypeEnum.ReportCourseRequest:
                         // Handle reported course logic if needed

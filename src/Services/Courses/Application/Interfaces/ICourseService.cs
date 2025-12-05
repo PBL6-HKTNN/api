@@ -8,6 +8,7 @@ namespace Codemy.Courses.Application.Interfaces
         Task<CourseReponse> CreateCourseAsync(CreateCourseRequest request);
         Task<CourseReponse> DeleteCourseAsync(Guid courseId);
         Task<CourseReponse> GetCourseByIdAsync(Guid courseId);
+        Task<CourseReponse> GetCourseByIdGrpcAsync(Guid courseId);
         Task<ResourceDtoResponse> GetLessonByCourseIdAsync(Guid courseId);
         Task<ModuleListResponse> GetModuleByCourseIdAsync(Guid courseId);
         Task<CourseReponse> UpdateCourseAsync(Guid courseId, CreateCourseRequest request);

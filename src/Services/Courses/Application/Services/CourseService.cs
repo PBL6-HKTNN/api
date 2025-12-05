@@ -260,7 +260,7 @@ namespace Codemy.Courses.Application.Services
                 {
                     _logger.LogError("Instructor with ID {UserId} is not authorized to access course ID {CourseId}, by {Instructor ID}", userId, courseId, course.instructorId);
                     
-                    if (role == "Instructor" && userId != course.instructorId && course.status != Status.Published)
+                    if (role == "Instructor" && userId != course.instructorId && (course.status != Status.Published || course.isRequestedBanned))
                     {
                         return new CourseReponse
                         {
@@ -339,64 +339,6 @@ namespace Codemy.Courses.Application.Services
                 };
             }
 
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null || !user.Identity?.IsAuthenticated == true)
-            {
-                if (course.isRequestedBanned)
-                {
-                    _logger.LogError("Course with ID {CourseId} is banned.", courseId);
-                    return new ResourceDtoResponse
-                    {
-                        Success = false,
-                        Message = "Course is banned."
-                    };
-                }
-            }
-
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                           ?? user.FindFirst("sub")?.Value
-                           ?? user.FindFirst("userId")?.Value;
-            var userId = Guid.Parse(userIdClaim);
-
-            var role = user.FindFirst(ClaimTypes.Role)?.Value
-                       ?? user.FindFirst("role")?.Value;
-
-            if (role == "2" && userId != course.instructorId && course.status != Status.Published)
-            {
-                _logger.LogError("Instructor with ID {UserId} is not authorized to access course ID {CourseId}.", userId, courseId);
-                return new ResourceDtoResponse
-                {
-                    Success = false,
-                    Message = "Instructor is not authorized to access this course."
-                };
-            }
-
-            if (role =="3")
-            {
-                if (course.status != Status.Published)
-                {
-                    return new ResourceDtoResponse
-                    {
-                        Success = false,
-                        Message = "Course is not published."
-                    };
-                }
-
-                var response = _enrollmentService.GetCourseWithGrpc(new GetCourseWithGrpcRequest
-                {
-                    UserId = userId.ToString(),
-                    CourseId = course.Id.ToString()
-                });
-                if (!response.Success && course.isRequestedBanned)
-                {
-                    _logger.LogError("Course with ID {CourseId} is banned.", courseId);
-                    return new ResourceDtoResponse
-                    {
-                        Success = false,
-                        Message = "Course is banned."
-                    };
-                }
-            }
             var modules = await _moduleRepository.GetAllAsync(m => m.courseId == courseId);
             var filteredModules = modules.Where(m => !m.IsDeleted);
             var moduleSort = filteredModules.OrderBy(m => m.order);
@@ -421,6 +363,84 @@ namespace Codemy.Courses.Application.Services
                 };
                 courseDto.module.Add(moduleDto);
             }
+
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                if (course.isRequestedBanned)
+                {
+                    _logger.LogError("Course with ID {CourseId} is banned.", courseId);
+                    return new ResourceDtoResponse
+                    {
+                        Success = false,
+                        Message = "Course is banned."
+                    };
+                }
+            }
+            else
+            {
+                var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                               ?? user.FindFirst("sub")?.Value
+                               ?? user.FindFirst("userId")?.Value;
+
+                var userId = Guid.Parse(userIdClaim);
+
+                var role = user.FindFirst(ClaimTypes.Role)?.Value
+                           ?? user.FindFirst("role")?.Value;
+                _logger.LogInformation("User with ID {UserId} and role {Role} is accessing course ID {CourseId}.", userId, role, courseId);
+                if (role != "Student")
+                {
+                    _logger.LogError("Instructor with ID {UserId} is not authorized to access course ID {CourseId}, by {Instructor ID}", userId, courseId, course.instructorId);
+
+                    if (role == "Instructor" && userId != course.instructorId && (course.status != Status.Published || course.isRequestedBanned))
+                    {
+                        return new ResourceDtoResponse
+                        {
+                            Success = false,
+                            Message = "Instructor is not authorized to access this course."
+                        };
+                    }
+                    return new ResourceDtoResponse
+                    {
+                        Success = true,
+                        Course = courseDto
+                    };
+                }
+
+                if (course.status != Status.Published)
+                {
+                    return new ResourceDtoResponse
+                    {
+                        Success = false,
+                        Message = "Course is not published."
+                    };
+                }
+
+                var response = _enrollmentService.GetCourseWithGrpc(new GetCourseWithGrpcRequest
+                {
+                    UserId = userId.ToString(),
+                    CourseId = course.Id.ToString()
+                });
+                if (!response.Success && course.isRequestedBanned)
+                {
+                    _logger.LogError("Course with ID {CourseId} is banned.", courseId);
+                    return new ResourceDtoResponse
+                    {
+                        Success = false,
+                        Message = "Course is banned."
+                    };
+                }
+            }
+            if (course.status != Status.Published)
+            {
+                return new ResourceDtoResponse
+                {
+                    Success = false,
+                    Message = "Course is not published."
+                };
+            }
+
+            
             return new ResourceDtoResponse
             {
                 Success = true,
@@ -452,6 +472,10 @@ namespace Codemy.Courses.Application.Services
                 };
             }
 
+            
+            var modules = await _moduleRepository.GetAllAsync(m => m.courseId == courseId);
+            var filteredModules = modules.Where(m => !m.IsDeleted);
+
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null || !user.Identity?.IsAuthenticated == true)
             {
@@ -465,25 +489,37 @@ namespace Codemy.Courses.Application.Services
                     };
                 }
             }
-
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                           ?? user.FindFirst("sub")?.Value
-                           ?? user.FindFirst("userId")?.Value;
-
-            var userId = Guid.Parse(userIdClaim);
-            var role = user.FindFirst(ClaimTypes.Role)?.Value
-                       ?? user.FindFirst("role")?.Value;
-            if (role == "2" && userId != course.instructorId && course.status != Status.Published)
+            else
             {
-                _logger.LogError("Instructor with ID {UserId} is not authorized to access course ID {CourseId}.", userId, courseId);
-                return new ModuleListResponse
+                var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                               ?? user.FindFirst("sub")?.Value
+                               ?? user.FindFirst("userId")?.Value;
+
+                var userId = Guid.Parse(userIdClaim);
+
+                var role = user.FindFirst(ClaimTypes.Role)?.Value
+                           ?? user.FindFirst("role")?.Value;
+                _logger.LogInformation("User with ID {UserId} and role {Role} is accessing course ID {CourseId}.", userId, role, courseId);
+                if (role != "Student")
                 {
-                    Success = false,
-                    Message = "Instructor is not authorized to access this course."
-                };
-            }
-            if (role == "3")
-            {
+                    _logger.LogError("Instructor with ID {UserId} is not authorized to access course ID {CourseId}, by {Instructor ID}", userId, courseId, course.instructorId);
+
+                    if (role == "Instructor" && userId != course.instructorId && (course.status != Status.Published || course.isRequestedBanned))
+                    {
+                        return new ModuleListResponse
+                        {
+                            Success = false,
+                            Message = "Instructor is not authorized to access this course."
+                        };
+                    }
+                    return new ModuleListResponse
+                    {
+                        Success = true,
+                        Message = "Course retrieved successfully.",
+                        Modules = filteredModules.ToList()
+                    };
+                }
+
                 if (course.status != Status.Published)
                 {
                     return new ModuleListResponse
@@ -508,10 +544,7 @@ namespace Codemy.Courses.Application.Services
                     };
                 }
             }
-
-            var modules = await _moduleRepository.GetAllAsync(m => m.courseId == courseId);
-            var filteredModules = modules.Where(m => !m.IsDeleted);
-            if (course.status != Status.Published && userId != course.instructorId)
+            if (course.status != Status.Published)
             {
                 return new ModuleListResponse
                 {
@@ -983,6 +1016,36 @@ namespace Codemy.Courses.Application.Services
             {
                 Success = true,
                 Message = "Auto check completed successfully."
+            };
+        }
+
+        public async Task<CourseReponse> GetCourseByIdGrpcAsync(Guid courseId)
+        {
+            var courses = await _courseRepository.FindAsync(c => c.Id == courseId && !c.IsDeleted);
+            var course = courses.FirstOrDefault();
+            if (course == null)
+            {
+                _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Course does not exist."
+                };
+            }
+            if (course.IsDeleted)
+            {
+                _logger.LogError("Course with ID {CourseId} is deleted.", courseId);
+                return new CourseReponse
+                {
+                    Success = false,
+                    Message = "Course is deleted."
+                };
+            }
+            return new CourseReponse
+            {
+                Success = true,
+                Message = "Course retrieved successfully.",
+                Course = course
             };
         }
     }

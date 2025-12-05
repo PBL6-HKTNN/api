@@ -42,7 +42,7 @@ namespace Codemy.Enrollment.API.Controllers
             }
         }
 
-        [HttpPost("get-last-date-Course/{courseId}")]
+        [HttpGet("get-last-date-Course/{courseId}")]
         [EndpointDescription("Check last date of course")]
         [RequireAction("ENROLLMENT_READ")]
         public async Task<IActionResult> CheckLastDateCourse(Guid courseId)

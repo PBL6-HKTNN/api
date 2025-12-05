@@ -65,11 +65,14 @@ namespace Codemy.Enrollment.Application.Services
                     Message = "User is already enrolled in this course."
                 };
             }
-            //expected end date = enrollment date + course duration (in days)
+
+            // Parse timespan
             TimeSpan duration = TimeSpan.Parse(courseExists.Duration);
 
-            int days = duration.Hours + 10;
-            DateTime expectedEndDate = DateTime.UtcNow.AddDays(days);
+            // ExpectedEndDate = enrollmentDate + duration + 10 days
+            DateTime enrollmentDate = DateTime.UtcNow;
+            DateTime expectedEndDate = enrollmentDate.Add(duration).AddDays(10);
+            _logger.LogInformation("Calculated expected end date: {ExpectedEndDate}", expectedEndDate);
             Enrollments enrollments = new Enrollments
             {
                 Id = Guid.NewGuid(),
@@ -154,6 +157,13 @@ namespace Codemy.Enrollment.Application.Services
                 };
             }
 
+            TimeSpan duration = TimeSpan.Parse(courseExists.Duration);
+
+            // ExpectedEndDate = enrollmentDate + duration + 10 days
+            DateTime enrollmentDate = DateTime.UtcNow;
+            DateTime expectedEndDate = enrollmentDate.Add(duration).AddDays(10);
+            _logger.LogInformation("Calculated expected end date: {ExpectedEndDate}", expectedEndDate);
+
             Enrollments enrollments = new Enrollments
             {
                 Id = Guid.NewGuid(),
@@ -162,6 +172,7 @@ namespace Codemy.Enrollment.Application.Services
                 progressStatus = ProgressStatus.NotStarted,
                 enrollmentStatus = EnrollmentStatus.Active,
                 enrollmentDate = DateTime.UtcNow,
+                expectedEndDate = expectedEndDate,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = UserId
             };

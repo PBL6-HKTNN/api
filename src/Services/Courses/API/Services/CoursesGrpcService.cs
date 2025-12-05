@@ -15,7 +15,7 @@ namespace Codemy.Courses.API.Services
 
         public override async Task<GetCourseByIdResponse> GetCourseById(GetCourseByIdRequest request, Grpc.Core.ServerCallContext context)
         {
-            var course = await _courseService.GetCourseByIdAsync(Guid.Parse(request.CourseId));
+            var course = await _courseService.GetCourseByIdGrpcAsync(Guid.Parse(request.CourseId));
             if (!course.Success)
             {
                 return new GetCourseByIdResponse

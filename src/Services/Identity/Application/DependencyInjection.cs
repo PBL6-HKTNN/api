@@ -1,4 +1,5 @@
 ﻿using Codemy.CoursesProto;
+using Codemy.EnrollmentsProto;
 using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Application.Services;
 using Codemy.NotificationProto;
@@ -27,6 +28,11 @@ namespace Codemy.Identity.Application
             services.AddGrpcClient<CoursesService.CoursesServiceClient>(options =>
             {
                 options.Address = new Uri(configuration["GrpcClients:Courses"]);
+            });
+
+            services.AddGrpcClient<EnrollmentService.EnrollmentServiceClient>(options =>
+            {
+                options.Address = new Uri(configuration["GrpcClients:Enrollments"]);
             });
 
             return services;
