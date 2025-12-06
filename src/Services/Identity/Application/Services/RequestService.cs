@@ -245,6 +245,39 @@ namespace Codemy.Identity.Application.Services
             };
         }
 
+        public async Task<AllDetailResponse> GetAllDetailRequestsGetRequestsAsync()
+        {
+            var upgradeRequestType = await _requestTypeRepository.GetAllAsync(r => r.Type == RequestTypeEnum.UpgradeToInstructor && !r.IsDeleted);
+            var publicCourseRequestType = await _requestTypeRepository.GetAllAsync(r => r.Type == RequestTypeEnum.PublicCourseRequest && !r.IsDeleted);
+            var hideCourseRequestType = await _requestTypeRepository.GetAllAsync(r => r.Type == RequestTypeEnum.HideCourseRequest && !r.IsDeleted);
+            var reportCourseRequestType = await _requestTypeRepository.GetAllAsync(r => r.Type == RequestTypeEnum.ReportCourseRequest && !r.IsDeleted);
+            var reportReviewRequestType = await _requestTypeRepository.GetAllAsync(r => r.Type == RequestTypeEnum.ReportReviewRequest && !r.IsDeleted);
+
+            var upgradeRequest = await _requestRepository.GetAllAsync(r => r.RequestTypeId == upgradeRequestType.First().Id && !r.IsDeleted);   
+            var publicCourserequest = await _requestRepository.GetAllAsync(r => r.RequestTypeId == publicCourseRequestType.First().Id && !r.IsDeleted);
+            var hideCourserequest = await _requestRepository.GetAllAsync(r => r.RequestTypeId == hideCourseRequestType.First().Id && !r.IsDeleted);
+            var reportCourserequest = await _requestRepository.GetAllAsync(r => r.RequestTypeId == reportCourseRequestType.First().Id && !r.IsDeleted);
+            var reportReviewrequest = await _requestRepository.GetAllAsync(r => r.RequestTypeId == reportReviewRequestType.First().Id && !r.IsDeleted);
+
+            int totalPendingRequest = (await _requestRepository.GetAllAsync(r => r.Status == RequestStatus.Reviewing && !r.IsDeleted)).Count();
+            int totalResolvedRequest = (await _requestRepository.GetAllAsync(r => (r.Status == RequestStatus.Approved || r.Status == RequestStatus.Rejected) && !r.IsDeleted)).Count();
+            return new AllDetailResponse
+            {
+                Success = true,
+                Message = "All detailed requests retrieved successfully.",
+                data = new AllDetailDto
+                {
+                    totalPendingRequest = totalPendingRequest,
+                    totalResolvedRequest = totalResolvedRequest,
+                    upgradeRequest = upgradeRequest.ToList(),
+                    publicCourserequest = publicCourserequest.ToList(),
+                    hideCourserequest = hideCourserequest.ToList(),
+                    reportCourserequest = reportCourserequest.ToList(),
+                    reportReviewrequest = reportReviewrequest.ToList()
+                }
+            };
+        }
+
         public async Task<ListRequestResponse> GetMyRequestsAsync()
         {
             var user = _httpContextAccessor.HttpContext?.User;
