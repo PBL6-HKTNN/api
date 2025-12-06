@@ -46,6 +46,33 @@ namespace Codemy.Identity.API.Controllers
             }
         }
 
+        [HttpGet("get-all")]
+        [EndpointDescription("Retrieves all requests with detailed information.")]
+        [RequireAction("REQUEST_READ")]
+        public async Task<IActionResult> GetAllDetailRequests()
+        {
+            try
+            {
+                var result = await _requestService.GetAllDetailRequestsAsync();
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to retrieve requests.",
+                        "Request retrieval failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.Data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving requests.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during request retrieval",
+                    ex.Message
+                );
+            }
+        }
+
         [HttpGet("my-request")]
         [RequireAction("REQUEST_READ")]
         public async Task<IActionResult> GetMyRequests()
