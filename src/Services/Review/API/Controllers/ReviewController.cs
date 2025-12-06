@@ -112,5 +112,26 @@ namespace Codemy.Review.API.Controllers
                 return this.NotFoundResponse(ex.Message);
             }
         }
+
+        [HttpPost("course/{courseId}/reviews/{reviewId}/reply")]
+        [Authorize]
+        [SwaggerOperation(Summary = "Reply to a review", Description = "Allows an instructor to reply to a specific review")]
+        [RequireAction("REVIEW_REPLY")]
+        public async Task<IActionResult> ReplyReview(Guid courseId, Guid reviewId, [FromBody] ReplyReviewRequest request)
+        {
+            try
+            {
+                var instructorId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var result = await _service.ReplyToReviewAsync(courseId, reviewId, instructorId, request.Reply);
+                if (!result.success)
+                    return this.BadRequest(result);
+                return this.OkResponse(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return this.NotFoundResponse(ex.Message);
+            }
+        }
+
     }
 }

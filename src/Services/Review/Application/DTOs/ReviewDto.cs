@@ -9,5 +9,9 @@ namespace Codemy.Review.Application.DTOs
         public int Rating { get; set; }
         public string Comment { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
+
+        public string? Reply { get; set; }
+        public DateTime? RepliedAt { get; set; }
+        public Guid? RepliedBy { get; set; }
     }
 }
