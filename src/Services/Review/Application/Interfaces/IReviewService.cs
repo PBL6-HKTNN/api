@@ -10,6 +10,8 @@ namespace Codemy.Review.Application.Interfaces
         Task<double> GetAverageRatingAsync(Guid courseId);
         Task<ReviewResponse> CheckUserReviewInCourseAsync(Guid courseId, Guid reviewId);
         Task<ReviewResponse> DeleteUserReviewAsync(Guid courseId, Guid reviewId);
+        Task<ReviewResponse> ReplyToReviewAsync(Guid courseId, Guid reviewId, Guid instructorId, string reply);
+
     }
 
     public class ReviewResponse
