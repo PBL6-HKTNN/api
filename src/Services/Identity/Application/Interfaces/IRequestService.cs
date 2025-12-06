@@ -9,7 +9,7 @@ namespace Codemy.Identity.Application.Interfaces
     {
         Task<RequestResponse> CreateRequestAsync(CreateRequestDTO createRequestDTO);
         Task<RequestResponse> DeleteRequestAsync(Guid requestId);
-        Task<AllDetailResponse> GetAllDetailRequestsGetRequestsAsync();
+        Task<AllDetailResponse> GetAllDetailRequestsAsync();
         Task<ListRequestResponse> GetMyRequestsAsync();
         Task<RequestResponse> GetRequestByIdAsync(Guid requestId);
         Task<ListRequestResponse> GetRequestsAsync();
@@ -23,18 +23,18 @@ namespace Codemy.Identity.Application.Interfaces
     {
         public bool Success { get; set; }
         public string? Message { get; set; }
-        public AllDetailDto data { get; set; }
+        public AllDetailDto Data { get; set; }
     }
 
     public class AllDetailDto
     {
-        public int totalPendingRequest { get; set; }
-        public int totalResolvedRequest { get; set; }
-        public List<Request> upgradeRequest { get; set; }
-        public List<Request> publicCourserequest { get; set; }
-        public List<Request> hideCourserequest { get; set; }
-        public List<Request> reportCourserequest { get; set; }
-        public List<Request> reportReviewrequest { get; set; }
+        public int TotalPendingRequest { get; set; }
+        public int TotalResolvedRequest { get; set; }
+        public List<Request> UpgradeRequest { get; set; }
+        public List<Request> PublicCourserequest { get; set; }
+        public List<Request> HideCourserequest { get; set; }
+        public List<Request> ReportCourserequest { get; set; }
+        public List<Request> ReportReviewrequest { get; set; }
     }
 
     public class ListRequestTypeResponse
