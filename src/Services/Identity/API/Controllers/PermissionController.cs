@@ -48,7 +48,7 @@ namespace Codemy.Identity.API.Controllers
         }
 
         [HttpGet("user-permission/{userId}")]
-        [EndpointDescription("Get list user permission by userId")]
+        [EndpointDescription("Get list of user permissions by userId")]
         [RequireAction("MY_PERMISSION_READ")]
         public async Task<IActionResult> GetPermissionsByUser(Guid userId)
         {
@@ -75,7 +75,7 @@ namespace Codemy.Identity.API.Controllers
         }
 
         [HttpGet("role-permission/{role}")]
-        [EndpointDescription("Get list user permission by role")]
+        [EndpointDescription("Get list of user permissions by role")]
         [RequireAction("PERMISSION_READ")]
         public async Task<IActionResult> GetPermissionsByRole(int role)
         {
@@ -102,7 +102,7 @@ namespace Codemy.Identity.API.Controllers
         }
 
         [HttpGet("users/{permissionId}")]
-        [EndpointDescription("Get list user by permissionId")]
+        [EndpointDescription("Get list of users by permissionId")]
         [RequireAction("PERMISSION_READ")]
         public async Task<IActionResult> GetUsersByPermissionId(Guid permissionId)
         {

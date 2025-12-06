@@ -3,7 +3,6 @@ using Codemy.Identity.Application.DTOs.Permission;
 using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Domain.Entities;
 using Codemy.Identity.Domain.Enums;
-using Microsoft.AspNet.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
@@ -371,7 +370,7 @@ namespace Codemy.Identity.Application.Services
             return new ListAssignPermissionResponse
             {
                 Success = true,
-                Message = "Get permission by user successfully",
+                Message = "Get permissions by role successfully",
                 userPermissionGroups = userPermission.ToList()
             };
         }
@@ -405,30 +404,32 @@ namespace Codemy.Identity.Application.Services
                 return new ListUsersResponse
                 {
                     Success = false,
-                    Message = "User not found for this permission."
+                    Message = "No users found for this permission."
                 };
             }
 
-            UserPermissionGroup userPermmission = userPermissions.First();
+            
             List<User> users = new List<User>();
-
-            //get user có user id, permission id trong userPermission
-            if (userPermmission.UserId.HasValue)
+            foreach (var userPermission in userPermissions)
             {
-                var user = await _userRepository.GetByIdAsync(userPermmission.UserId.Value);
-                if (user != null)
+                //get user có user id, permission id trong userPermission
+                if (userPermission.UserId.HasValue)
                 {
-                    users.Add(user);
+                    var user = await _userRepository.GetByIdAsync(userPermission.UserId.Value);
+                    if (user != null)
+                    {
+                        users.Add(user);
+                    }
                 }
-            }
 
-            //get user có role và permission id trong userPermission
-            if (userPermmission.RoleId.HasValue)
-            {
-                var user = await _userRepository.FindAsync(u => u.role == userPermmission.RoleId.Value && !u.IsDeleted);
-                if (user != null)
+                //get user có role và permission id trong userPermission
+                if (userPermission.RoleId.HasValue)
                 {
-                    users.AddRange(user);
+                    var user = await _userRepository.FindAsync(u => u.role == userPermission.RoleId.Value && !u.IsDeleted);
+                    if (user != null)
+                    {
+                        users.AddRange(user);
+                    }
                 }
             }
 
@@ -436,7 +437,7 @@ namespace Codemy.Identity.Application.Services
             {
                 Success = true,
                 Message = "Get user of a permission successfully",
-                users = users
+                users = users.Distinct().ToList()
             };
         }
 
