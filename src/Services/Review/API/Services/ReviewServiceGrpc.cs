@@ -25,8 +25,6 @@ namespace Codemy.Review.API.Services
 
         public override async Task<CheckReviewInCourseResponse> DeleteUserReview(CheckReviewInCourseRequest request, ServerCallContext context)
         {
-            Console.WriteLine($"CourseId: '{request.CourseId}', ReviewId: '{request.ReviewId}'");
-
             var result = await _reviewService.DeleteUserReviewAsync(Guid.Parse(request.CourseId), Guid.Parse(request.ReviewId));
             return new CheckReviewInCourseResponse {
                 Success = result.success,

@@ -1091,7 +1091,7 @@ namespace Codemy.Courses.Application.Services
         public async Task HideCoursesAutomatic()
         {
             // check course có request true và date > last date thì khóa
-            var courses = await _courseRepository.GetAllAsync(c => c.isRequestedBanned && !c.IsDeleted && c.status != Status.Published);
+            var courses = await _courseRepository.GetAllAsync(c => c.isRequestedBanned && !c.IsDeleted && c.status == Status.Published);
             foreach (var course in courses)
             {
                 //giả sử khóa sau 1 ngày kể từ ngày học cuối cùng
@@ -1101,11 +1101,11 @@ namespace Codemy.Courses.Application.Services
                         CourseId = course.Id.ToString()
                     }
                     );
-                DateTime dateTime = DateTime.Now;
+                DateTime dateTime = DateTime.UtcNow;
                 _logger.LogInformation("Current DateTime: {DateTime}", dateTime);
                 DateTime lastDateTime = DateTime.Parse(lastDate.LastDate);
                 _logger.LogInformation("Last DateTime for Course ID {CourseId}: {LastDateTime}", course.Id, lastDateTime);
-                if (lastDateTime.AddDays(1) > dateTime)
+                if (lastDateTime.AddDays(1) < dateTime)
                 {
                     course.status = Status.Archived;
                 }

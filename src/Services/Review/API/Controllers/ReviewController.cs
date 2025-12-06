@@ -56,7 +56,7 @@ namespace Codemy.Review.API.Controllers
             }
         }
 
-        [HttpGet("check-user-review")]
+        [HttpPost("check-user-review")]
         [RequireAction("REVIEW_READ")]
         [Authorize]
         public async Task<IActionResult> CheckUserReview([FromBody] CheckReviewInCourse request)
