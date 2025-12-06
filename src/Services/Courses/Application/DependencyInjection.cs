@@ -18,6 +18,8 @@ namespace Codemy.Courses.Application
             services.AddScoped<IModuleService, ModuleService>();
             services.AddScoped<ILessonService, LessonService>();
             services.AddScoped<IQuizService, QuizService>();
+            services.AddHostedService<HideCourseBackgroundService>();
+
             services.AddGrpcClient<IdentityService.IdentityServiceClient>(options =>
             {
                 options.Address = new Uri(configuration["GrpcClients:Identity"]);

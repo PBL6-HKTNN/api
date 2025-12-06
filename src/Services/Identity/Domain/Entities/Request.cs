@@ -10,6 +10,7 @@ namespace Codemy.Identity.Domain.Entities
         public string Description { get; set; }
         public RequestStatus Status { get; set; }
         public Guid? CourseId { get; set; }
+        public Guid? ReviewId { get; set; }
         public string? Response { get; set; }
         //check updateBy to see who approved or rejected the request
     }

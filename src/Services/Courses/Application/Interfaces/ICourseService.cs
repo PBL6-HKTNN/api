@@ -25,6 +25,8 @@ namespace Codemy.Courses.Application.Interfaces
         Task<CourseReponse> ChangeCourseStatusAsync(ChangeCourseStatusRequest request);
         Task<CourseReponse> ModChangeCourseStatus(ChangeCourseStatusRequest request);
         Task<Response> AutoCheckCourseAsync(AutoCheckCourseRequest request);
+        Task<Response> requestBanCourse(Guid courseId);
+        Task HideCoursesAutomatic();
     }
 
     public class ValidateCourseResponse

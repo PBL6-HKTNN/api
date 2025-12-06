@@ -1,4 +1,5 @@
 ﻿using Codemy.NotificationProto;
+using Newtonsoft.Json.Linq;
 
 namespace Codemy.Identity.Application.Services
 {
@@ -31,7 +32,7 @@ namespace Codemy.Identity.Application.Services
             });
         }
 
-        public async Task InformRequestResolved(string from, string to, Guid requestId, string requestType, string description, string status, string? response = null, Guid? courseId = null)
+        public async Task InformRequestResolved(string from, string to, Guid requestId, string requestType, string description, string status, string? response = null, Guid? courseId = null, Guid? reviewId = null)
         {
             var request = new SendEmailResultRequest
             {
@@ -50,7 +51,24 @@ namespace Codemy.Identity.Application.Services
             {
                 request.CourseId = courseId.Value.ToString();
             }
+            if (reviewId.HasValue)
+            {
+                request.ReviewId = reviewId.Value.ToString();
+            }
             await _client.InformRequestResolvedAsync(request);
+        }
+
+        public async Task InformHideCourse(string from, string to, Guid courseId, string description, string dateTime, string courseTitle)
+        {
+            await _client.InformHideCourseAsync(new SendEmailInformHideCourseRequest
+            {
+                From = from,
+                To = to,
+                CourseId = courseId.ToString(),
+                Description = description,
+                Datetime = dateTime,
+                CourseTitle = courseTitle
+            });
         }
     }
 }

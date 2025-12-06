@@ -3,6 +3,7 @@ using Codemy.EnrollmentsProto;
 using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Application.Services;
 using Codemy.NotificationProto;
+using Codemy.ReviewProto;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -33,6 +34,11 @@ namespace Codemy.Identity.Application
             services.AddGrpcClient<EnrollmentService.EnrollmentServiceClient>(options =>
             {
                 options.Address = new Uri(configuration["GrpcClients:Enrollments"]);
+            });
+
+            services.AddGrpcClient<ReviewService.ReviewServiceClient>(options =>
+            {
+                options.Address = new Uri(configuration["GrpcClients:Review"]);
             });
 
             return services;

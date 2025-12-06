@@ -132,5 +132,15 @@ namespace Codemy.Courses.API.Services
                 Message = result.Message ?? string.Empty
             };
         }
+
+        public override async Task<AutoCheckCourseResponse> RequestBanCourse(GetCourseByIdRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var result = await _courseService.requestBanCourse(Guid.Parse(request.CourseId));
+            return new AutoCheckCourseResponse
+            {
+                Success = result.Success,
+                Message = result.Message ?? string.Empty
+            };
+        }
     }
 }

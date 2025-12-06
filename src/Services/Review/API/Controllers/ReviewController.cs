@@ -1,5 +1,6 @@
 using Codemy.BuildingBlocks.Core;
 using Codemy.BuildingBlocks.Core.Models;
+using Codemy.Review.Application.DTOs;
 using Codemy.Review.Application.Interfaces;
 using Codemy.Review.Application.Requests;
 using Microsoft.AspNetCore.Authorization;
@@ -48,6 +49,46 @@ namespace Codemy.Review.API.Controllers
             {
                 var reviews = await _service.GetReviewsByCourseIdAsync(courseId);
                 return this.OkResponse(reviews);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return this.NotFoundResponse(ex.Message);
+            }
+        }
+
+        [HttpGet("check-user-review")]
+        [RequireAction("REVIEW_READ")]
+        [Authorize]
+        public async Task<IActionResult> CheckUserReview([FromBody] CheckReviewInCourse request)
+        {
+            try
+            { 
+                var result = await _service.CheckUserReviewInCourseAsync(request.CourseId, request.ReviewId);
+                if (!result.success)
+                {
+                    return this.NotFoundResponse(result.message ?? "Review not found.");
+                }
+                return this.OkResponse(result.review);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return this.NotFoundResponse(ex.Message);
+            }
+        }
+
+        [HttpDelete("user-review")]
+        [RequireAction("REVIEW_DELETE")]
+        [Authorize]
+        public async Task<IActionResult> DeleteUserReview([FromBody] CheckReviewInCourse request)
+        {
+            try
+            {
+                var result = await _service.DeleteUserReviewAsync(request.CourseId, request.ReviewId);
+                if (!result.success)
+                {
+                    return this.NotFoundResponse(result.message ?? "Review not found.");
+                }
+                return this.OkResponse(result.review);
             }
             catch (KeyNotFoundException ex)
             {

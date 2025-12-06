@@ -196,5 +196,24 @@ namespace Codemy.Enrollment.API.Controllers
             }
         }
 
+        [HttpGet("get-list-students/{courseId}")]
+        [RequireAction("ENROLLMENT_READ")]
+        public async Task<IActionResult> GetListStudentsByCourseId(Guid courseId)
+        {
+            try
+            {
+                var result = await _enrollmentService.GetListStudentsByCourseId(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to get enrollment.");
+                }
+                return this.OkResponse(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting enrollment by course ID.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
     }
 }

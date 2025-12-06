@@ -122,6 +122,11 @@ namespace Codemy.Notification.Application.Services
                     <td style='padding:6px 12px; font-weight:bold;'>Course ID:</td>
                     <td style='padding:6px 12px;'>{content.CourseId}</td>
                   </tr>" : "")}
+                   {(content.ReviewId != null ? $@"
+                  <tr>
+                    <td style='padding:6px 12px; font-weight:bold;'>Review ID:</td>
+                    <td style='padding:6px 12px;'>{content.ReviewId}</td>
+                  </tr>" : "")}
                 </table>
 
                 <p>If you have any questions, feel free to contact us.</p>
@@ -141,6 +146,54 @@ namespace Codemy.Notification.Application.Services
             await smtp.AuthenticateAsync(_smtp_user, _smtp_password);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
+        }
+
+        public async Task InformHideCourse(InformHideCourseRequest content)
+        {
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(content.From));
+            email.To.Add(MailboxAddress.Parse(content.To));
+            email.Subject = "Course Hide Notification";
+
+            var body = $@"
+            <html>
+              <body style='font-family:Segoe UI, sans-serif;'>
+                <h2>Course Hide Notification</h2>
+                <p>Hello,</p>
+                <p>The following course will be hidden:</p>
+                <table style='border-collapse:collapse; font-size:14px;'>
+                  <tr>
+                    <td style='padding:6px 12px; font-weight:bold;'>Course ID:</td>
+                    <td style='padding:6px 12px;'>{content.CourseId}</td>
+                  </tr>
+                  <tr>
+                    <td style='padding:6px 12px; font-weight:bold;'>Course Title:</td>
+                    <td style='padding:6px 12px;'>{content.CourseTitle}</td>
+                  </tr>
+                  <tr>
+                    <td style='padding:6px 12px; font-weight:bold;'>Description:</td>
+                    <td style='padding:6px 12px;'>{content.Description}</td>
+                  </tr>
+                  <tr>
+                    <td style='padding:6px 12px; font-weight:bold;'>The course will be hidden at:</td>
+                    <td style='padding:6px 12px;'>{content.DateTime}</td>
+                  </tr>
+                </table>
+                <p>If you have any questions, feel free to contact us.</p>
+                <br/>
+                <p>From: <strong>{content.From}</strong></p>
+                <p>Thank you,<br/><strong>Codemy Team</strong></p>
+              </body>
+            </html>";
+
+            email.Body = new TextPart("html") { Text = body };
+
+            using var smtp = new MailKit.Net.Smtp.SmtpClient();
+            await smtp.ConnectAsync(_smtp_host, _smtp_port, MailKit.Security.SecureSocketOptions.StartTls);
+            await smtp.AuthenticateAsync(_smtp_user, _smtp_password);
+            await smtp.SendAsync(email);
+            await smtp.DisconnectAsync(true);
+
         }
     }
 }

@@ -14,5 +14,7 @@ namespace Codemy.Notification.Application.DTOs
         public required string Status { get; set; }
         public string? Response { get; set; }
         public Guid? CourseId { get; set; }
+        public Guid? ReviewId { get; set; }
+
     }
 }

@@ -58,5 +58,20 @@ namespace Codemy.Enrollment.API.Services
                 LastDate = result.LastDate?.ToString("o") ?? string.Empty
             };
         }
+
+        public override async Task<GetListStudentResponse> GetListStudent(GetLastDateCoureRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var result = await _enrollmentService.GetListStudentsByCourseId(Guid.Parse(request.CourseId));
+            var response = new GetListStudentResponse
+            {
+                Success = result.Success,
+                Message = result.Message ?? string.Empty,
+            };
+            if (result.Students != null)
+            {
+                response.StudentEmails.AddRange(result.Students);
+            }
+            return response;
+        }
     }
 }

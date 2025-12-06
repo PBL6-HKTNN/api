@@ -5,6 +5,7 @@ using Codemy.Identity.Application.DTOs.Request;
 using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Domain.Entities;
 using Codemy.Identity.Domain.Enums;
+using Codemy.ReviewProto;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Net.WebSockets;
@@ -22,6 +23,7 @@ namespace Codemy.Identity.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly CoursesService.CoursesServiceClient _courseClient;
         private readonly EnrollmentService.EnrollmentServiceClient _enrollmentClient;
+        private readonly ReviewService.ReviewServiceClient _reviewClient;
         private readonly EmailSender _emailSender;
 
         public RequestService(
@@ -32,6 +34,8 @@ namespace Codemy.Identity.Application.Services
             IHttpContextAccessor httpContextAccessor,
             IUnitOfWork unitOfWork,
             CoursesService.CoursesServiceClient courseClient,
+            EnrollmentService.EnrollmentServiceClient enrollmentClient,
+            ReviewService.ReviewServiceClient reviewClient,
             EmailSender emailSender)
         {
             _logger = logger;
@@ -41,6 +45,8 @@ namespace Codemy.Identity.Application.Services
             _httpContextAccessor = httpContextAccessor;
             _unitOfWork = unitOfWork;
             _courseClient = courseClient;
+            _enrollmentClient = enrollmentClient;
+            _reviewClient = reviewClient;
             _emailSender = emailSender;
         }
 
@@ -97,7 +103,7 @@ namespace Codemy.Identity.Application.Services
                 }
             }
 
-
+            
             if (requestType.Type == RequestTypeEnum.PublicCourseRequest || requestType.Type == RequestTypeEnum.HideCourseRequest)
             {
                 // check course có tồn tại
@@ -144,6 +150,45 @@ namespace Codemy.Identity.Application.Services
                 }
             }
 
+            if (requestType.Type == RequestTypeEnum.ReportReviewRequest)
+            {
+                if (!createRequestDTO.reviewId.HasValue || !createRequestDTO.courseId.HasValue)
+                {
+                    return new RequestResponse
+                    {
+                        Success = false,
+                        Message = "ReviewId and CourseId are required for ReportReviewRequest."
+                    };
+                }
+
+                // check review có tồn tại
+                var reviewResponse = await _reviewClient.CheckReviewInCourseAsync(
+                    new CheckReviewInCourseRequest
+                    {
+                        CourseId = createRequestDTO.courseId.ToString(),
+                        ReviewId = createRequestDTO.reviewId.ToString()
+                    });
+
+                if (!reviewResponse.Success)
+                {
+                    return new RequestResponse
+                    {
+                        Success = false,
+                        Message = "Review does not exist in the specified course."
+                    };
+                }
+                request.ReviewId = createRequestDTO.reviewId;
+                request.CourseId = createRequestDTO.courseId;
+            }
+
+            if (createRequestDTO.courseId.HasValue)
+            {
+                request.CourseId = createRequestDTO.courseId;
+            }
+            if (createRequestDTO.reviewId.HasValue)
+            {
+                request.ReviewId = createRequestDTO.reviewId;
+            }
             request.UserId = UserId;
             request.Description = createRequestDTO.Description;
             request.RequestTypeId = createRequestDTO.RequestTypeId;
@@ -344,6 +389,7 @@ namespace Codemy.Identity.Application.Services
                 };
             }
 
+            RequestTypeEnum type = requestType.Type;
 
             if (updateRequestDTO.Status == RequestStatus.Rejected)
             {
@@ -353,7 +399,6 @@ namespace Codemy.Identity.Application.Services
             }
             else if (updateRequestDTO.Status == RequestStatus.Approved)
             {
-                RequestTypeEnum type = requestType.Type;
 
                 switch (type)
                 {
@@ -432,15 +477,55 @@ namespace Codemy.Identity.Application.Services
                         });
                         if (courseResp.Exists)
                         {
+                            _logger.LogInformation($"Course ID {request.CourseId}");
                             //check enrollment 
                             var lastDateResp = await _enrollmentClient.GetLastDateCourseAsync(new GetLastDateCoureRequest
                             {
                                 CourseId = request.CourseId.ToString()
                             });
 
+                            var lastDate = lastDateResp.Success ? DateTime.Parse(lastDateResp.LastDate) : DateTime.UtcNow;
+                            var endDate = lastDate.AddDays(1);
+                            _logger.LogInformation($"End date: {endDate}");
+
                             //email thông báo
+                            
+                                //gửi email thông báo cho học viên về việc khóa học bị ẩn
+                                var enrollmentsResp = await _enrollmentClient.GetListStudentAsync(new GetLastDateCoureRequest
+                                {
+                                    CourseId = request.CourseId.ToString()
+                                });
+                                foreach (var enrollment in enrollmentsResp.StudentEmails)
+                                {
+                                    _logger.LogInformation($"Sending hide course email to {enrollment}");
+                                    await _emailSender.InformHideCourse(
+                                        user.FindFirst(ClaimTypes.Email)?.Value,
+                                        enrollment,
+                                        Guid.Parse(request.CourseId.ToString()),
+                                        request.Description,
+                                        endDate.ToString(),
+                                        courseResp.Title
+                                        );
+                                }
+                            
+
                             // bật cờ isRequestedBanned
-                            //-> set course to private
+                            var requestBanResponse = await _courseClient.RequestBanCourseAsync(new GetCourseByIdRequest { CourseId= request.CourseId.ToString() });
+                            if (!requestBanResponse.Success)
+                            {
+                                return new RequestResponse
+                                {
+                                    Success = false,
+                                    Message = "Failed to set course as requested banned.",
+                                };
+                            }
+                            else
+                            {
+                                request.Status = updateRequestDTO.Status;
+                                request.UpdatedBy = UserId;
+                                request.Response = updateRequestDTO.Response;
+                                _logger.LogInformation("set course as requested banned");
+                            }
                         }
                         else
                         {
@@ -455,15 +540,117 @@ namespace Codemy.Identity.Application.Services
                         
                         break;
                     case RequestTypeEnum.ReportCourseRequest:
-                        // Handle reported course logic if needed
+                        //check course exists
+                        var reportCourseResp = await _courseClient.GetCourseByIdAsync(new GetCourseByIdRequest
+                        {
+                            CourseId = request.CourseId.ToString()
+                        });
+                        if (reportCourseResp.Exists)
+                        {
+                            _logger.LogInformation($"Course ID {request.CourseId}");
+                            //check enrollment 
+                            var lastDateResp = await _enrollmentClient.GetLastDateCourseAsync(new GetLastDateCoureRequest
+                            {
+                                CourseId = request.CourseId.ToString()
+                            });
+
+                            var lastDate = lastDateResp.Success ? DateTime.Parse(lastDateResp.LastDate) : DateTime.UtcNow;
+                            var endDate = lastDate.AddDays(1);
+                            _logger.LogInformation($"End date: {endDate}");
+
+                            //email thông báo
+
+                            //gửi email thông báo cho học viên về việc khóa học bị ẩn
+                            var enrollmentsResp = await _enrollmentClient.GetListStudentAsync(new GetLastDateCoureRequest
+                            {
+                                CourseId = request.CourseId.ToString()
+                            });
+                            foreach (var enrollment in enrollmentsResp.StudentEmails)
+                            {
+                                _logger.LogInformation($"Sending hide course email to {enrollment}");
+                                await _emailSender.InformHideCourse(
+                                    user.FindFirst(ClaimTypes.Email)?.Value,
+                                    enrollment,
+                                    Guid.Parse(request.CourseId.ToString()),
+                                    request.Description,
+                                    endDate.ToString(),
+                                    reportCourseResp.Title
+                                    );
+                            }
+
+                            var instructor = await _userRepository.GetByIdAsync(Guid.Parse(reportCourseResp.InstructorId));
+                            if (instructor == null)
+                                {
+                                return new RequestResponse
+                                {
+                                    Success = false,
+                                    Message = "Instructor not found for the reported course.",
+                                };
+                            }
+
+                            await _emailSender.InformHideCourse(
+                                    user.FindFirst(ClaimTypes.Email)?.Value,
+                                    instructor.email,
+                                    Guid.Parse(request.CourseId.ToString()),
+                                    request.Description,
+                                    endDate.ToString(),
+                                    reportCourseResp.Title
+                                    );
+
+                            // bật cờ isRequestedBanned
+                            var requestBanResponse = await _courseClient.RequestBanCourseAsync(new GetCourseByIdRequest { CourseId = request.CourseId.ToString() });
+                            if (!requestBanResponse.Success)
+                            {
+                                return new RequestResponse
+                                {
+                                    Success = false,
+                                    Message = "Failed to set course as requested banned.",
+                                };
+                            }
+                            else
+                            {
+                                request.Status = updateRequestDTO.Status;
+                                request.UpdatedBy = UserId;
+                                request.Response = updateRequestDTO.Response;
+                                _logger.LogInformation("set course as requested banned");
+                            }
+                        }
+                        else
+                        {
+                            return new RequestResponse
+                            {
+                                Success = false,
+                                Message = "Course not found for visibility update.",
+                            };
+                        }
                         break;
                     case RequestTypeEnum.ReportReviewRequest:
-                        // Handle reported review logic if needed
+                        _logger.LogInformation($"Deleting reported review ID {request.ReviewId} in course ID {request.CourseId}");
+                        var reviewResponse = await _reviewClient.DeleteUserReviewAsync(
+                            new CheckReviewInCourseRequest
+                            {
+                                CourseId = request.CourseId.ToString(),
+                                ReviewId = request.ReviewId.ToString()
+                            });
+                        if (!reviewResponse.Success)
+                        {
+                            return new RequestResponse
+                            {
+                                Success = false,
+                                Message = "Failed to delete reported review.",
+                            };
+                        }
+                        else
+                        {
+                            request.Status = updateRequestDTO.Status;
+                            request.UpdatedBy = UserId;
+                            request.Response = updateRequestDTO.Response;
+                        }
                         break;
                 }
             }
             var emailTo = await _userRepository.GetByIdAsync(request.UserId);
-
+            _requestRepository.Update(request);
             var result = await _unitOfWork.SaveChangesAsync();
             if (result <= 0)
             {
@@ -476,7 +663,10 @@ namespace Codemy.Identity.Application.Services
             if (request.CourseId.HasValue)
             {
                 _logger.LogInformation($"Sending email with course ID {request.CourseId}");
-                await _emailSender.InformRequestResolved(
+                if (request.ReviewId.HasValue)
+                {
+                    _logger.LogInformation($"Request involves review ID {request.ReviewId}");
+                    await _emailSender.InformRequestResolved(
                     user.FindFirst(ClaimTypes.Email)?.Value,
                     emailTo.email,
                     updateRequestDTO.RequestId,
@@ -484,8 +674,21 @@ namespace Codemy.Identity.Application.Services
                     request.Description,
                     request.Status.ToString(),
                     request.Response,
-                    request.CourseId
+                    request.CourseId,
+                    request.ReviewId
                     );
+                }
+                else
+                    await _emailSender.InformRequestResolved(
+                        user.FindFirst(ClaimTypes.Email)?.Value,
+                        emailTo.email,
+                        updateRequestDTO.RequestId,
+                        requestType.Type.ToString(),
+                        request.Description,
+                        request.Status.ToString(),
+                        request.Response,
+                        request.CourseId
+                        );
             }
             else
                 await _emailSender.InformRequestResolved(

@@ -48,5 +48,16 @@ namespace Codemy.Notification.API.Controllers
             await _emailService.InformRequestResolved(content);
             return Ok();
         }
+
+        [HttpPost("inform-hide-course")]
+        public async Task<IActionResult> InformHideCourse([FromBody] InformHideCourseRequest content)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            await _emailService.InformHideCourse(content);
+            return Ok();
+        }
     }
 }
