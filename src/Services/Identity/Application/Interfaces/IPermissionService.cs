@@ -12,6 +12,9 @@ namespace Codemy.Identity.Application.Interfaces
         Task<Response> DeleteUserPermissionByIdAsync(Guid id);
         Task<PermissionResponse> GetPermissionByIdAsync(Guid permissionId);
         Task<ListPermissionResponse> GetPermissionsAsync();
+        Task<ListAssignPermissionResponse> GetPermissionsByRoleAsync(int role);
+        Task<ListAssignPermissionResponse> GetPermissionsByUserAsync(Guid userId);
+        Task<ListUsersResponse> GetUsersByPermissionIdAsync(Guid permissionId);
         Task<PermissionResponse> UpdatePermissionByIdAsync(Guid permissionId, CreatePermissionRequest request);
     }
 
@@ -20,6 +23,20 @@ namespace Codemy.Identity.Application.Interfaces
     {
         public bool Success { get; set; }
         public string? Message { get; set; }
+    }
+
+    public class ListUsersResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<User>? users { get; set; }
+    }
+
+    public class ListAssignPermissionResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<UserPermissionGroup>? userPermissionGroups { get; set; }
     }
 
     public class AssignPermissionResponse

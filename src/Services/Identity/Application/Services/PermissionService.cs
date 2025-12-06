@@ -72,6 +72,15 @@ namespace Codemy.Identity.Application.Services
             UserPermissionGroup userPermissionGroup;
             if (request.UserId.HasValue)
             {
+                var checkExist = await _userPermissionRepository.FindAsync(up => up.UserId == request.UserId && up.PermissionId == request.PermissionId && !up.IsDeleted);
+                if (checkExist.Any())
+                {
+                    return new AssignPermissionResponse
+                    {
+                        Success = false,
+                        Message = "Permission already assigned to this user."
+                    };
+                }
                 User userAssign = await _userRepository.GetByIdAsync(request.UserId.Value);
                 if (userAssign == null || userAssign.IsDeleted)
                 {
@@ -93,6 +102,15 @@ namespace Codemy.Identity.Application.Services
             }
             else
             {
+                var checkExist = await _userPermissionRepository.FindAsync(up => up.RoleId == (Role)request.RoleId && up.PermissionId == request.PermissionId && !up.IsDeleted);
+                if (checkExist.Any())
+                {
+                    return new AssignPermissionResponse
+                    {
+                        Success = false,
+                        Message = "Permission already assigned to this role."
+                    };
+                }
                 userPermissionGroup = new UserPermissionGroup
                 {
                     Id = Guid.NewGuid(),
@@ -335,6 +353,91 @@ namespace Codemy.Identity.Application.Services
             {
                 Success = true,
                 permissionDTO = permissionDTOs
+            };
+        }
+
+        public async Task<ListAssignPermissionResponse> GetPermissionsByRoleAsync(int role)
+        {
+            var userPermission = await _userPermissionRepository.FindAsync(u => (int)u.RoleId == role && !u.IsDeleted);
+            if (userPermission.Count == 0)
+            {
+                return new ListAssignPermissionResponse
+                {
+                    Success = false,
+                    Message = "No permission assign for this role."
+                };
+            }
+            return new ListAssignPermissionResponse
+            {
+                Success = true,
+                Message = "Get permissions by role successfully",
+                userPermissionGroups = userPermission.ToList()
+            };
+        }
+
+        public async Task<ListAssignPermissionResponse> GetPermissionsByUserAsync(Guid userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null || user.IsDeleted)
+            {
+                return new ListAssignPermissionResponse
+                {
+                    Success = false,
+                    Message = "User not found"
+                };
+            }
+
+            var userPermission = await _userPermissionRepository.FindAsync(u =>  (u.UserId ==  userId || u.RoleId == user.role) && !u.IsDeleted);
+            return new ListAssignPermissionResponse
+            {
+                Success = true,
+                Message = "Get permission by user successfully",
+                userPermissionGroups = userPermission.ToList()
+            };
+        }
+
+        public async Task<ListUsersResponse> GetUsersByPermissionIdAsync(Guid permissionId)
+        {
+            var userPermissions = await _userPermissionRepository.FindAsync(up => up.PermissionId == permissionId && !up.IsDeleted);
+            if (userPermissions.Count == 0)
+            {
+                return new ListUsersResponse
+                {
+                    Success = false,
+                    Message = "No users found for this permission."
+                };
+            }
+
+            
+            List<User> users = new List<User>();
+            foreach (var userPermission in userPermissions)
+            {
+                //get user có user id, permission id trong userPermission
+                if (userPermission.UserId.HasValue)
+                {
+                    var user = await _userRepository.GetByIdAsync(userPermission.UserId.Value);
+                    if (user != null)
+                    {
+                        users.Add(user);
+                    }
+                }
+
+                //get user có role và permission id trong userPermission
+                if (userPermission.RoleId.HasValue)
+                {
+                    var user = await _userRepository.FindAsync(u => u.role == userPermission.RoleId.Value && !u.IsDeleted);
+                    if (user != null)
+                    {
+                        users.AddRange(user);
+                    }
+                }
+            }
+
+            return new ListUsersResponse
+            {
+                Success = true,
+                Message = "Get user of a permission successfully",
+                users = users.Distinct().ToList()
             };
         }
 
