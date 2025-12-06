@@ -175,6 +175,9 @@ namespace Codemy.Identity.Infrastructure.Persistence
 
                 new Permission { Id = Guid.Parse("44444444-4444-4444-4444-444444444562"), permissionName = "Other permission of Instructor"},
 
+                new Permission { Id = Guid.Parse("44444444-4444-4444-4444-444444444563"), permissionName = "Other permission of Moderator"},
+
+
 
             };
             modelBuilder.Entity<Permission>().HasData(permissions);
@@ -293,8 +296,8 @@ namespace Codemy.Identity.Infrastructure.Persistence
                 new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444574"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444572"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444581")},
                 new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444575"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444572"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444582")},
 
-
-
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444577"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444563"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444476")},
+                new PermissionGroup { Id = Guid.Parse("44444444-4444-4444-4444-444444444578"), permissionId = Guid.Parse("44444444-4444-4444-4444-444444444563"), actionId = Guid.Parse("44444444-4444-4444-4444-444444444477")},
             };
             modelBuilder.Entity<PermissionGroup>().HasData(permissionGroups);
         }

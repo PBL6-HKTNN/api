@@ -1,0 +1,23 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Codemy.ReviewProto";
+
+package review;
+
+// The service definition
+service ReviewService {
+  rpc CheckReviewInCourse (CheckReviewInCourseRequest) returns (CheckReviewInCourseResponse);
+  rpc DeleteUserReview (CheckReviewInCourseRequest) returns (CheckReviewInCourseResponse);
+}
+
+// The request message
+message CheckReviewInCourseRequest {
+  string courseId = 1;
+  string reviewId = 2;
+}
+
+// The response message
+message CheckReviewInCourseResponse {
+  bool success = 1;
+  string message = 2;
+}

@@ -96,6 +96,36 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
+        [HttpPost("requested-ban-course/{courseId}")]
+        [RequireAction("REQUEST_RESOLVE")]
+        public async Task<IActionResult> RequestBanCourse(Guid courseId)
+        {
+            if (courseId == Guid.Empty)
+            {
+                return this.BadRequestResponse("Invalid course ID.");
+            }
+            try
+            {
+                var result = await _courseService.requestBanCourse(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to request ban course."
+                    );
+                }
+                return this.OkResponse(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error requesting ban course.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during request ban course",
+                    ex.Message
+                );
+            }
+        }
+
+
         [HttpGet("get/{courseId}")]
         [SwaggerOperation(Summary = "Get course by ID", Description = "Retrieve a specific course by its ID")]
         public async Task<IActionResult> GetCourseById(Guid courseId)

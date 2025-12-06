@@ -12,6 +12,7 @@ service CoursesService {
   rpc GetLessonsCompleted (GetValidateRequest) returns (LessonsCompletedResponse);
   rpc ModUpdateStatus (ModChangeCourseStatusRequest) returns (GetCourseByIdResponse);
   rpc AutoCheckCourseAsync (GetCourseByIdRequest) returns (AutoCheckCourseResponse);
+  rpc RequestBanCourse (GetCourseByIdRequest) returns (AutoCheckCourseResponse);
   // RPC mới để lấy tất cả course cho search index
   rpc GetAllCoursesForIndexing (google.protobuf.Empty) returns (GetAllCoursesForIndexingResponse);
 }
@@ -41,6 +42,7 @@ message GetCourseByIdResponse {
   string thumbnail = 5;
   string description = 6;
   string price = 7;
+  string duration = 8;
 }
 
 message GetValidateResponse {

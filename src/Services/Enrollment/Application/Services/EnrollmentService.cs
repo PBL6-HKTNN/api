@@ -66,6 +66,13 @@ namespace Codemy.Enrollment.Application.Services
                 };
             }
 
+            // Parse timespan
+            TimeSpan duration = TimeSpan.Parse(courseExists.Duration);
+
+            // ExpectedEndDate = enrollmentDate + duration + 10 days
+            DateTime enrollmentDate = DateTime.UtcNow;
+            DateTime expectedEndDate = enrollmentDate.Add(duration).AddDays(10);
+            _logger.LogInformation("Calculated expected end date: {ExpectedEndDate}", expectedEndDate);
             Enrollments enrollments = new Enrollments
             {
                 Id = Guid.NewGuid(),
@@ -75,7 +82,8 @@ namespace Codemy.Enrollment.Application.Services
                 enrollmentStatus = EnrollmentStatus.Active,
                 enrollmentDate = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = UserId
+                CreatedBy = UserId,
+                expectedEndDate = expectedEndDate, 
             };
             await _enrollmentRepository.AddAsync(enrollments);
             var result = await _unitOfWork.SaveChangesAsync();
@@ -149,6 +157,13 @@ namespace Codemy.Enrollment.Application.Services
                 };
             }
 
+            TimeSpan duration = TimeSpan.Parse(courseExists.Duration);
+
+            // ExpectedEndDate = enrollmentDate + duration + 10 days
+            DateTime enrollmentDate = DateTime.UtcNow;
+            DateTime expectedEndDate = enrollmentDate.Add(duration).AddDays(10);
+            _logger.LogInformation("Calculated expected end date: {ExpectedEndDate}", expectedEndDate);
+
             Enrollments enrollments = new Enrollments
             {
                 Id = Guid.NewGuid(),
@@ -157,6 +172,7 @@ namespace Codemy.Enrollment.Application.Services
                 progressStatus = ProgressStatus.NotStarted,
                 enrollmentStatus = EnrollmentStatus.Active,
                 enrollmentDate = DateTime.UtcNow,
+                expectedEndDate = expectedEndDate,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = UserId
             };
@@ -719,6 +735,58 @@ namespace Codemy.Enrollment.Application.Services
             {
                 Success = true,
                 CompletedLessonIds = lessonsCompleted.CompletedLessons.Select(id => Guid.Parse(id)).ToList()
+            };
+        }
+
+        public async Task<LastDateResponse> CheckLastDateCourseAsync(Guid courseId)
+        {
+            var enrollments = await _enrollmentRepository.FindAsync(e => e.courseId == courseId && !e.IsDeleted);
+            if (enrollments.Count == 0)
+            {
+                return new LastDateResponse
+                {
+                    Success = false,
+                    Message = "No enrollments found for the specified course.",
+                    LastDate = null
+                };
+            }
+            var lastEnrollment = enrollments.OrderByDescending(e => e.enrollmentDate).First();
+
+            return new LastDateResponse
+            {
+                Success = true,
+                Message = "Last enrollment date retrieved successfully.",
+                LastDate = lastEnrollment.enrollmentDate
+            };
+        }
+
+        public async Task<ListStudentsResponse> GetListStudentsByCourseId(Guid courseId)
+        {
+            var enrollments = await _enrollmentRepository.FindAsync(e => e.courseId == courseId && !e.IsDeleted);
+            if (enrollments.Count == 0)
+            {
+                return new ListStudentsResponse
+                {
+                    Success = false,
+                    Message = "No enrollments found for the specified course.",
+                    Students = null
+                };
+            }
+            var studentIds = enrollments.Select(e => e.studentId.ToString()).ToList();
+            List<string> studentEmails = new List<string>();
+            foreach (var studentId in studentIds)
+            {
+                var userResponse = await _client.GetUserByIdAsync(new GetUserByIdRequest { UserId = studentId });
+                if (userResponse.Exists)
+                {
+                    studentEmails.Add(userResponse.Email);
+                }
+            }
+            return new ListStudentsResponse
+            {
+                Success = true,
+                Message = "List of students retrieved successfully.",
+                Students = studentEmails
             };
         }
     }

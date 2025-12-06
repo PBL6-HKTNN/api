@@ -1,4 +1,5 @@
 using Codemy.BuildingBlocks.Core.Models;
+using Codemy.Review.API.Services;
 using Codemy.Review.Application;
 using Codemy.Review.Infrastructure;
 using DotNetEnv;
@@ -56,6 +57,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddGrpc();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
@@ -112,6 +115,7 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 app.UseMiddleware<PermissionMiddleware>();
+app.MapGrpcService<ReviewServiceGrpc>();
 
 app.MapControllers();
 

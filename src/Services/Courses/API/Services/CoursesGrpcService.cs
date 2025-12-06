@@ -15,7 +15,7 @@ namespace Codemy.Courses.API.Services
 
         public override async Task<GetCourseByIdResponse> GetCourseById(GetCourseByIdRequest request, Grpc.Core.ServerCallContext context)
         {
-            var course = await _courseService.GetCourseByIdAsync(Guid.Parse(request.CourseId));
+            var course = await _courseService.GetCourseByIdGrpcAsync(Guid.Parse(request.CourseId));
             if (!course.Success)
             {
                 return new GetCourseByIdResponse
@@ -32,6 +32,7 @@ namespace Codemy.Courses.API.Services
                 Description = course.Course.description,
                 Thumbnail = course.Course.thumbnail,
                 Price = course.Course.price.ToString(),
+                Duration = course.Course.duration.ToString()
             };
         }
 
@@ -125,6 +126,16 @@ namespace Codemy.Courses.API.Services
         public override async Task<AutoCheckCourseResponse> AutoCheckCourseAsync(GetCourseByIdRequest request, Grpc.Core.ServerCallContext context)
         {
             var result = await _courseService.AutoCheckCourseAsync(new AutoCheckCourseRequest { CourseId = Guid.Parse(request.CourseId) });
+            return new AutoCheckCourseResponse
+            {
+                Success = result.Success,
+                Message = result.Message ?? string.Empty
+            };
+        }
+
+        public override async Task<AutoCheckCourseResponse> RequestBanCourse(GetCourseByIdRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var result = await _courseService.requestBanCourse(Guid.Parse(request.CourseId));
             return new AutoCheckCourseResponse
             {
                 Success = result.Success,

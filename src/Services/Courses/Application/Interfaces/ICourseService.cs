@@ -8,6 +8,7 @@ namespace Codemy.Courses.Application.Interfaces
         Task<CourseReponse> CreateCourseAsync(CreateCourseRequest request);
         Task<CourseReponse> DeleteCourseAsync(Guid courseId);
         Task<CourseReponse> GetCourseByIdAsync(Guid courseId);
+        Task<CourseReponse> GetCourseByIdGrpcAsync(Guid courseId);
         Task<ResourceDtoResponse> GetLessonByCourseIdAsync(Guid courseId);
         Task<ModuleListResponse> GetModuleByCourseIdAsync(Guid courseId);
         Task<CourseReponse> UpdateCourseAsync(Guid courseId, CreateCourseRequest request);
@@ -24,6 +25,8 @@ namespace Codemy.Courses.Application.Interfaces
         Task<CourseReponse> ChangeCourseStatusAsync(ChangeCourseStatusRequest request);
         Task<CourseReponse> ModChangeCourseStatus(ChangeCourseStatusRequest request);
         Task<Response> AutoCheckCourseAsync(AutoCheckCourseRequest request);
+        Task<Response> requestBanCourse(Guid courseId);
+        Task HideCoursesAutomatic();
     }
 
     public class ValidateCourseResponse

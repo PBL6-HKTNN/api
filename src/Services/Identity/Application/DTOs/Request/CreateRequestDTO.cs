@@ -9,5 +9,6 @@ namespace Codemy.Identity.Application.DTOs.Request
         [Required]
         public required string Description { get; set; }
         public Guid? courseId { get; set; }
+        public Guid? reviewId { get; set; }
     }
 }

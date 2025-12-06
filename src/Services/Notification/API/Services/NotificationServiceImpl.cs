@@ -27,6 +27,21 @@ namespace Codemy.Notification.API.Services
             return new SendEmailResponse { Success = true };
         }
 
+        public override async Task<SendEmailResponse> InformHideCourse(SendEmailInformHideCourseRequest request, ServerCallContext context)
+        {
+            var content = new InformHideCourseRequest
+            {
+                From = request.From,
+                To = request.To,
+                CourseId = Guid.Parse(request.CourseId),
+                Description = request.Description,
+                DateTime = request.Datetime,
+                CourseTitle = request.CourseTitle,
+            };
+            await _emailService.InformHideCourse(content);
+            return new SendEmailResponse { Success = true };
+        }
+
         public override async Task<SendEmailResponse> InformRequestResolved(SendEmailResultRequest request, ServerCallContext context)
         {
             var content = new EmailInformRequestContent
@@ -45,6 +60,10 @@ namespace Codemy.Notification.API.Services
             if (!string.IsNullOrEmpty(request.CourseId))
             {
                 content.CourseId = Guid.Parse(request.CourseId);
+            }
+            if (!string.IsNullOrEmpty(request.ReviewId))
+            {
+                content.ReviewId = Guid.Parse(request.ReviewId);
             }
             await _emailService.InformRequestResolved(content);
             return new SendEmailResponse { Success = true };

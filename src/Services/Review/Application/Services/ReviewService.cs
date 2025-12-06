@@ -59,6 +59,7 @@ namespace Codemy.Review.Application.Services
             var reviewDtos = new List<ReviewDto>();
             foreach (var r in reviews)
             {
+                if (r.IsDeleted) continue;
                 var userResponse = await _client.GetUserByIdAsync(new GetUserByIdRequest { UserId = r.userId.ToString() });
                 reviewDtos.Add(new ReviewDto
                 {
@@ -82,6 +83,62 @@ namespace Codemy.Review.Application.Services
                 throw new KeyNotFoundException("Course not found");
             }
             return await _repo.GetAverageRatingAsync(courseId);
+        }
+
+        public async Task<ReviewResponse> CheckUserReviewInCourseAsync(Guid courseId, Guid reviewId)
+        {
+            var reviews = await _repo.FindAsync(r => r.courseId == courseId && r.Id == reviewId && !r.IsDeleted);
+            if (reviews.Count == 0)
+            {
+                return new ReviewResponse
+                {
+                    success = false,
+                    message = "Review not found"
+                };
+            }
+            var review = reviews.First();
+            return new ReviewResponse
+            {
+                success = true,
+                review = new ReviewDto
+                {
+                    Id = review.Id,
+                    CourseId = review.courseId,
+                    UserId = review.userId,
+                    Rating = review.rating,
+                    Comment = review.comment,
+                    CreatedAt = review.CreatedAt
+                }
+            };
+        }
+
+        public async Task<ReviewResponse> DeleteUserReviewAsync(Guid courseId, Guid reviewId)
+        {
+             var review = await CheckUserReviewInCourseAsync(courseId, reviewId);
+             if (!review.success)
+             {
+                 return new ReviewResponse
+                 {
+                     success = false,
+                     message = "Review not found"
+                 };
+             }
+             var reviewEntity = await _repo.GetByIdAsync(review.review!.Id);
+             _repo.Delete(reviewEntity);
+             var result = await _unitOfWork.SaveChangesAsync();
+             if (result > 0)
+             {
+                return new ReviewResponse
+                {
+                    success = true,
+                    message = "Review deleted successfully"
+                };
+             }
+             return new ReviewResponse
+             {
+                 success = false,
+                 message = "Failed to delete review"
+             };
         }
     }
 }
