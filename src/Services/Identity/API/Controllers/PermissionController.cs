@@ -47,6 +47,87 @@ namespace Codemy.Identity.API.Controllers
             }
         }
 
+        [HttpGet("user-permission/{userId}")]
+        [EndpointDescription("Get list user permission by userId")]
+        [RequireAction("MY_PERMISSION_READ")]
+        public async Task<IActionResult> GetPermissionsByUser(Guid userId)
+        {
+            try
+            {
+                var result = await _permissionService.GetPermissionsByUserAsync(userId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to retrieve permissions.",
+                        "Permission retrieval failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.userPermissionGroups);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving permissions.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during permission retrieval",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpGet("role-permission/{role}")]
+        [EndpointDescription("Get list user permission by role")]
+        [RequireAction("PERMISSION_READ")]
+        public async Task<IActionResult> GetPermissionsByRole(int role)
+        {
+            try
+            {
+                var result = await _permissionService.GetPermissionsByRoleAsync(role);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to retrieve permissions.",
+                        "Permission retrieval failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.userPermissionGroups);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving permissions.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during permission retrieval",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpGet("users/{permissionId}")]
+        [EndpointDescription("Get list user by permissionId")]
+        [RequireAction("PERMISSION_READ")]
+        public async Task<IActionResult> GetUsersByPermissionId(Guid permissionId)
+        {
+            try
+            {
+                var result = await _permissionService.GetUsersByPermissionIdAsync(permissionId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to retrieve users.",
+                        "Users retrieval failed due to business logic constraints."
+                    );
+                }
+                return this.OkResponse(result.users);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving users.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during user retrieval",
+                    ex.Message
+                );
+            }
+        }
+
         [HttpGet("get/{permissionId}")]
         [RequireAction("PERMISSION_READ")]
         public async Task<IActionResult> GetPermissionById(Guid permissionId)
