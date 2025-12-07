@@ -12,10 +12,27 @@ namespace Codemy.Payment.Application.Interfaces
         Task<ListPaymentResponse> GetListPaymentAsync();
         Task<PaymentResponse> GetPaymentAsync();
         Task<PaymentResponse> GetPaymentByIdAsync(Guid paymentId);
+        Task<RevenueResponse> GetRevenueSystemAsync(GetRevenueSystemRequest request);
         Task<CartResponse> RemoveFromCart(Guid courseId);
         Task<UpdatePaymentResponse> UpdatePaymentStatusAsync(UpdatePaymentRequest request);
         Task<UpdatePaymentResponse> UpdatePaymentStripe(UpdatePaymentStripeRequest request);
         Task UpdateStatusPaymentAutomatic();
+    }
+
+    public class RevenueResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public RevenueDTO? Revenue { get; set; }
+    }
+
+    public class RevenueDTO
+    {
+        public decimal TotalRevenue { get; set; }
+        public int TotalOrders { get; set; }
+
+        public List<PaymentDto> PaymentDtos { get; set; }
+
     }
 
     public class CreatePaymentIntentResponse
