@@ -69,7 +69,10 @@ namespace Codemy.Review.Application.Services
                     UserId = r.userId,
                     Rating = r.rating,
                     Comment = r.comment,
-                    CreatedAt = r.CreatedAt
+                    CreatedAt = r.CreatedAt,
+                    Reply = r.reply,
+                    RepliedBy = r.repliedBy,
+                    RepliedAt = r.repliedAt
                 });
             }
             return reviewDtos;
@@ -139,6 +142,43 @@ namespace Codemy.Review.Application.Services
                  success = false,
                  message = "Failed to delete review"
              };
+        }
+
+        public async Task<ReviewResponse> ReplyToReviewAsync(Guid courseId, Guid reviewId, Guid instructorId, string reply)
+        {
+            if (string.IsNullOrWhiteSpace(reply))
+                return new ReviewResponse { success = false, message = "Reply cannot be empty or whitespace." };
+            // 1. Validate course
+            var course = await _courseClient.GetCourseByIdAsync(new GetCourseByIdRequest
+            {
+                CourseId = courseId.ToString()
+            });
+
+            if (!course.Exists)
+                return new ReviewResponse { success = false, message = "Course not found" };
+
+            // 2. Check instructor is owner
+            if (course.InstructorId != instructorId.ToString())
+                return new ReviewResponse { success = false, message = "User is not course instructor" };
+
+            // 3. Check review
+            var review = await _repo.GetByIdAsync(reviewId);
+            if (review == null || review.IsDeleted)
+                return new ReviewResponse { success = false, message = "Review not found" };
+
+            if(review.courseId != courseId)
+                return new ReviewResponse { success = false, message = "Review does not belong to the specified course" };
+
+            // 4. Add reply
+            review.reply = reply;
+            review.repliedBy = instructorId;
+            review.repliedAt = DateTime.UtcNow;
+            review.UpdatedBy = instructorId;
+            review.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return new ReviewResponse { success = true, message = "Reply added successfully" };
         }
     }
 }
