@@ -1023,16 +1023,23 @@ namespace Codemy.Payment.Application.Services
                     var courseExists = await _courseClient.GetCourseByIdAsync(
                          new GetCourseByIdRequest { CourseId = courseId.ToString() }
                          );
+                    OrderItemDto orderItemDto;
                     if (!courseExists.Exists)
                     {
-                        _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
-                        return new RevenueResponse
+                        _logger.LogWarning("Course with ID {CourseId} does not exist. Using placeholder data.", courseId);
+                        orderItemDto = new OrderItemDto
                         {
-                            Success = false,
-                            Message = $"Course with ID {courseId} does not exist."
+                            courseId = orderItem.courseId,
+                            instructorId = Guid.Empty,
+                            price = orderItem.price,
+                            courseTitle = "Course Unavailable",
+                            thumbnailUrl = string.Empty,
+                            description = "This course is no longer available."
                         };
+                        orderItemDtos.Add(orderItemDto);
+                        continue;
                     }
-                    OrderItemDto orderItemDto = new OrderItemDto
+                    orderItemDto = new OrderItemDto
                     {
                         courseId = orderItem.courseId,
                         instructorId = Guid.Parse(courseExists.InstructorId),
@@ -1053,7 +1060,7 @@ namespace Codemy.Payment.Application.Services
             return new RevenueResponse
             {
                 Success = true,
-                Message = "Get revenue successfully",
+                Message = "Revenue retrieved successfully",
                 Revenue = new RevenueDTO
                 {
                     TotalOrders = totalOrders,
