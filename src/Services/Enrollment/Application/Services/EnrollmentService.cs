@@ -791,5 +791,23 @@ namespace Codemy.Enrollment.Application.Services
                 Students = studentEmails
             };
         }
+
+        public async Task<TotalEnrollmentResponse> GetTotalEnrollmentsByCourseId(Guid courseId)
+        {
+            var enrollments = await _enrollmentRepository.FindAsync(e => e.courseId == courseId && !e.IsDeleted);
+            int totalEnrollments = enrollments.Count;
+            List<DateTime> enrollmentDates = enrollments.Select(e => e.enrollmentDate).ToList();
+            return new TotalEnrollmentResponse
+            {
+                Success = true,
+                Message = "Total enrollments retrieved successfully.",
+                TotalEnrollments = new TotalEnrollmentDto
+                {
+                    TotalEnrollments = totalEnrollments,
+                    EnrollmentDate = enrollmentDates
+                }
+            };
+
+        }
     }
 }

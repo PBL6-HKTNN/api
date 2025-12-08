@@ -1069,6 +1069,140 @@ namespace Codemy.Payment.Application.Services
                 }
             };
         }
-    }
+
+        public async Task<RevenueInstructorResponse> GetRevenueInstructorAsync(GetRevenueInstructorRequest request)
+        {
+            _logger.LogInformation("Starting revenue calculation for instructor ID {InstructorId}", request.InstructorId);
+            _logger.LogInformation("Date range - StartDate: {StartDate}, EndDate: {EndDate}", request.StartDate, request.EndDate);
+            if ((request.StartDate == null && request.EndDate != null) || (request.StartDate != null && request.EndDate == null))
+            {
+                _logger.LogError("Both start date and end date must be provided together.");
+                return new RevenueInstructorResponse
+                {
+                    Success = false,
+                    Message = "Both start date and end date must be provided together."
+                };
+            }
+            if (request.StartDate != null && request.EndDate != null && request.StartDate >= request.EndDate)
+            {
+                _logger.LogError("Start date must be earlier than end date.");
+                return new RevenueInstructorResponse
+                {
+                    Success = false,
+                    Message = "Start date must be earlier than end date."
+                };
+            }
+
+            var paymentAlls = await _paymentRepository.GetAllAsync(p => p.orderStatus == OrderStatus.Completed && !p.IsDeleted);
+            _logger.LogInformation("Total completed payments retrieved: {Count}", paymentAlls.Count());
+            var payments = request.EndDate == null ? paymentAlls : (await _paymentRepository.GetAllAsync(p => p.orderStatus == OrderStatus.Completed && !p.IsDeleted && p.paymentDate >= request.StartDate && p.paymentDate <= request.EndDate));
+
+            List<OrderItemDto> orderItemDtos = new List<OrderItemDto>();
+            int totalOrders = 0;
+            decimal totalRevenue = 0;
+            List<decimal> monthlyNewPayments = new List<decimal>();
+           
+                foreach (var payment in payments.ToList())
+                {
+                    var orderItems = await _orderItemRepository.GetAllAsync(oi => oi.paymentId == payment.Id && !oi.IsDeleted);
+                    _logger.LogInformation("Processing payment ID {PaymentId} with {OrderItemCount} order items.", payment.Id, orderItems.Count());
+                    foreach (var orderItem in orderItems)
+                    {
+                        var courseExists = await _courseClient.GetCourseByIdAsync(
+                             new GetCourseByIdRequest { CourseId = orderItem.courseId.ToString() }
+                             );
+                        _logger.LogInformation("Fetched course details for course ID {CourseId}. Exists: {Exists}. InstructorId: {InstructorId}", orderItem.courseId, courseExists.Exists, courseExists.InstructorId);
+                        if (courseExists.Exists && courseExists.InstructorId == request.InstructorId.ToString())
+                        {
+                            if (request.CourseId != null && orderItem.courseId != request.CourseId)
+                            {
+                                _logger.LogInformation("Excluded order item for course ID {CourseId} - does not match requested CourseId {RequestedCourseId}.", orderItem.courseId, request.CourseId);
+                                continue;
+                            }
+                            totalRevenue += orderItem.price;
+                            totalOrders++;
+
+                            orderItemDtos.Add(new OrderItemDto
+                            {
+                                courseId = orderItem.courseId,
+                                instructorId = Guid.Parse(courseExists.InstructorId),
+                                price = orderItem.price,
+                                courseTitle = courseExists.Title,
+                                thumbnailUrl = courseExists.Thumbnail,
+                                description = courseExists.Description
+                            });
+                        // check time
+                        if (monthlyNewPayments == null || monthlyNewPayments.Count != 12)
+                        {
+                            monthlyNewPayments = Enumerable.Repeat(0m, 12).ToList();
+                        }
+
+                        if (payment.paymentDate.Year == DateTime.UtcNow.Year)
+                            {
+                                // tháng trong năm hiện tại
+                                int monthIndex = payment.paymentDate.Month - 1;
+                                // đảm bảo danh sách có đủ 12 tháng
+                                while (monthlyNewPayments.Count <= monthIndex)
+                                {
+                                    monthlyNewPayments.Add(0);
+                                }
+                                monthlyNewPayments[monthIndex] += orderItem.price;
+                            }
+
+                            _logger.LogInformation("Included order item for course ID {CourseId} in revenue calculation.", orderItem.courseId);
+                            _logger.LogInformation("Current total revenue: {TotalRevenue}, total orders: {TotalOrders}", totalRevenue, totalOrders);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Excluded order item for course ID {CourseId} - not taught by instructor ID {InstructorId}.", orderItem.courseId, request.InstructorId);
+                        }
+                    }
+                }
+                _logger.LogInformation("Total revenue for instructor ID {InstructorId}: {TotalRevenue}", request.InstructorId, totalRevenue);
+                var top5CourseRevenue = orderItemDtos
+                    .GroupBy(oi => oi.courseId)
+                    .Select(g => new OrderItemDto
+                    {
+                        courseId = g.Key,
+                        instructorId = g.First().instructorId,
+                        price = g.Sum(oi => oi.price),
+                        courseTitle = g.First().courseTitle,
+                        thumbnailUrl = g.First().thumbnailUrl,
+                        description = g.First().description
+                    })
+                    .OrderByDescending(oi => oi.price)
+                    .Take(5)
+                    .ToList();
+
+                if (request.CourseId == null)
+            {
+                return new RevenueInstructorResponse
+                {
+                    Success = true,
+                    Message = "Instructor revenue retrieved successfully",
+                    Revenue = new RevenueInstructorDTO
+                    {
+                        TotalOrders = totalOrders,
+                        TotalRevenue = totalRevenue,
+                        MonthlyRevenue = monthlyNewPayments
+                    }
+                };
+            }
+                return new RevenueInstructorResponse
+                {
+                    Success = true,
+                    Message = "Instructor revenue retrieved successfully",
+                    Revenue = new RevenueInstructorDTO
+                    {
+                        TotalOrders = totalOrders,
+                        TotalRevenue = totalRevenue,
+                        Top5CourseRevenue = top5CourseRevenue,
+                        MonthlyRevenue = monthlyNewPayments
+                    }
+                };
+            }
+        
+        }
+        
 }
 

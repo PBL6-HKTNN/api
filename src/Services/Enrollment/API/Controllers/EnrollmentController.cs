@@ -215,5 +215,25 @@ namespace Codemy.Enrollment.API.Controllers
                 return this.InternalServerErrorResponse("Internal server error.");
             }
         }
+
+        [HttpGet("total-enrollments/{courseId}")]
+        [RequireAction("ENROLLMENT_READ")]
+        public async Task<IActionResult> GetTotalEnrollmentsByCourseId(Guid courseId)
+        {
+            try
+            {
+                var result = await _enrollmentService.GetTotalEnrollmentsByCourseId(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to get total enrollments.");
+                }
+                return this.OkResponse(result.TotalEnrollments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting total enrollments by course ID.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
     }
 }
