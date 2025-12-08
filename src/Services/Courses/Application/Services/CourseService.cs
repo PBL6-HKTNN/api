@@ -799,6 +799,16 @@ namespace Codemy.Courses.Application.Services
             }
 
             // Only show PUBLISHED courses
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user != null)
+            {
+                var role = user.FindFirst(ClaimTypes.Role)?.Value
+                               ?? user.FindFirst("role")?.Value;
+                if (role != "Student")
+                {
+                    return result;
+                }
+            }
             result = result.Where(c => c.status == (int)Status.Published).ToList();
 
             return result;

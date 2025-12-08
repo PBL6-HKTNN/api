@@ -289,5 +289,24 @@ namespace Codemy.Payment.API.Controllers
             return Ok();
         }
 
+        [HttpPost("revenue")]
+        [RequireAction("PAYMENT_READ")]
+        public async Task<IActionResult> GetRevenueSystem([FromBody] GetRevenueSystemRequest request)
+        {
+            try
+            {
+                var result = await _paymentService.GetRevenueSystemAsync(request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve revenue.");
+                }
+                return this.OkResponse(result.Revenue);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving revenue.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
     }
 }
