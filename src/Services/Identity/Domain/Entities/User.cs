@@ -18,7 +18,7 @@ namespace Codemy.Identity.Domain.Entities
         public string? emailVerificationToken { get; set; }
         public string? resetPasswordToken { get; set; }
         public DateTime? resetPasswordTokenExpiry { get; set; }
-        public int totalCourses { get; set; }
+        public int? totalCourses { get; set; }
         public decimal? rating { get; set; }
         public int totalLoginFailures { get; set; }
 

@@ -16,7 +16,9 @@ namespace Codemy.Courses.Domain.Entities
         public int numberOfModules { get; set; }
         public Guid categoryId { get; set; }
         public string language { get; set; }
+        public int totalEnrollments { get; set; }
         public int numberOfReviews { get; set; }
         public decimal averageRating { get; set; }
+        public bool isRequestedBanned { get; set; }
     }
 }

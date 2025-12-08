@@ -1,11 +1,11 @@
-using Codemy.Review.Domain.Entities;
+using Codemy.BuildingBlocks.Core;
+using ReviewEntity = Codemy.Review.Domain.Entities.Review;
 
 namespace Codemy.Review.Application.Interfaces
 {
-    public interface IReviewRepository
+    public interface IReviewRepository : IRepository<ReviewEntity>
     {
-        Task AddAsync(Domain.Entities.Review review);
-        Task<IEnumerable<Domain.Entities.Review>> GetByCourseIdAsync(Guid courseId);
+        Task<IEnumerable<ReviewEntity>> GetByCourseIdAsync(Guid courseId);
         Task<double> GetAverageRatingAsync(Guid courseId);
     }
 }

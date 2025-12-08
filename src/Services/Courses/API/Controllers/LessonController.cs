@@ -1,8 +1,9 @@
-﻿using Codemy.Courses.Application.DTOs;
+﻿using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Models;
+using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Codemy.BuildingBlocks.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Codemy.Courses.API.Controllers
 {
@@ -20,6 +21,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpPost("create")]
+        [RequireAction("LESSON_CREATE")]
         public async Task<IActionResult> CreateLesson([FromBody] CreateLessonRequest request)
         {
             if (!ModelState.IsValid)
@@ -59,6 +61,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("check-locked/{lessonId}")]
+        [RequireAction("LESSON_READ")]
         public async Task<IActionResult> CheckLessonLocked(Guid lessonId)
         {
             try
@@ -84,6 +87,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet]
+        [RequireAction("LESSON_READ")]
         public async Task<IActionResult> GetLessons()
         {
             try
@@ -108,6 +112,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("get/{lessonId}")]
+        [RequireAction("LESSON_READ")]
         public async Task<IActionResult> GetLessonById(Guid lessonId)
         {
             try
@@ -133,6 +138,7 @@ namespace Codemy.Courses.API.Controllers
 
         }
         [HttpPost("update/{lessonId}")]
+        [RequireAction("LESSON_UPDATE")]
         public async Task<IActionResult> UpdateLesson(Guid lessonId, [FromBody] CreateLessonRequest request)
         {
             if (!ModelState.IsValid)
@@ -168,6 +174,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpDelete("{lessonId}")]
+        [RequireAction("LESSON_DELETE")]
         public async Task<IActionResult> DeleteLesson(Guid lessonId)
         {
             try

@@ -284,6 +284,8 @@ namespace Codemy.Courses.Application.Services
             _moduleRepository.Delete(result);
             var course = await _courseRepository.GetByIdAsync(result.courseId);
             course.numberOfModules -= 1;
+            course.duration -= result.duration;
+            _courseRepository.Update(course);
             var listLessonAfterDelete = await _lessonRepository
                 .FindAsync(l => l.moduleId == result.Id);
             foreach (var lesson in listLessonAfterDelete)

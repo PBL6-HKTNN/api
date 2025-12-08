@@ -8,8 +8,7 @@ using Codemy.Payment.Application.Interfaces;
 using Codemy.Payment.Domain.Entities;
 using Codemy.Payment.Domain.Enums;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging; 
-using System.Net.WebSockets;
+using Microsoft.Extensions.Logging;
 using Stripe;
 using System.Security.Claims;
 using IdentityService = Codemy.IdentityProto.IdentityService;
@@ -118,7 +117,7 @@ namespace Codemy.Payment.Application.Services
                 };
             }
 
-            var cartItemExists = await _cartItemRepository.GetAllAsync(c => c.userId == UserId && c.courseId == courseId);
+            var cartItemExists = await _cartItemRepository.GetAllAsync(c => c.userId == UserId && c.courseId == courseId && !c.IsDeleted);
             if (cartItemExists != null && cartItemExists.Any())
             {
                 _logger.LogError("Course {CourseId} is already in the cart for user {UserId}.", courseId, UserId);
@@ -293,12 +292,12 @@ namespace Codemy.Payment.Application.Services
             };
         }
 
-        public async Task<CartResponse> GetCartAsync()
+        public async Task<CartDtoResponse> GetCartAsync()
         {
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null || !user.Identity?.IsAuthenticated == true)
             {
-                return new CartResponse
+                return new CartDtoResponse
                 {
                     Success = false,
                     Message = "User not authenticated or token missing."
@@ -317,7 +316,7 @@ namespace Codemy.Payment.Application.Services
             if (!userExists.Exists)
             {
                 _logger.LogError("User with ID {UserId} does not exist.", UserId);
-                return new CartResponse
+                return new CartDtoResponse
                 {
                     Success = false,
                     Message = "User does not exist."
@@ -326,11 +325,37 @@ namespace Codemy.Payment.Application.Services
 
             var cartItems = await _cartItemRepository.GetAllAsync(c => c.userId == UserId);
             var cartItemsFiltered = cartItems.Where(c => !c.IsDeleted);
-            return new CartResponse
+            List<CartDto> cartDtoList = new List<CartDto>();
+            foreach (var item in cartItemsFiltered)
+            {
+                var courseExists = await _courseClient.GetCourseByIdAsync(
+                    new GetCourseByIdRequest { CourseId = item.courseId.ToString() }
+                );
+                if (!courseExists.Exists)
+                {
+                    _logger.LogError("Course with ID {CourseId} does not exist.", item.courseId);
+                    return new CartDtoResponse
+                    {
+                        Success = false,
+                        Message = $"Course with ID {item.courseId} does not exist."
+                    };
+                }
+                CartDto cartDto = new CartDto
+                {
+                    id = item.Id,
+                    courseId = item.courseId,
+                    price = item.price,
+                    courseTitle = courseExists.Title,
+                    thumbnailUrl = courseExists.Thumbnail,
+                    description = courseExists.Description
+                };
+                cartDtoList.Add(cartDto);
+            }
+            return new CartDtoResponse
             {
                 Success = true,
                 Message = "Cart retrieved successfully.",
-                CartItems = cartItemsFiltered.ToList()
+                CartItems = cartDtoList
             };
         }
 
@@ -506,6 +531,89 @@ namespace Codemy.Payment.Application.Services
             };
         }
 
+        public async Task<PaymentResponse> GetPaymentByIdAsync(Guid paymentId)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new PaymentResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var UserId = Guid.Parse(userIdClaim);
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = UserId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", UserId);
+                return new PaymentResponse
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+
+            var payment = await _paymentRepository.GetAllAsync(p => p.userId == UserId && p.Id == paymentId && !p.IsDeleted);
+            if (payment == null || !payment.Any())
+            {
+                _logger.LogError("No payments found for paymentId {PaymentId}.", paymentId);
+                return new PaymentResponse
+                {
+                    Success = false,
+                    Message = "No payments found."
+                };
+            }
+            
+            var orderItems = await _orderItemRepository.GetAllAsync(oi => oi.paymentId == paymentId);
+            List<OrderItemDto> orderItemDtos = new List<OrderItemDto>();
+            foreach (var orderItem in orderItems)
+            {
+                Guid courseId = orderItem.courseId;
+                var courseExists = await _courseClient.GetCourseByIdAsync(
+                     new GetCourseByIdRequest { CourseId = courseId.ToString() }
+                     );
+                if (!courseExists.Exists)
+                {
+                    _logger.LogError("Course with ID {CourseId} does not exist.", courseId);
+                    return new PaymentResponse
+                    {
+                        Success = false,
+                        Message = $"Course with ID {courseId} does not exist."
+                    };
+                }
+                OrderItemDto orderItemDto = new OrderItemDto
+                {
+                    courseId = orderItem.courseId,
+                    instructorId = Guid.Parse(courseExists.InstructorId),
+                    price = orderItem.price,
+                    courseTitle = courseExists.Title,
+                    thumbnailUrl = courseExists.Thumbnail,
+                    description = courseExists.Description
+                };
+                orderItemDtos.Add(orderItemDto);
+            }
+
+            return new PaymentResponse
+            {
+                Success = true,
+                Message = "Payment retrieved successfully.",
+                Payment = new PaymentDto
+                {
+                    Payment = payment.First(),
+                    orderItems = orderItemDtos
+                }
+            };
+        }
+
         public async Task<CartResponse> RemoveFromCart(Guid courseId)
         {
             var user = _httpContextAccessor.HttpContext?.User;
@@ -550,7 +658,7 @@ namespace Codemy.Payment.Application.Services
                 };
             }
 
-            var cartItemexists = await _cartItemRepository.GetAllAsync(c => c.userId == UserId && c.courseId == courseId);
+            var cartItemexists = await _cartItemRepository.GetAllAsync(c => c.userId == UserId && c.courseId == courseId && !c.IsDeleted);
             if (cartItemexists == null || !cartItemexists.Any())
             {
                 _logger.LogError("Cart item for course {CourseId} not found for user {UserId}.", courseId, UserId);
@@ -583,6 +691,93 @@ namespace Codemy.Payment.Application.Services
             };
         }
 
+        public async Task<UpdatePaymentResponse> UpdatePaymentStripe(UpdatePaymentStripeRequest request)
+        {
+            var payment = await _paymentRepository.GetByIdAsync(request.PaymentId);
+            if (payment == null)
+            {
+                _logger.LogError("Payment with ID {PaymentId} not found.", request.PaymentId);
+                return new UpdatePaymentResponse
+                {
+                    Success = false,
+                    Message = "Payment not found."
+                };
+            }
+            if (payment.orderStatus == OrderStatus.Cancelled || payment.orderStatus == OrderStatus.Completed)
+            {
+                _logger.LogError("Payment with ID {PaymentId} is not in a pending state or a failed state.", request.PaymentId);
+                return new UpdatePaymentResponse
+                {
+                    Success = false,
+                    Message = "Only pending payments and failed payments can be updated."
+                };
+            }
+            if (payment.orderStatus == OrderStatus.Pending)
+            {
+                if (request.status == OrderStatus.Pending)
+                {
+                    _logger.LogError("Payment with ID {PaymentId} is already in Pending state.", request.PaymentId);
+                    return new UpdatePaymentResponse
+                    {
+                        Success = false,
+                        Message = "Payment is already in Pending state."
+                    };
+                }
+                payment.orderStatus = request.status;
+                payment.UpdatedAt = DateTime.UtcNow;
+                if (request.status == OrderStatus.Completed)
+                {
+                    var orderItems = await _orderItemRepository.GetAllAsync(oi => oi.paymentId == payment.Id);
+                    foreach (var item in orderItems)
+                    {
+                        var enrollmentResponse = await _paymentGrpcEnrollmentService.CreateEnrollmentAsync(item.courseId, request.UserId);
+                        if (!enrollmentResponse.Success)
+                        {
+                            _logger.LogError("Failed to create enrollment for course {CourseId} after payment completion.", item.courseId);
+                            return new UpdatePaymentResponse
+                            {
+                                Success = false,
+                                Message = $"Failed to create enrollment for course {item.courseId}."
+                            };
+                        }
+                    }
+                }
+                _paymentRepository.Update(payment);
+            }
+            else if (payment.orderStatus == OrderStatus.Failed)
+            {
+                if (request.status != OrderStatus.Pending)
+                {
+                    _logger.LogError("Payment with ID {PaymentId} can only be updated to Pending from Failed state.", request.PaymentId);
+                    return new UpdatePaymentResponse
+                    {
+                        Success = false,
+                        Message = "Only pending status can be set from Failed state."
+                    };
+                }
+                payment.orderStatus = request.status;
+                payment.UpdatedAt = DateTime.UtcNow;
+                payment.paymentDate = DateTime.UtcNow;
+                _paymentRepository.Update(payment);
+            }
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result <= 0)
+            {
+                _logger.LogError("Failed to update payment status for payment ID {PaymentId}.", request.PaymentId);
+                return new UpdatePaymentResponse
+                {
+                    Success = false,
+                    Message = "Failed to update payment status."
+                };
+            }
+            _logger.LogInformation("Payment status updated successfully for payment ID {PaymentId}.", request.PaymentId);
+            return new UpdatePaymentResponse
+            {
+                Success = true,
+                Message = "Payment status updated successfully.",
+                Payment = payment
+            };
+        }
         public async Task<UpdatePaymentResponse> UpdatePaymentStatusAsync(UpdatePaymentRequest request)
         {
             var user = _httpContextAccessor.HttpContext?.User;
@@ -791,5 +986,300 @@ namespace Codemy.Payment.Application.Services
                 }
             };
         }
+
+        public async Task<RevenueResponse> GetRevenueSystemAsync(GetRevenueSystemRequest request)
+        {
+            if ((request.StartDate == null && request.EndDate != null) || (request.StartDate != null && request.EndDate == null))
+            {
+                _logger.LogError("Both start date and end date must be provided together.");
+                return new RevenueResponse
+                {
+                    Success = false,
+                    Message = "Both start date and end date must be provided together."
+                };
+            }
+            if (request.StartDate != null && request.EndDate != null && request.StartDate >= request.EndDate)
+            {
+                _logger.LogError("Start date must be earlier than end date.");
+                return new RevenueResponse
+                {
+                    Success = false,
+                    Message = "Start date must be earlier than end date."
+                };
+            }
+            var paymentAlls = await _paymentRepository.GetAllAsync(p => p.orderStatus == OrderStatus.Completed && !p.IsDeleted);
+            _logger.LogInformation("Total completed payments retrieved: {Count}", paymentAlls.Count());
+            var payments = request.EndDate == null ? paymentAlls : (await _paymentRepository.GetAllAsync(p => p.orderStatus == OrderStatus.Completed && !p.IsDeleted && p.paymentDate >= request.StartDate && p.paymentDate <= request.EndDate));
+            decimal totalRevenue = payments.Sum(p => p.totalAmount);
+            int totalOrders = payments.Count();
+            List<PaymentDto> paymentDtos = new List<PaymentDto>();
+            foreach (var item in payments)
+            {
+                var orderItems = await _orderItemRepository.GetAllAsync(oi => oi.paymentId == item.Id && !oi.IsDeleted);
+                List<OrderItemDto> orderItemDtos = new List<OrderItemDto>();
+                foreach (var orderItem in orderItems)
+                {
+                    Guid courseId = orderItem.courseId;
+                    var courseExists = await _courseClient.GetCourseByIdAsync(
+                         new GetCourseByIdRequest { CourseId = courseId.ToString() }
+                         );
+                    OrderItemDto orderItemDto;
+                    if (!courseExists.Exists)
+                    {
+                        _logger.LogWarning("Course with ID {CourseId} does not exist. Using placeholder data.", courseId);
+                        orderItemDto = new OrderItemDto
+                        {
+                            courseId = orderItem.courseId,
+                            instructorId = Guid.Empty,
+                            price = orderItem.price,
+                            courseTitle = "Course Unavailable",
+                            thumbnailUrl = string.Empty,
+                            description = "This course is no longer available."
+                        };
+                        orderItemDtos.Add(orderItemDto);
+                        continue;
+                    }
+                    orderItemDto = new OrderItemDto
+                    {
+                        courseId = orderItem.courseId,
+                        instructorId = Guid.Parse(courseExists.InstructorId),
+                        price = orderItem.price,
+                        courseTitle = courseExists.Title,
+                        thumbnailUrl = courseExists.Thumbnail,
+                        description = courseExists.Description
+                    };
+                    orderItemDtos.Add(orderItemDto);
+                }
+                PaymentDto paymentDto = new PaymentDto
+                {
+                    Payment = item,
+                    orderItems = orderItemDtos
+                };
+                paymentDtos.Add(paymentDto);
+            }
+            return new RevenueResponse
+            {
+                Success = true,
+                Message = "Revenue retrieved successfully",
+                Revenue = new RevenueDTO
+                {
+                    TotalOrders = totalOrders,
+                    TotalRevenue = totalRevenue,
+                    PaymentDtos = paymentDtos
+                }
+            };
+        }
+
+        public async Task<RevenueInstructorResponse> GetRevenueInstructorAsync(GetRevenueInstructorRequest request)
+        {
+            _logger.LogInformation("Starting revenue calculation for instructor ID {InstructorId}", request.InstructorId);
+            _logger.LogInformation("Date range - StartDate: {StartDate}, EndDate: {EndDate}", request.StartDate, request.EndDate);
+            if ((request.StartDate == null && request.EndDate != null) || (request.StartDate != null && request.EndDate == null))
+            {
+                _logger.LogError("Both start date and end date must be provided together.");
+                return new RevenueInstructorResponse
+                {
+                    Success = false,
+                    Message = "Both start date and end date must be provided together."
+                };
+            }
+            if (request.StartDate != null && request.EndDate != null && request.StartDate >= request.EndDate)
+            {
+                _logger.LogError("Start date must be earlier than end date.");
+                return new RevenueInstructorResponse
+                {
+                    Success = false,
+                    Message = "Start date must be earlier than end date."
+                };
+            }
+
+            var paymentAlls = await _paymentRepository.GetAllAsync(p => p.orderStatus == OrderStatus.Completed && !p.IsDeleted);
+            _logger.LogInformation("Total completed payments retrieved: {Count}", paymentAlls.Count());
+            var payments = request.EndDate == null ? paymentAlls : (await _paymentRepository.GetAllAsync(p => p.orderStatus == OrderStatus.Completed && !p.IsDeleted && p.paymentDate >= request.StartDate && p.paymentDate <= request.EndDate));
+
+            List<OrderItemDto> orderItemDtos = new List<OrderItemDto>();
+            int totalOrders = 0;
+            decimal totalRevenue = 0;
+            List<decimal> monthlyNewPayments = new List<decimal>();
+           
+                foreach (var payment in payments.ToList())
+                {
+                    var orderItems = await _orderItemRepository.GetAllAsync(oi => oi.paymentId == payment.Id && !oi.IsDeleted);
+                    _logger.LogInformation("Processing payment ID {PaymentId} with {OrderItemCount} order items.", payment.Id, orderItems.Count());
+                    foreach (var orderItem in orderItems)
+                    {
+                        var courseExists = await _courseClient.GetCourseByIdAsync(
+                             new GetCourseByIdRequest { CourseId = orderItem.courseId.ToString() }
+                             );
+                        _logger.LogInformation("Fetched course details for course ID {CourseId}. Exists: {Exists}. InstructorId: {InstructorId}", orderItem.courseId, courseExists.Exists, courseExists.InstructorId);
+                        if (courseExists.Exists && courseExists.InstructorId == request.InstructorId.ToString())
+                        {
+                            if (request.CourseId != null && orderItem.courseId != request.CourseId)
+                            {
+                                _logger.LogInformation("Excluded order item for course ID {CourseId} - does not match requested CourseId {RequestedCourseId}.", orderItem.courseId, request.CourseId);
+                                continue;
+                            }
+                            totalRevenue += orderItem.price;
+                            totalOrders++;
+
+                            orderItemDtos.Add(new OrderItemDto
+                            {
+                                courseId = orderItem.courseId,
+                                instructorId = Guid.Parse(courseExists.InstructorId),
+                                price = orderItem.price,
+                                courseTitle = courseExists.Title,
+                                thumbnailUrl = courseExists.Thumbnail,
+                                description = courseExists.Description
+                            });
+                        // check time
+                        if (monthlyNewPayments == null || monthlyNewPayments.Count != 12)
+                        {
+                            monthlyNewPayments = Enumerable.Repeat(0m, 12).ToList();
+                        }
+
+                        if (payment.paymentDate.Year == DateTime.UtcNow.Year)
+                            {
+                                // tháng trong năm hiện tại
+                                int monthIndex = payment.paymentDate.Month - 1;
+                                // đảm bảo danh sách có đủ 12 tháng
+                                while (monthlyNewPayments.Count <= monthIndex)
+                                {
+                                    monthlyNewPayments.Add(0);
+                                }
+                                monthlyNewPayments[monthIndex] += orderItem.price;
+                            }
+
+                            _logger.LogInformation("Included order item for course ID {CourseId} in revenue calculation.", orderItem.courseId);
+                            _logger.LogInformation("Current total revenue: {TotalRevenue}, total orders: {TotalOrders}", totalRevenue, totalOrders);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Excluded order item for course ID {CourseId} - not taught by instructor ID {InstructorId}.", orderItem.courseId, request.InstructorId);
+                        }
+                    }
+                }
+                _logger.LogInformation("Total revenue for instructor ID {InstructorId}: {TotalRevenue}", request.InstructorId, totalRevenue);
+                var top5CourseRevenue = orderItemDtos
+                    .GroupBy(oi => oi.courseId)
+                    .Select(g => new OrderItemDto
+                    {
+                        courseId = g.Key,
+                        instructorId = g.First().instructorId,
+                        price = g.Sum(oi => oi.price),
+                        courseTitle = g.First().courseTitle,
+                        thumbnailUrl = g.First().thumbnailUrl,
+                        description = g.First().description
+                    })
+                    .OrderByDescending(oi => oi.price)
+                    .Take(5)
+                    .ToList();
+
+                if (request.CourseId == null)
+            {
+                return new RevenueInstructorResponse
+                {
+                    Success = true,
+                    Message = "Instructor revenue retrieved successfully",
+                    Revenue = new RevenueInstructorDTO
+                    {
+                        TotalOrders = totalOrders,
+                        TotalRevenue = totalRevenue,
+                        MonthlyRevenue = monthlyNewPayments
+                    }
+                };
+            }
+                return new RevenueInstructorResponse
+                {
+                    Success = true,
+                    Message = "Instructor revenue retrieved successfully",
+                    Revenue = new RevenueInstructorDTO
+                    {
+                        TotalOrders = totalOrders,
+                        TotalRevenue = totalRevenue,
+                        Top5CourseRevenue = top5CourseRevenue,
+                        MonthlyRevenue = monthlyNewPayments
+                    }
+                };
+            }
+
+        public async Task<RevenueResponse> GetMyListPaymentAsync()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new RevenueResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+            var UserId = Guid.Parse(userIdClaim);
+
+            var payments = await _paymentRepository.GetAllAsync(p => p.userId == UserId && p.orderStatus == OrderStatus.Completed && !p.IsDeleted);
+            decimal totalRevenue = payments.Sum(p => p.totalAmount);
+            int totalOrders = payments.Count();
+            List<PaymentDto> paymentDtos = new List<PaymentDto>();
+            foreach (var item in payments)
+            {
+                var orderItems = await _orderItemRepository.GetAllAsync(oi => oi.paymentId == item.Id && !oi.IsDeleted);
+                List<OrderItemDto> orderItemDtos = new List<OrderItemDto>();
+                foreach (var orderItem in orderItems)
+                {
+                    Guid courseId = orderItem.courseId;
+                    var courseExists = await _courseClient.GetCourseByIdAsync(
+                         new GetCourseByIdRequest { CourseId = courseId.ToString() }
+                         );
+                    OrderItemDto orderItemDto;
+                    if (!courseExists.Exists)
+                    {
+                        _logger.LogWarning("Course with ID {CourseId} does not exist. Using placeholder data.", courseId);
+                        orderItemDto = new OrderItemDto
+                        {
+                            courseId = orderItem.courseId,
+                            instructorId = Guid.Empty,
+                            price = orderItem.price,
+                            courseTitle = "Course Unavailable",
+                            thumbnailUrl = string.Empty,
+                            description = "This course is no longer available."
+                        };
+                        orderItemDtos.Add(orderItemDto);
+                        continue;
+                    }
+                    orderItemDto = new OrderItemDto
+                    {
+                        courseId = orderItem.courseId,
+                        instructorId = Guid.Parse(courseExists.InstructorId),
+                        price = orderItem.price,
+                        courseTitle = courseExists.Title,
+                        thumbnailUrl = courseExists.Thumbnail,
+                        description = courseExists.Description
+                    };
+                    orderItemDtos.Add(orderItemDto);
+                }
+                PaymentDto paymentDto = new PaymentDto
+                {
+                    Payment = item,
+                    orderItems = orderItemDtos
+                };
+                paymentDtos.Add(paymentDto);
+            }
+            return new RevenueResponse
+            {
+                Success = true,
+                Message = "My payments retrieved successfully",
+                Revenue = new RevenueDTO
+                {
+                    TotalOrders = totalOrders,
+                    TotalRevenue = totalRevenue,
+                    PaymentDtos = paymentDtos
+                }
+            };
+        }
     }
+        
 }
+

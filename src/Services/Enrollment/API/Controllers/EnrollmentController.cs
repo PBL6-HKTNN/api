@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Codemy.BuildingBlocks.Core;
-using Codemy.Enrollment.Application.Interfaces;
+﻿using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Models;
 using Codemy.Enrollment.Application.DTOs;
+using Codemy.Enrollment.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace Codemy.Enrollment.API.Controllers
@@ -22,6 +23,7 @@ namespace Codemy.Enrollment.API.Controllers
 
         [HttpPost("getCourse/{courseId}")]
         [EndpointDescription("Check course enrollment status")]
+        [RequireAction("ENROLLMENT_READ")]
         public async Task<IActionResult> GetCourseByCourseId(Guid courseId)
         {
             try
@@ -40,7 +42,29 @@ namespace Codemy.Enrollment.API.Controllers
             }
         }
 
+        [HttpGet("get-last-date-Course/{courseId}")]
+        [EndpointDescription("Check last date of course")]
+        [RequireAction("ENROLLMENT_READ")]
+        public async Task<IActionResult> CheckLastDateCourse(Guid courseId)
+        {
+            try
+            {
+                var result = await _enrollmentService.CheckLastDateCourseAsync(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to get last date of course.");
+                }
+                return this.OkResponse(result.LastDate);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting last date of course by course ID.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
         [HttpPost("updateProgress")]
+        [RequireAction("ENROLLMENT_UPDATE")]
         public async Task<IActionResult> UpdateProgress(UpdateProgressRequest request)
         {
             try
@@ -59,8 +83,48 @@ namespace Codemy.Enrollment.API.Controllers
             }
         }
 
+        [HttpPost("update-current-view")]
+        [RequireAction("ENROLLMENT_UPDATE")]
+        public async Task<IActionResult> UpdateCurrentView(UpdateCurrentViewRequest request)
+        {
+            try
+            {
+                var result = await _enrollmentService.UpdateCurrentView(request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to update current view.");
+                }
+                return this.OkResponse(result.Enrollment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating current view.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
+        [HttpGet("lessons-completed/{enrollmentId}")]
+        [RequireAction("ENROLLMENT_READ")]
+        public async Task<IActionResult> GetLessonsCompletedByEnrollmentId(Guid enrollmentId)
+        {
+            try
+            {
+                var result = await _enrollmentService.GetLessonsCompletedByEnrollmentIdAsync(enrollmentId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to get lessons completed.");
+                }
+                return this.OkResponse(result.CompletedLessonIds);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting lessons completed by enrollment ID.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
 
         [HttpPost("enroll/{courseId}")]
+        [RequireAction("ENROLLMENT_CREATE")]
         public async Task<IActionResult> EnrollInCourse(Guid courseId)
         {
             try
@@ -84,6 +148,7 @@ namespace Codemy.Enrollment.API.Controllers
         }
 
         [HttpPost("update")]
+        [RequireAction("ENROLLMENT_UPDATE")]
         public async Task<IActionResult> UpdateEnrollmentStatus(UpdateEnrollmentRequest request)
         {
             try
@@ -103,8 +168,9 @@ namespace Codemy.Enrollment.API.Controllers
         }
 
         [HttpGet("my-courses")]
+        [RequireAction("ENROLLMENT_READ")]
         [Authorize]
-        public async Task<IActionResult> GetMyCourses(int page = 1, int pageSize = 10)
+        public async Task<IActionResult> GetMyCourses([FromQuery] GetMyCourseRequest request)
         {
             try
             {
@@ -114,15 +180,58 @@ namespace Codemy.Enrollment.API.Controllers
                     return this.Unauthorized("User identifier claim is missing or invalid.");
                 }
 
-                var result = await _enrollmentService.GetMyCoursesAsync(userId, page, pageSize);
+                // Call service to get courses
+                var result = await _enrollmentService.GetMyCoursesAsync(userId, request);
+
                 if (!result.Success)
                 {
                     return this.BadRequest(result.Message ?? "Failed to get my courses.");
                 }
+
                 return this.OkResponse(result.Courses);
             }
             catch (Exception)
             {
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
+        [HttpGet("get-list-students/{courseId}")]
+        [RequireAction("ENROLLMENT_READ")]
+        public async Task<IActionResult> GetListStudentsByCourseId(Guid courseId)
+        {
+            try
+            {
+                var result = await _enrollmentService.GetListStudentsByCourseId(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to get enrollment.");
+                }
+                return this.OkResponse(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting enrollment by course ID.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
+        [HttpGet("total-enrollments/{courseId}")]
+        [RequireAction("ENROLLMENT_READ")]
+        public async Task<IActionResult> GetTotalEnrollmentsByCourseId(Guid courseId)
+        {
+            try
+            {
+                var result = await _enrollmentService.GetTotalEnrollmentsByCourseId(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to get total enrollments.");
+                }
+                return this.OkResponse(result.TotalEnrollments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting total enrollments by course ID.");
                 return this.InternalServerErrorResponse("Internal server error.");
             }
         }

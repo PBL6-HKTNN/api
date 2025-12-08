@@ -14,9 +14,42 @@ namespace Codemy.Enrollment.Application.Interfaces
         Task<EnrollmentResponse> EnrollInCourseAsync(Guid courseId, Guid userId);
         Task<EnrollmentResponse> UpdateEnrollmentStatusAsync(UpdateEnrollmentRequest request);
         Task<EnrollmentResponse> GetCourseAsync(Guid courseId);
+        Task<CheckEnrollmentsResponse> CheckEnrollmentsAsync(CheckEnrollmentsRequest request);
         Task<EnrollmentResponse> GetCourseWithGrpc(Guid courseId, Guid userId);
-        Task<CoursesResponse> GetMyCoursesAsync(Guid userId, int page, int pageSize);
+        Task<CoursesResponse> GetMyCoursesAsync(Guid userId, GetMyCourseRequest request);
         Task<EnrollmentResponse> UpdateProgressAsync(UpdateProgressRequest request);
+        Task<EnrollmentResponse> UpdateCurrentView(UpdateCurrentViewRequest request);
+        Task<LessonCompletedResponse> GetLessonsCompletedByEnrollmentIdAsync(Guid enrollmentId);
+        Task<LastDateResponse> CheckLastDateCourseAsync(Guid courseId);
+        Task<ListStudentsResponse> GetListStudentsByCourseId(Guid courseId);
+        Task<TotalEnrollmentResponse> GetTotalEnrollmentsByCourseId(Guid courseId);
+    }
+
+    public class TotalEnrollmentResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public TotalEnrollmentDto? TotalEnrollments { get; set; }
+    }
+
+    public class TotalEnrollmentDto
+    {
+        public int TotalEnrollments { get; set; }
+        public List<DateTime> EnrollmentDate { get; set; }
+    }
+
+    public class ListStudentsResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<string>? Students { get; set; }
+    }
+
+    public class LastDateResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public DateTime? LastDate { get; set; }
     }
 
     public class EnrollmentResponse
@@ -31,5 +64,12 @@ namespace Codemy.Enrollment.Application.Interfaces
         public bool Success { get; set; }
         public string? Message { get; set; }
         public List<CourseDto>? Courses { get; set; }
+    }
+
+    public class LessonCompletedResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<Guid>? CompletedLessonIds { get; set; }
     }
 }

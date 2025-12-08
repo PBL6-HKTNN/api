@@ -1,3 +1,4 @@
+using Codemy.BuildingBlocks.Core;
 using Codemy.BuildingBlocks.Core.Extensions;
 using Codemy.Review.Application.Interfaces;
 using Codemy.Review.Infrastructure.Persistence;
@@ -27,7 +28,8 @@ namespace Codemy.Review.Infrastructure
             services.AddDbContext<ReviewDbContext>(options =>
                 options.UseNpgsql(connectionString));
             // Infrastructure-level services
-            services.AddScoped<IReviewRepository, ReviewRepository>();
+            services.AddScoped<IReviewRepository, Repository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
         }

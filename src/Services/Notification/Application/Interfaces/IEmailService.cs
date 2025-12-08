@@ -4,6 +4,8 @@ namespace Codemy.Notification.Application.Interfaces
 {
     public interface IEmailService
     {
+        Task InformHideCourse(InformHideCourseRequest content);
+        Task InformRequestResolved(EmailInformRequestContent content);
         Task SendEmailAsync(string From, string To, string Token);
         Task SendResetPasswordToken(string From, string To, string Token);
     }

@@ -1,8 +1,9 @@
-﻿using Codemy.Courses.Application.Interfaces;
+﻿using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Models;
+using Codemy.Courses.Application.DTOs;
+using Codemy.Courses.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Codemy.BuildingBlocks.Core;
-using Codemy.Courses.Application.DTOs;
 
 namespace Codemy.Courses.API.Controllers
 {
@@ -20,6 +21,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpPost("create")]
+        [RequireAction("QUIZ_CREATE")]
         public async Task<IActionResult> CreateQuiz([FromBody] CreateQuizRequest request)
         {
             if (!ModelState.IsValid)
@@ -59,6 +61,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [RequireAction("QUIZ_READ")]
         public async Task<IActionResult> GetQuizById(Guid id)
         {
             try
@@ -81,6 +84,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("lessonId/{lessonId}")]
+        [RequireAction("QUIZ_READ")]
         public async Task<IActionResult> GetQuizByLessonId(Guid lessonId)
         {
             try
@@ -102,6 +106,7 @@ namespace Codemy.Courses.API.Controllers
             }
         }
         [HttpPost("submit")]
+        [RequireAction("QUIZ_SUBMIT")]
         public async Task<IActionResult> SubmitQuiz([FromBody] SubmitQuizRequest request)
         {
             if (!ModelState.IsValid)
@@ -137,6 +142,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("results/{lessonId}")]
+        [RequireAction("QUIZ_READ")]
         public async Task<IActionResult> GetQuizResults(Guid lessonId)
         {
             try
@@ -154,6 +160,7 @@ namespace Codemy.Courses.API.Controllers
             }
         }
         [HttpGet("list-results/{lessonId}")]
+        [RequireAction("QUIZ_READ")]
         public async Task<IActionResult> GetListQuizResults(Guid lessonId)
         {
             try
@@ -172,6 +179,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpGet("Attempts/{quizId}")]
+        [RequireAction("QUIZ_READ")]
         public async Task<IActionResult> GetQuizAttempts(Guid quizId)
         {
             try
@@ -196,6 +204,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpPost("update/{quizId}")]
+        [RequireAction("QUIZ_UPDATE")]
         public async Task<IActionResult> UpdateQuiz(Guid quizId, [FromBody] CreateQuizRequest request)
         {
             if (!ModelState.IsValid)
@@ -231,6 +240,7 @@ namespace Codemy.Courses.API.Controllers
         }
 
         [HttpDelete("{quizId}")]
+        [RequireAction("QUIZ_DELETE")]
         public async Task<IActionResult> DeleteQuiz(Guid quizId)
         {
             try

@@ -1,12 +1,14 @@
-﻿using Codemy.Courses.API.Services;
+﻿using Codemy.BuildingBlocks.Core.Models;
+using Codemy.Courses.API.Services;
 using Codemy.Courses.Application;
 using Codemy.Courses.Infrastructure;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using System.IdentityModel.Tokens.Jwt;
 using DotNetEnv;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -114,6 +116,7 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 app.MapGrpcService<CoursesGrpcService>();
+app.UseMiddleware<PermissionMiddleware>();
 app.MapControllers();
 
 app.Run();

@@ -1,11 +1,11 @@
 ﻿using Codemy.BuildingBlocks.Core;
+using Codemy.BuildingBlocks.Core.Models;
 using Codemy.Payment.Application.DTOs;
 using Codemy.Payment.Application.Interfaces;
+using Codemy.Payment.Domain.Entities;
 using Codemy.Payment.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
-using Stripe.Forwarding;
-using System.Runtime.CompilerServices;
 
 
 namespace Codemy.Payment.API.Controllers
@@ -24,6 +24,7 @@ namespace Codemy.Payment.API.Controllers
         }
 
         [HttpGet("getCart")]
+        [RequireAction("PAYMENT_READ")]
         public async Task<IActionResult> GetCart()
         {
             try
@@ -43,6 +44,7 @@ namespace Codemy.Payment.API.Controllers
         }
 
         [HttpPost("addToCart/{courseId}")]
+        [RequireAction("PAYMENT_CREATE")]
         public async Task<IActionResult> AddToCart(Guid courseId)
         {
             try
@@ -64,6 +66,7 @@ namespace Codemy.Payment.API.Controllers
                 return this.InternalServerErrorResponse("Internal server error.");
             }
         }
+        [RequireAction("PAYMENT_DELETE")]
         [HttpDelete("removeFromCart/{courseId}")]
         public async Task<IActionResult> RemoveFromCart(Guid courseId)
         {
@@ -84,6 +87,7 @@ namespace Codemy.Payment.API.Controllers
         }
 
         [HttpPost("createPayment")]
+        [RequireAction("PAYMENT_CREATE")]
         public async Task<IActionResult> CreatePayment([FromBody] PaymentRequest paymentRequest)
         {
             if (!ModelState.IsValid)
@@ -116,6 +120,7 @@ namespace Codemy.Payment.API.Controllers
             }
         }
         [HttpGet("payment")]
+        [RequireAction("PAYMENT_READ")]
         public async Task<IActionResult> GetPayment()
         {
             try
@@ -134,7 +139,28 @@ namespace Codemy.Payment.API.Controllers
             }
         }
 
+        [HttpGet("payment/{paymentId}")]
+        [RequireAction("PAYMENT_READ")]
+        public async Task<IActionResult> GetPaymentById(Guid paymentId)
+        {
+            try
+            {
+                var result = await _paymentService.GetPaymentByIdAsync(paymentId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve payment.");
+                }
+                return this.OkResponse(result.Payment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving payment.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
         [HttpGet("list-payments")]
+        [RequireAction("PAYMENT_READ")]
         public async Task<IActionResult> GetListPayment()
         {
             try
@@ -154,6 +180,7 @@ namespace Codemy.Payment.API.Controllers
         }
 
         [HttpPost("update-payment")]
+        [RequireAction("PAYMENT_UPDATE")]
         public async Task<IActionResult> UpdatePaymentStatus(UpdatePaymentRequest request)
         {
             if (!ModelState.IsValid)
@@ -183,6 +210,7 @@ namespace Codemy.Payment.API.Controllers
         }
 
         [HttpPost("create-payment-intent")]
+        [RequireAction("PAYMENT_CREATE")]
         public async Task<IActionResult> CreatePaymentIntent([FromBody] PaymentIntentRequest request)
         {
             if (!ModelState.IsValid)
@@ -231,6 +259,7 @@ namespace Codemy.Payment.API.Controllers
                 }
                 var paymentIdString = intent.Metadata["paymentId"];
                 var paymentId = Guid.Parse(paymentIdString);
+                var userId = Guid.Parse(intent.Metadata["userId"]);
                 OrderStatus status = OrderStatus.Pending;
                 if (stripeEvent.Type == Stripe.EventTypes.PaymentIntentSucceeded)
                 {
@@ -244,7 +273,7 @@ namespace Codemy.Payment.API.Controllers
                 }
                 try
                 {
-                    var result = await _paymentService.UpdatePaymentStatusAsync(new UpdatePaymentRequest { PaymentId = paymentId, status = status});
+                    var result = await _paymentService.UpdatePaymentStripe(new UpdatePaymentStripeRequest { PaymentId = paymentId, status = status, UserId = userId });
                     if (!result.Success)
                     {
                         return this.BadRequestResponse(result.Message ?? "Failed to update payment intent.");
@@ -257,9 +286,77 @@ namespace Codemy.Payment.API.Controllers
                     return this.InternalServerErrorResponse("Internal server error.");
                 }
             }
-
             return Ok();
         }
 
+        [HttpPost("revenue")]
+        [RequireAction("PAYMENT_READ")]
+        public async Task<IActionResult> GetRevenueSystem([FromBody] GetRevenueSystemRequest request)
+        {
+            try
+            {
+                var result = await _paymentService.GetRevenueSystemAsync(request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve revenue.");
+                }
+                return this.OkResponse(result.Revenue);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving revenue.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
+        [HttpPost("statistical")]
+        [RequireAction("PAYMENT_READ")]
+        public async Task<IActionResult> GetRevenueInstructor([FromBody] GetRevenueInstructorRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _paymentService.GetRevenueInstructorAsync(request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve revenue.");
+                }
+                return this.OkResponse(result.Revenue);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving revenue.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
+        [HttpGet("my-payments")]
+        [RequireAction("PAYMENT_READ")]
+        public async Task<IActionResult> GetMyPayments()
+        {
+            try
+            {
+                var result = await _paymentService.GetMyListPaymentAsync();
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve payments.");
+                }
+                return this.OkResponse(result.Revenue);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving payments.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
     }
 }

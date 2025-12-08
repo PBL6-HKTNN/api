@@ -8,17 +8,44 @@ namespace Codemy.Courses.Application.Interfaces
         Task<CourseReponse> CreateCourseAsync(CreateCourseRequest request);
         Task<CourseReponse> DeleteCourseAsync(Guid courseId);
         Task<CourseReponse> GetCourseByIdAsync(Guid courseId);
+        Task<CourseReponse> GetCourseByIdGrpcAsync(Guid courseId);
         Task<ResourceDtoResponse> GetLessonByCourseIdAsync(Guid courseId);
         Task<ModuleListResponse> GetModuleByCourseIdAsync(Guid courseId);
         Task<CourseReponse> UpdateCourseAsync(Guid courseId, CreateCourseRequest request);
-        Task<IEnumerable<Course>> GetCoursesAsync(
+        Task<IEnumerable<GetCoursesResponse>> GetCoursesAsync(
             Guid? categoryId = null,
+            Guid? instructorId = null,
             string? language = null,
             string? level = null,
             string? sortBy = null,
             int page = 1,
             int pageSize = 10);
         Task<ValidateCourseResponse> ValidateCourseAsync(ValidateCourseRequest request);
+        Task<LessonsCompletedResponse> GetLessonsCompletedAsync(GetLessonsCompletedRequest request);
+        Task<CourseReponse> ChangeCourseStatusAsync(ChangeCourseStatusRequest request);
+        Task<CourseReponse> ModChangeCourseStatus(ChangeCourseStatusRequest request);
+        Task<Response> AutoCheckCourseAsync(AutoCheckCourseRequest request);
+        Task<Response> requestBanCourse(Guid courseId);
+        Task HideCoursesAutomatic();
+        Task<StatisticsResponse> GetCourseStatisticsAsync();
+    }
+
+    public class StatisticsResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public StatisticsDto? Statistics { get; set; }
+    }
+
+    public class StatisticsDto
+    {
+        public int TotalCourses { get; set; }
+        public int PublishedCourses { get; set; }
+        public int DraftCourses { get; set; }
+        public int ArchivedCourses { get; set; }
+        public int TotalEnrollments { get; set; }
+        public List<int> MonthlyNewEnrollments { get; set; }
+        public List<Course> Top5Courses{ get; set; }
     }
 
     public class ValidateCourseResponse
@@ -53,7 +80,12 @@ namespace Codemy.Courses.Application.Interfaces
         public Course course { get; set; }
         public List<ModuleDto> module { get; set; }
     }
-
+    public class LessonsCompletedResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<Guid> completedLessons { get; set; }
+    }
     public class ModuleDto
     {
         public Guid Id { get; set; }

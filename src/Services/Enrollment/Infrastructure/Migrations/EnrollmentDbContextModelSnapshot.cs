@@ -61,11 +61,17 @@ namespace Codemy.Enrollment.Infrastructure.Migrations
                     b.Property<Guid>("courseId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("currentView")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("enrollmentDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("enrollmentStatus")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime>("expectedEndDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("lessonId")
                         .HasColumnType("uuid");
@@ -75,6 +81,9 @@ namespace Codemy.Enrollment.Infrastructure.Migrations
 
                     b.Property<Guid>("studentId")
                         .HasColumnType("uuid");
+
+                    b.Property<int?>("watchedSeconds")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

@@ -1,6 +1,7 @@
 ﻿using Codemy.Courses.Application.DTOs;
 using Codemy.Courses.Application.Interfaces;
 using Codemy.CoursesProto;
+using LessonsCompletedResponse = Codemy.CoursesProto.LessonsCompletedResponse;
 
 namespace Codemy.Courses.API.Services
 {
@@ -14,7 +15,7 @@ namespace Codemy.Courses.API.Services
 
         public override async Task<GetCourseByIdResponse> GetCourseById(GetCourseByIdRequest request, Grpc.Core.ServerCallContext context)
         {
-            var course = await _courseService.GetCourseByIdAsync(Guid.Parse(request.CourseId));
+            var course = await _courseService.GetCourseByIdGrpcAsync(Guid.Parse(request.CourseId));
             if (!course.Success)
             {
                 return new GetCourseByIdResponse
@@ -31,6 +32,7 @@ namespace Codemy.Courses.API.Services
                 Description = course.Course.description,
                 Thumbnail = course.Course.thumbnail,
                 Price = course.Course.price.ToString(),
+                Duration = course.Course.duration.ToString()
             };
         }
 
@@ -49,6 +51,30 @@ namespace Codemy.Courses.API.Services
             return new GetValidateResponse { Validate = false };
         }
 
+        public override async Task<LessonsCompletedResponse> GetLessonsCompleted(GetValidateRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var lessonsCompleted = await _courseService.GetLessonsCompletedAsync(new GetLessonsCompletedRequest
+            {
+                CourseId = Guid.Parse(request.CourseId),
+                LessonId = Guid.Parse(request.LessonId)
+            });
+            var response = new LessonsCompletedResponse
+            {
+                Success = lessonsCompleted.Success,
+                Message = lessonsCompleted.Message
+            };
+
+            // Only add completed lessons when success is true
+            if (lessonsCompleted.Success && lessonsCompleted.completedLessons != null)
+            {
+                // Convert Guid -> string because gRPC repeated string requires string
+                response.CompletedLessons.AddRange(
+                    lessonsCompleted.completedLessons.Select(g => g.ToString())
+                );
+            }
+
+            return response;
+        }
         public override async Task<GetAllCoursesForIndexingResponse> GetAllCoursesForIndexing(Google.Protobuf.WellKnownTypes.Empty request, Grpc.Core.ServerCallContext context)
         {
             var courses = await _courseService.GetCoursesAsync();
@@ -72,6 +98,49 @@ namespace Codemy.Courses.API.Services
             }));
 
             return response;
+        }
+
+        public override async Task<GetCourseByIdResponse> ModUpdateStatus(ModChangeCourseStatusRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var course = await _courseService.ModChangeCourseStatus(
+                new ChangeCourseStatusRequest
+                {
+                    CourseId = Guid.Parse(request.CourseId),
+                    Status = Int16.Parse(request.Status),
+                    ModeratorId = Guid.Parse(request.ModeratorId)
+                });
+            if (!course.Success)
+            {
+                return new GetCourseByIdResponse
+                {
+                    Exists = false
+                };
+            }
+            else return new GetCourseByIdResponse
+            {
+                CourseId = course.Course.Id.ToString(),
+                Exists = true
+            };
+        }
+
+        public override async Task<AutoCheckCourseResponse> AutoCheckCourseAsync(GetCourseByIdRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var result = await _courseService.AutoCheckCourseAsync(new AutoCheckCourseRequest { CourseId = Guid.Parse(request.CourseId) });
+            return new AutoCheckCourseResponse
+            {
+                Success = result.Success,
+                Message = result.Message ?? string.Empty
+            };
+        }
+
+        public override async Task<AutoCheckCourseResponse> RequestBanCourse(GetCourseByIdRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var result = await _courseService.requestBanCourse(Guid.Parse(request.CourseId));
+            return new AutoCheckCourseResponse
+            {
+                Success = result.Success,
+                Message = result.Message ?? string.Empty
+            };
         }
     }
 }

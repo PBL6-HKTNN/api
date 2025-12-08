@@ -1,4 +1,6 @@
-﻿namespace Codemy.Courses.Domain.Enums
+﻿using System.Text.Json.Serialization;
+
+namespace Codemy.Courses.Domain.Enums
 {
     public enum Status
     {

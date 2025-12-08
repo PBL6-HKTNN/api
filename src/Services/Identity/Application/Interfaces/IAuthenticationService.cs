@@ -6,7 +6,7 @@ namespace Codemy.Identity.Application.Interfaces
     public interface IAuthenticationService
     {
         Task<AuthenticationResult> AuthenticateWithGoogleAsync(string googleToken);
-        string GenerateJwtTokenAsync(User user);
+        Task <string> GenerateJwtTokenAsync(User user);
         bool ValidateJwtTokenAsync(string token); 
         Task<User?> GetUserFromJwtAsync(string token);
         Task<AuthenticationResult> CreateAccountAsync(Register request);

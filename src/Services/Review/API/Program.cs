@@ -1,11 +1,13 @@
+using Codemy.BuildingBlocks.Core.Models;
+using Codemy.Review.API.Services;
 using Codemy.Review.Application;
 using Codemy.Review.Infrastructure;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using System.IdentityModel.Tokens.Jwt;
-using DotNetEnv;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +43,7 @@ builder.WebHost.ConfigureKestrel(options =>
     options.ListenAnyIP(5042, o => o.Protocols = HttpProtocols.Http2);
     options.ListenAnyIP(7048, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
 });
-builder.Services.AddApplication();
+builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
@@ -54,6 +56,8 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader();
     });
 });
+
+builder.Services.AddGrpc();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -103,7 +107,6 @@ if (app.Environment.IsDevelopment())
           .AllowAnyHeader());
 }
 
-app.UseHttpsRedirection();
 
 app.UsePathBase("/api");
 app.UseRouting();
@@ -111,6 +114,9 @@ app.UseRouting();
 app.UseAuthentication();
 
 app.UseAuthorization();
+app.UseMiddleware<PermissionMiddleware>();
+app.MapGrpcService<ReviewServiceGrpc>();
+
 app.MapControllers();
 
 app.Run();

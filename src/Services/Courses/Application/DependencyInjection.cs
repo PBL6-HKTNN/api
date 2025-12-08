@@ -2,6 +2,7 @@
 using Codemy.Courses.Application.Services;
 using Codemy.EnrollmentsProto;
 using Codemy.IdentityProto;
+using Codemy.NotificationProto;
 using Codemy.SearchProto;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,8 @@ namespace Codemy.Courses.Application
             services.AddScoped<IModuleService, ModuleService>();
             services.AddScoped<ILessonService, LessonService>();
             services.AddScoped<IQuizService, QuizService>();
+            services.AddHostedService<HideCourseBackgroundService>();
+
             services.AddGrpcClient<IdentityService.IdentityServiceClient>(options =>
             {
                 options.Address = new Uri(configuration["GrpcClients:Identity"]);
@@ -29,6 +32,10 @@ namespace Codemy.Courses.Application
             services.AddGrpcClient<EnrollmentService.EnrollmentServiceClient>(options =>
             {
                 options.Address = new Uri(configuration["GrpcClients:Enrollment"]);
+            });
+            services.AddGrpcClient<NotificationService.NotificationServiceClient>(options =>
+            {
+                options.Address = new Uri(configuration["GrpcClients:Notification"]);
             });
             return services;
         }

@@ -1,4 +1,5 @@
-﻿using Codemy.Payment.Application;
+﻿using Codemy.BuildingBlocks.Core.Models;
+using Codemy.Payment.Application;
 using Codemy.Payment.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -84,6 +85,7 @@ if (app.Environment.IsDevelopment())
 //app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<PermissionMiddleware>();
 
 app.MapControllers();
 

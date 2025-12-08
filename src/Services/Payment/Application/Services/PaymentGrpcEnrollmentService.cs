@@ -31,10 +31,14 @@ namespace Codemy.Payment.Application.Services
                            ?? user.FindFirst("sub")?.Value
                            ?? user.FindFirst("userId")?.Value;
             var UserId = Guid.Parse(userIdClaim);
+            return await CreateEnrollmentAsync(courseId, UserId);
+        }
+        public async Task<CreateEnrollmentResponse> CreateEnrollmentAsync(Guid courseId, Guid userId)
+        {
             var enrollmentRequest = new CreateEnrollmentRequest
             {
                 CourseId = courseId.ToString(),
-                UserId = UserId.ToString()
+                UserId = userId.ToString()
             };
             var enrollmentResponse = await _enrollmentClient.CreateEnrollmentAsync(enrollmentRequest);
             return enrollmentResponse;

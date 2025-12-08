@@ -2,10 +2,11 @@
 
 namespace Codemy.Identity.Domain.Entities
 {
-    internal class Action : BaseEntity
+    public class Action : BaseEntity
     {
-        public string actionName { get; set; }
-        public string actionDescription { get; set; }
-        public string actionCode { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Code { get; set; }
+        //example "create_user", "delete_user", "update_user"
     }
 }

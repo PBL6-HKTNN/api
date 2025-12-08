@@ -8,6 +8,23 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\Codemy.Review.Domain.csproj" />
+
+  </ItemGroup>
+
+  <ItemGroup>
+		<Protobuf Include="..\..\Identity\API\Protos\identity.proto" GrpcServices="Client" />
+    <Protobuf Include="..\..\Courses\API\Protos\courses.proto" GrpcServices="Client" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.71.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.33.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.71.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

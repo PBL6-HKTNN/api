@@ -8,12 +8,46 @@ namespace Codemy.Payment.Application.Interfaces
         Task<CartResponse> AddToCartAsync(Guid courseId);
         Task<PaymentResponse> CreatePaymentAsync(PaymentRequest paymentRequest);
         Task<CreatePaymentIntentResponse> CreatePaymentIntentAsync(PaymentIntentRequest request);
-        Task<CartResponse> GetCartAsync();
+        Task<CartDtoResponse> GetCartAsync();
         Task<ListPaymentResponse> GetListPaymentAsync();
+        Task<RevenueResponse> GetMyListPaymentAsync();
         Task<PaymentResponse> GetPaymentAsync();
+        Task<PaymentResponse> GetPaymentByIdAsync(Guid paymentId);
+        Task<RevenueInstructorResponse> GetRevenueInstructorAsync(GetRevenueInstructorRequest request);
+        Task<RevenueResponse> GetRevenueSystemAsync(GetRevenueSystemRequest request);
         Task<CartResponse> RemoveFromCart(Guid courseId);
         Task<UpdatePaymentResponse> UpdatePaymentStatusAsync(UpdatePaymentRequest request);
+        Task<UpdatePaymentResponse> UpdatePaymentStripe(UpdatePaymentStripeRequest request);
         Task UpdateStatusPaymentAutomatic();
+    }
+
+    public class RevenueInstructorResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public RevenueInstructorDTO? Revenue { get; set; }
+    }
+
+    public class RevenueInstructorDTO
+    {
+        public decimal TotalRevenue { get; set; }
+        public int TotalOrders { get; set; }
+        public List<decimal> MonthlyRevenue { get; set; }
+        public List<OrderItemDto>? Top5CourseRevenue { get; set; }
+    }
+    public class RevenueResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public RevenueDTO? Revenue { get; set; }
+    }
+
+    public class RevenueDTO
+    {
+        public decimal TotalRevenue { get; set; }
+        public int TotalOrders { get; set; }
+        public List<PaymentDto> PaymentDtos { get; set; }
+
     }
 
     public class CreatePaymentIntentResponse
@@ -43,6 +77,23 @@ namespace Codemy.Payment.Application.Interfaces
         public bool Success { get; set; }
         public string? Message { get; set; }
         public List<CartItem>? CartItems { get; set; }
+    }
+
+    public class CartDtoResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public List<CartDto>? CartItems { get; set; }
+    }
+
+    public class CartDto
+    {
+        public Guid id { get; set; }
+        public Guid courseId { get; set; }
+        public decimal price { get; set; }
+        public string courseTitle { get; set; }
+        public string thumbnailUrl { get; set; }
+        public string description { get; set; }
     }
 
     public class UpdatePaymentResponse

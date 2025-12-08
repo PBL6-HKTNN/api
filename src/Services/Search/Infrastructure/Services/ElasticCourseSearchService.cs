@@ -16,7 +16,7 @@ namespace Codemy.Search.Infrastructure.Services
 
         public async Task IndexBulkAsync(IEnumerable<CourseIndexDto> courses)
         {
-            // Không cần _index — Elasticsearch sẽ dùng DefaultIndex
+            // Ensure the index exists
             var exists = await _client.Indices.ExistsAsync(_client.ConnectionSettings.DefaultIndex);
 
             if (!exists.Exists)
@@ -31,99 +31,109 @@ namespace Codemy.Search.Infrastructure.Services
 
         public async Task<PagedResult<CourseSearchResult>> SearchAsync(CourseSearchRequest request)
         {
+            // Pagination
             var from = (request.Page - 1) * request.PageSize;
 
-            // Base query (search by keyword)
+            // base query (search q)
             QueryContainer query = new MatchAllQuery();
 
             if (!string.IsNullOrWhiteSpace(request.Q))
             {
                 query = new MultiMatchQuery
                 {
-                    Fields = Infer.Fields<CourseIndexDto>(p => p.Title, p => p.Description),
+                    Fields = Infer.Fields<CourseIndexDto>(
+                        x => x.Title,
+                        x => x.Description
+                    ),
                     Query = request.Q,
                     Fuzziness = Fuzziness.Auto
                 };
             }
 
-            // Build filter queries dynamically
-            var filterQueries = new List<QueryContainer>();
+            // filters
+            var filters = new List<QueryContainer>();
 
-            if (request.Filters != null && request.Filters.Any())
+            if (!string.IsNullOrWhiteSpace(request.Language))
             {
-                foreach (var filter in request.Filters)
+                filters.Add(new TermQuery
                 {
-                    if (filter.Value is null) continue;
+                    Field = "language.keyword",
+                    Value = request.Language
+                });
+            }
 
-                    var valueStr = filter.Value.ToString();
+            if (!string.IsNullOrWhiteSpace(request.Level))
+            {
+                int parsedLevel = request.Level.ToLower() switch
+                {
+                    "beginner" => 0,
+                    "intermediate" => 1,
+                    "advanced" => 2,
+                    _ => -1
+                };
 
-                    // Check if the filter value is a collection (for terms query)
-                    if (filter.Value is IEnumerable<object> values && !(filter.Value is string))
+                if (parsedLevel != -1)
+                {
+                    filters.Add(new TermQuery
                     {
-                        filterQueries.Add(new TermsQuery
-                        {
-                            Field = $"{filter.Key}.keyword",
-                            Terms = values
-                        });
-                    }
-                    else
-                    {
-                        filterQueries.Add(new TermQuery
-                        {
-                            Field = $"{filter.Key}.keyword",
-                            Value = valueStr
-                        });
-                    }
+                        Field = "level",
+                        Value = parsedLevel
+                    });
                 }
             }
 
-            // Combine main query + filters
+            // final query
             var finalQuery = new BoolQuery
             {
                 Must = new QueryContainer[] { query },
-                Filter = filterQueries
+                Filter = filters
             };
 
-            // Handle sorting
+            // sorting
             Func<SortDescriptor<CourseIndexDto>, IPromise<IList<ISort>>> sortSelector = s => s;
-            if (!string.IsNullOrEmpty(request.SortBy))
+
+            if (!string.IsNullOrWhiteSpace(request.SortBy))
             {
-                sortSelector = s => request.SortDesc
-                    ? s.Descending(request.SortBy)
-                    : s.Ascending(request.SortBy);
+                sortSelector = request.SortBy.ToLower() switch
+                {
+                    "name"   => request.SortDesc ? (s => s.Descending("title.keyword")) : (s => s.Ascending("title.keyword")),
+                    "rating" => request.SortDesc ? (s => s.Descending("averageRating")) : (s => s.Ascending("averageRating")),
+                    _        => sortSelector
+                };
             }
 
-            // Execute Elasticsearch query
-            var search = await _client.SearchAsync<CourseIndexDto>(s => s
+            // execute search
+            var response = await _client.SearchAsync<CourseIndexDto>(s => s
+                .Query(q => finalQuery)
+                .Sort(sortSelector)
                 .From(from)
                 .Size(request.PageSize)
-                .Query(_ => finalQuery)
-                .Sort(sortSelector)
             );
 
-            // Return paged result
+            var items = response.Documents.Select(d => new CourseSearchResult
+            {
+                Id = d.Id,
+                InstructorId = d.InstructorId,
+                Title = d.Title,
+                Description = d.Description,
+                Thumbnail = d.Thumbnail,
+                Status = d.Status,
+                Duration = d.Duration,
+                Price = d.Price,
+                Level = d.Level,
+                NumberOfModules = d.NumberOfModules,
+                CategoryId = d.CategoryId,
+                Language = d.Language,
+                NumberOfReviews = d.NumberOfReviews,
+                AverageRating = d.AverageRating
+            }).ToList();
+
             return new PagedResult<CourseSearchResult>
             {
                 Page = request.Page,
                 PageSize = request.PageSize,
-                Total = search.Total,
-                Items = search.Documents.Select(d => new CourseSearchResult
-                {
-                    Id = d.Id,
-                    InstructorId = d.InstructorId,
-                    Title = d.Title,
-                    Description = d.Description,
-                    Thumbnail = d.Thumbnail,
-                    Status = d.Status,
-                    Duration = d.Duration,
-                    Price = d.Price,
-                    Level = d.Level,
-                    NumberOfModules = d.NumberOfModules,
-                    CategoryId = d.CategoryId,
-                    Language = d.Language,
-                    NumberOfReviews = d.NumberOfReviews,
-                    AverageRating = d.AverageRating
-                }).ToList()
+                Total = response.Total,
+                Items = items
             };
         }
     }

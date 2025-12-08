@@ -21,7 +21,7 @@ namespace Codemy.Search.API.Controllers
         [HttpPost]
         [Authorize]
         [SwaggerOperation("SearchCourses", Summary = "Search for courses", Description = "Search for courses using a query string with pagination support")]
-        public async Task<IActionResult> Search([FromBody] CourseSearchRequest request)
+        public async Task<IActionResult> Search([FromQuery] CourseSearchRequest request)
         {
             var result = await _searchService.SearchAsync(request);
             return this.OkResponse(result);

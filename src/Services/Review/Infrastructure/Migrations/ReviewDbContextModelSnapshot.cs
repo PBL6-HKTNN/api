@@ -59,6 +59,15 @@ namespace Codemy.Review.Infrastructure.Migrations
                     b.Property<int>("rating")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("repliedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("repliedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("reply")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("userId")
                         .HasColumnType("uuid");
 

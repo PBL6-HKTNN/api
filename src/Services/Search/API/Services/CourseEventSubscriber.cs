@@ -48,38 +48,38 @@ public class CourseEventSubscriber : IHostedService
             await searchService.IndexBulkAsync(dtos);
 
             // Subscribe to new courses via RabbitMQ
-            // try
-            // {
-            //     _subscriber = new RabbitMqSubscriber();
-            //     _subscriber.Subscribe<CourseCreatedEvent>("course_created", async evt =>
-            //     {
-            //         using var innerScope = _serviceProvider.CreateScope();
-            //         var innerSearchService = innerScope.ServiceProvider.GetRequiredService<ICourseSearchService>();
+            try
+            {
+                _subscriber = new RabbitMqSubscriber();
+                _subscriber.Subscribe<CourseCreatedEvent>("course_created", async evt =>
+                {
+                    using var innerScope = _serviceProvider.CreateScope();
+                    var innerSearchService = innerScope.ServiceProvider.GetRequiredService<ICourseSearchService>();
 
-            //         var dto = new Codemy.Search.Application.DTOs.CourseIndexDto
-            //         {
-            //             Id = evt.Id,
-            //             InstructorId = evt.InstructorId,
-            //             Title = evt.Title,
-            //             Description = evt.Description,
-            //             Thumbnail = evt.Thumbnail,
-            //             Status = 1,
-            //             Duration = TimeSpan.Zero,
-            //             Price = evt.Price,
-            //             Level = 0,
-            //             NumberOfModules = 0,
-            //             CategoryId = Guid.Empty,
-            //             Language = "en",
-            //             NumberOfReviews = 0,
-            //             AverageRating = 0
-            //         };
-            //         await innerSearchService.IndexBulkAsync(new[] { dto });
-            //     });
-            // }
-            // catch (Exception ex)
-            // {
-            //     Console.WriteLine($"Error setting up RabbitMQ subscriber: {ex.Message}");
-            // }
+                    var dto = new Codemy.Search.Application.DTOs.CourseIndexDto
+                    {
+                        Id = evt.Id,
+                        InstructorId = evt.InstructorId,
+                        Title = evt.Title,
+                        Description = evt.Description,
+                        Thumbnail = evt.Thumbnail,
+                        Status = 1,
+                        Duration = TimeSpan.Zero,
+                        Price = evt.Price,
+                        Level = 0,
+                        NumberOfModules = 0,
+                        CategoryId = Guid.Empty,
+                        Language = "en",
+                        NumberOfReviews = 0,
+                        AverageRating = 0
+                    };
+                    await innerSearchService.IndexBulkAsync(new[] { dto });
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error setting up RabbitMQ subscriber: {ex.Message}");
+            }
         }
     }
 

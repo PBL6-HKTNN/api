@@ -147,6 +147,9 @@ namespace Codemy.Courses.Infrastructure.Migrations
                     b.Property<Guid>("instructorId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("isRequestedBanned")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("language")
                         .IsRequired()
                         .HasColumnType("text");
@@ -173,6 +176,9 @@ namespace Codemy.Courses.Infrastructure.Migrations
                     b.Property<string>("title")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("totalEnrollments")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
