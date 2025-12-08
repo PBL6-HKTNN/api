@@ -1008,7 +1008,8 @@ namespace Codemy.Payment.Application.Services
                 };
             }
             var paymentAlls = await _paymentRepository.GetAllAsync(p => p.orderStatus == OrderStatus.Completed && !p.IsDeleted);
-            var payments = request.EndDate.HasValue ? paymentAlls : (await _paymentRepository.GetAllAsync(p => p.orderStatus == OrderStatus.Completed && !p.IsDeleted && p.paymentDate >= request.StartDate && p.paymentDate <= request.EndDate));
+            _logger.LogInformation("Total completed payments retrieved: {Count}", paymentAlls.Count());
+            var payments = request.EndDate == null ? paymentAlls : (await _paymentRepository.GetAllAsync(p => p.orderStatus == OrderStatus.Completed && !p.IsDeleted && p.paymentDate >= request.StartDate && p.paymentDate <= request.EndDate));
             decimal totalRevenue = payments.Sum(p => p.totalAmount);
             int totalOrders = payments.Count();
             List<PaymentDto> paymentDtos = new List<PaymentDto>();

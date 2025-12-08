@@ -30,7 +30,6 @@ namespace Codemy.Payment.Application.Interfaces
     {
         public decimal TotalRevenue { get; set; }
         public int TotalOrders { get; set; }
-
         public List<PaymentDto> PaymentDtos { get; set; }
 
     }
