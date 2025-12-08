@@ -1096,87 +1096,108 @@ namespace Codemy.Payment.Application.Services
             var paymentAlls = await _paymentRepository.GetAllAsync(p => p.orderStatus == OrderStatus.Completed && !p.IsDeleted);
             _logger.LogInformation("Total completed payments retrieved: {Count}", paymentAlls.Count());
             var payments = request.EndDate == null ? paymentAlls : (await _paymentRepository.GetAllAsync(p => p.orderStatus == OrderStatus.Completed && !p.IsDeleted && p.paymentDate >= request.StartDate && p.paymentDate <= request.EndDate));
-            
-            // check có field course không, nếu có thì chỉ lấy của course đó thôi
 
             List<OrderItemDto> orderItemDtos = new List<OrderItemDto>();
             int totalOrders = 0;
-            int totalRevenue = 0;
+            decimal totalRevenue = 0;
             List<decimal> monthlyNewPayments = new List<decimal>();
-            foreach (var payment in payments.ToList())
-            {
-                var orderItems = await _orderItemRepository.GetAllAsync(oi => oi.paymentId == payment.Id && !oi.IsDeleted);
-                _logger.LogInformation("Processing payment ID {PaymentId} with {OrderItemCount} order items.", payment.Id, orderItems.Count());
-                foreach (var orderItem in orderItems)
+           
+                foreach (var payment in payments.ToList())
                 {
-                    var courseExists = await _courseClient.GetCourseByIdAsync(
-                         new GetCourseByIdRequest { CourseId = orderItem.courseId.ToString() }
-                         );
-                    _logger.LogInformation("Fetched course details for course ID {CourseId}. Exists: {Exists}. InstructorId: {InstructorId}", orderItem.courseId, courseExists.Exists, courseExists.InstructorId);
-                    if (courseExists.Exists && courseExists.InstructorId == request.InstructorId.ToString())
+                    var orderItems = await _orderItemRepository.GetAllAsync(oi => oi.paymentId == payment.Id && !oi.IsDeleted);
+                    _logger.LogInformation("Processing payment ID {PaymentId} with {OrderItemCount} order items.", payment.Id, orderItems.Count());
+                    foreach (var orderItem in orderItems)
                     {
-                        totalRevenue += (int)orderItem.price;
-                        totalOrders++;
-                        orderItemDtos.Add(new OrderItemDto
+                        var courseExists = await _courseClient.GetCourseByIdAsync(
+                             new GetCourseByIdRequest { CourseId = orderItem.courseId.ToString() }
+                             );
+                        _logger.LogInformation("Fetched course details for course ID {CourseId}. Exists: {Exists}. InstructorId: {InstructorId}", orderItem.courseId, courseExists.Exists, courseExists.InstructorId);
+                        if (courseExists.Exists && courseExists.InstructorId == request.InstructorId.ToString())
                         {
-                            courseId = orderItem.courseId,
-                            instructorId = Guid.Parse(courseExists.InstructorId),
-                            price = orderItem.price,
-                            courseTitle = courseExists.Title,
-                            thumbnailUrl = courseExists.Thumbnail,
-                            description = courseExists.Description
-                        });
-                        // check time
-                        if (payment.paymentDate.Year == DateTime.UtcNow.Year)
-                        {
-                            // tháng trong năm hiện tại
-                            int monthIndex = payment.paymentDate.Month - 1;
-                            // đảm bảo danh sách có đủ 12 tháng
-                            while (monthlyNewPayments.Count <= monthIndex)
+                            if (request.CourseId != null && orderItem.courseId != request.CourseId)
                             {
-                                monthlyNewPayments.Add(0);
+                                _logger.LogInformation("Excluded order item for course ID {CourseId} - does not match requested CourseId {RequestedCourseId}.", orderItem.courseId, request.CourseId);
+                                continue;
                             }
-                            monthlyNewPayments[monthIndex] += orderItem.price;
+                            totalRevenue += orderItem.price;
+                            totalOrders++;
+
+                            orderItemDtos.Add(new OrderItemDto
+                            {
+                                courseId = orderItem.courseId,
+                                instructorId = Guid.Parse(courseExists.InstructorId),
+                                price = orderItem.price,
+                                courseTitle = courseExists.Title,
+                                thumbnailUrl = courseExists.Thumbnail,
+                                description = courseExists.Description
+                            });
+                            // check time
+                            if (payment.paymentDate.Year == DateTime.UtcNow.Year)
+                            {
+                                // tháng trong năm hiện tại
+                                int monthIndex = payment.paymentDate.Month - 1;
+                                // đảm bảo danh sách có đủ 12 tháng
+                                while (monthlyNewPayments.Count <= monthIndex)
+                                {
+                                    monthlyNewPayments.Add(0);
+                                }
+                                monthlyNewPayments[monthIndex] += orderItem.price;
+                            }
+
+                            _logger.LogInformation("Included order item for course ID {CourseId} in revenue calculation.", orderItem.courseId);
+                            _logger.LogInformation("Current total revenue: {TotalRevenue}, total orders: {TotalOrders}", totalRevenue, totalOrders);
                         }
-
-                        _logger.LogInformation("Included order item for course ID {CourseId} in revenue calculation.", orderItem.courseId);
-                        _logger.LogInformation("Current total revenue: {TotalRevenue}, total orders: {TotalOrders}", totalRevenue, totalOrders);
+                        else
+                        {
+                            _logger.LogInformation("Excluded order item for course ID {CourseId} - not taught by instructor ID {InstructorId}.", orderItem.courseId, request.InstructorId);
+                        }
                     }
-                    else
+                }
+                _logger.LogInformation("Total revenue for instructor ID {InstructorId}: {TotalRevenue}", request.InstructorId, totalRevenue);
+                var top5CourseRevenue = orderItemDtos
+                    .GroupBy(oi => oi.courseId)
+                    .Select(g => new OrderItemDto
                     {
-                        _logger.LogInformation("Excluded order item for course ID {CourseId} - not taught by instructor ID {InstructorId}.", orderItem.courseId, request.InstructorId);
-                    }
-                }
-            }
-            _logger.LogInformation("Total revenue for instructor ID {InstructorId}: {TotalRevenue}", request.InstructorId, totalRevenue);
-            var top5CourseRevenue = orderItemDtos
-                .GroupBy(oi => oi.courseId)
-                .Select(g => new OrderItemDto
-                {
-                    courseId = g.Key,
-                    instructorId = g.First().instructorId,
-                    price = g.Sum(oi => oi.price),
-                    courseTitle = g.First().courseTitle,
-                    thumbnailUrl = g.First().thumbnailUrl,
-                    description = g.First().description
-                })
-                .OrderByDescending(oi => oi.price)
-                .Take(5)
-                .ToList();
+                        courseId = g.Key,
+                        instructorId = g.First().instructorId,
+                        price = g.Sum(oi => oi.price),
+                        courseTitle = g.First().courseTitle,
+                        thumbnailUrl = g.First().thumbnailUrl,
+                        description = g.First().description
+                    })
+                    .OrderByDescending(oi => oi.price)
+                    .Take(5)
+                    .ToList();
 
-            return new RevenueInstructorResponse
+                if (request.CourseId == null)
             {
-                Success = true,
-                Message = "Instructor revenue retrieved successfully",
-                Revenue = new RevenueInstructorDTO
+                return new RevenueInstructorResponse
                 {
-                    TotalOrders = totalOrders,
-                    TotalRevenue = totalRevenue,
-                    Top5CourseRevenue = top5CourseRevenue,
-                    MonthlyRevenue = monthlyNewPayments
-                }
-            };
+                    Success = true,
+                    Message = "Instructor revenue retrieved successfully",
+                    Revenue = new RevenueInstructorDTO
+                    {
+                        TotalOrders = totalOrders,
+                        TotalRevenue = totalRevenue,
+                        MonthlyRevenue = monthlyNewPayments
+                    }
+                };
+            }
+                return new RevenueInstructorResponse
+                {
+                    Success = true,
+                    Message = "Instructor revenue retrieved successfully",
+                    Revenue = new RevenueInstructorDTO
+                    {
+                        TotalOrders = totalOrders,
+                        TotalRevenue = totalRevenue,
+                        Top5CourseRevenue = top5CourseRevenue,
+                        MonthlyRevenue = monthlyNewPayments
+                    }
+                };
+            }
+        
         }
-        }
+        
 }
 

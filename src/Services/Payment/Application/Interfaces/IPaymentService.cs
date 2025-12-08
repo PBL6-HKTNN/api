@@ -32,7 +32,7 @@ namespace Codemy.Payment.Application.Interfaces
         public decimal TotalRevenue { get; set; }
         public int TotalOrders { get; set; }
         public List<decimal> MonthlyRevenue { get; set; }
-        public List<OrderItemDto> Top5CourseRevenue { get; set; }
+        public List<OrderItemDto>? Top5CourseRevenue { get; set; }
     }
     public class RevenueResponse
     {
