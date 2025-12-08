@@ -273,7 +273,7 @@ namespace Codemy.Payment.API.Controllers
                 }
                 try
                 {
-                    var result = await _paymentService.UpdatePaymentStripe(new UpdatePaymentStripeRequest { PaymentId = paymentId, status = status, UserId = userId});
+                    var result = await _paymentService.UpdatePaymentStripe(new UpdatePaymentStripeRequest { PaymentId = paymentId, status = status, UserId = userId });
                     if (!result.Success)
                     {
                         return this.BadRequestResponse(result.Message ?? "Failed to update payment intent.");
@@ -335,6 +335,26 @@ namespace Codemy.Payment.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving revenue.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
+        [HttpGet("my-payments")]
+        [RequireAction("PAYMENT_READ")]
+        public async Task<IActionResult> GetMyPayments()
+        {
+            try
+            {
+                var result = await _paymentService.GetMyListPaymentAsync();
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve payments.");
+                }
+                return this.OkResponse(result.Revenue);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving payments.");
                 return this.InternalServerErrorResponse("Internal server error.");
             }
         }

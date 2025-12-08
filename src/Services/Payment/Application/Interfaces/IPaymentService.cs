@@ -10,6 +10,7 @@ namespace Codemy.Payment.Application.Interfaces
         Task<CreatePaymentIntentResponse> CreatePaymentIntentAsync(PaymentIntentRequest request);
         Task<CartDtoResponse> GetCartAsync();
         Task<ListPaymentResponse> GetListPaymentAsync();
+        Task<RevenueResponse> GetMyListPaymentAsync();
         Task<PaymentResponse> GetPaymentAsync();
         Task<PaymentResponse> GetPaymentByIdAsync(Guid paymentId);
         Task<RevenueInstructorResponse> GetRevenueInstructorAsync(GetRevenueInstructorRequest request);
