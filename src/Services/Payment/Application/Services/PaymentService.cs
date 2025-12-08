@@ -1131,8 +1131,13 @@ namespace Codemy.Payment.Application.Services
                                 thumbnailUrl = courseExists.Thumbnail,
                                 description = courseExists.Description
                             });
-                            // check time
-                            if (payment.paymentDate.Year == DateTime.UtcNow.Year)
+                        // check time
+                        if (monthlyNewPayments == null || monthlyNewPayments.Count != 12)
+                        {
+                            monthlyNewPayments = Enumerable.Repeat(0m, 12).ToList();
+                        }
+
+                        if (payment.paymentDate.Year == DateTime.UtcNow.Year)
                             {
                                 // tháng trong năm hiện tại
                                 int monthIndex = payment.paymentDate.Month - 1;
