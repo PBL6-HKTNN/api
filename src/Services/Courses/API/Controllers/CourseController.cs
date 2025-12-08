@@ -148,7 +148,7 @@ namespace Codemy.Courses.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving course."); 
+                _logger.LogError(ex, "Error retrieving course.");
                 return this.InternalServerErrorResponse(
                     "Internal server error occurred during register",
                     ex.Message
@@ -288,7 +288,7 @@ namespace Codemy.Courses.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving modules."); 
+                _logger.LogError(ex, "Error retrieving modules.");
                 return this.InternalServerErrorResponse(
                     "Internal server error occurred during module retrieval",
                     ex.Message
@@ -348,7 +348,7 @@ namespace Codemy.Courses.API.Controllers
                         result.Message ?? "Failed to create course."
                     );
                 }
-                
+
                 var publisher = new RabbitMqPublisher();
                 publisher.Publish(new CourseCreatedEvent
                 {
@@ -446,7 +446,7 @@ namespace Codemy.Courses.API.Controllers
 
         [HttpGet]
         [SwaggerOperation(
-            Summary = "Get all courses", 
+            Summary = "Get all courses",
             Description = "Retrieve a list of courses with optional filtering and pagination"
         )]
         public async Task<IActionResult> GetCourses([FromQuery] GetCoursesRequest request)
@@ -462,6 +462,33 @@ namespace Codemy.Courses.API.Controllers
             );
 
             return this.OkResponse(result);
+        }
+
+        [HttpGet("statistical")]
+        [RequireAction("COURSE_READ")]
+        [SwaggerOperation(Summary = "Get course statistics", Description = "Retrieve statistical data for courses - instructor")]
+        public async Task<IActionResult> GetCourseStatistics()
+        {
+            try
+            {
+                var result = await _courseService.GetCourseStatisticsAsync();
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to retrieve course statistics."
+                    );
+                }
+                return this.OkResponse(result.Statistics);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving course statistics.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during course statistics retrieval",
+                    ex.Message
+                );
+            }
+
         }
     }
 }

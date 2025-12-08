@@ -73,5 +73,21 @@ namespace Codemy.Enrollment.API.Services
             }
             return response;
         }
+
+        public override async Task<GetTotalEnrollmentsByCourseIdResponse> GetTotalEnrollmentsByCourseId(GetLastDateCoureRequest request, Grpc.Core.ServerCallContext context)
+        {
+            var result = await _enrollmentService.GetTotalEnrollmentsByCourseId(Guid.Parse(request.CourseId));
+            var response = new GetTotalEnrollmentsByCourseIdResponse
+            {
+                Success = result.Success,
+                Message = result.Message ?? string.Empty,
+            };
+            if (result.TotalEnrollments != null)
+            {
+                response.TotalEnrollments = result.TotalEnrollments.TotalEnrollments;
+                response.EnrollmentDate.AddRange(result.TotalEnrollments.EnrollmentDate.Select(date => date.ToString("o")));
+            }
+            return response;
+        }
     }
 }

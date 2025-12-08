@@ -1131,5 +1131,99 @@ namespace Codemy.Courses.Application.Services
                 _logger.LogInformation("Automatically hid courses successfully.");
             }
         }
+
+        public async Task<StatisticsResponse> GetCourseStatisticsAsync()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new StatisticsResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                               ?? user.FindFirst("sub")?.Value
+                               ?? user.FindFirst("userId")?.Value;
+
+            var userId = Guid.Parse(userIdClaim);
+
+            var role = user.FindFirst(ClaimTypes.Role)?.Value
+                           ?? user.FindFirst("role")?.Value;
+
+            if (role != "Instructor")
+            {
+                _logger.LogError("User with ID {UserId} and role {Role} is not authorized to access course statistics.", userId, role);
+                return new StatisticsResponse
+                {
+                    Success = false,
+                    Message = "User is not authorized to access course statistics."
+                };
+            }
+
+            var courses = await _courseRepository.GetAllAsync(c => c.instructorId == userId && !c.IsDeleted);
+            var totalCourses = courses.Count();
+            var publishedCourses = courses.Count(c => c.status == Status.Published);
+            var draftCourses = courses.Count(c => c.status == Status.Draft);
+            var archivedCourses = courses.Count(c => c.status == Status.Archived);
+
+            int totalEnrollments = 0;
+            List<int> monthlyNewEnrollments = new List<int>();
+            List<Course> top5Course = new List<Course>();
+
+            foreach (var course in courses)
+            {
+                var enrollmentResponse = await _enrollmentService.GetTotalEnrollmentsByCourseIdAsync(new GetLastDateCoureRequest
+                {
+                    CourseId = course.Id.ToString()
+                });
+                if (enrollmentResponse != null && enrollmentResponse.Success)
+                {
+                    totalEnrollments += enrollmentResponse.TotalEnrollments;
+                    course.totalEnrollments = enrollmentResponse.TotalEnrollments;
+                    _courseRepository.Update(course);
+                    foreach (var monthlyEnrollment in enrollmentResponse.EnrollmentDate)
+                    {
+                        // nếu nằm trong năm nay thì phân tích thêm
+                        DateTime enrollmentDate = DateTime.Parse(monthlyEnrollment);
+                        if (enrollmentDate.Year == DateTime.UtcNow.Year)
+                        {
+                            // tháng trong năm hiện tại
+                            int monthIndex = enrollmentDate.Month - 1;
+                            // đảm bảo danh sách có đủ 12 tháng
+                            while (monthlyNewEnrollments.Count <= monthIndex)
+                            {
+                                monthlyNewEnrollments.Add(0);
+                            }
+                            monthlyNewEnrollments[monthIndex] += 1;
+                        }
+                    }
+                }
+            }
+            await _unitOfWork.SaveChangesAsync();
+            top5Course = _courseRepository.Query()
+                .Where(c => c.instructorId == userId && !c.IsDeleted)
+                .OrderByDescending(c => c.totalEnrollments)
+                .Take(5)
+                .ToList();
+
+            var statisticsDto = new StatisticsDto
+            {
+                TotalCourses = totalCourses,
+                PublishedCourses = publishedCourses,
+                DraftCourses = draftCourses,
+                ArchivedCourses = archivedCourses,
+                TotalEnrollments = totalEnrollments,
+                MonthlyNewEnrollments = monthlyNewEnrollments,
+                Top5Courses = top5Course,
+            };
+            return new StatisticsResponse
+            {
+                Success = true,
+                Message = "Course statistics retrieved successfully.",
+                Statistics = statisticsDto
+            };
+        }
     }
 }

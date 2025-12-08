@@ -22,6 +22,20 @@ namespace Codemy.Enrollment.Application.Interfaces
         Task<LessonCompletedResponse> GetLessonsCompletedByEnrollmentIdAsync(Guid enrollmentId);
         Task<LastDateResponse> CheckLastDateCourseAsync(Guid courseId);
         Task<ListStudentsResponse> GetListStudentsByCourseId(Guid courseId);
+        Task<TotalEnrollmentResponse> GetTotalEnrollmentsByCourseId(Guid courseId);
+    }
+
+    public class TotalEnrollmentResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public TotalEnrollmentDto? TotalEnrollments { get; set; }
+    }
+
+    public class TotalEnrollmentDto
+    {
+        public int TotalEnrollments { get; set; }
+        public List<DateTime> EnrollmentDate { get; set; }
     }
 
     public class ListStudentsResponse

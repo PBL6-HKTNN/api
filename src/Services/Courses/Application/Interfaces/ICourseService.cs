@@ -27,6 +27,25 @@ namespace Codemy.Courses.Application.Interfaces
         Task<Response> AutoCheckCourseAsync(AutoCheckCourseRequest request);
         Task<Response> requestBanCourse(Guid courseId);
         Task HideCoursesAutomatic();
+        Task<StatisticsResponse> GetCourseStatisticsAsync();
+    }
+
+    public class StatisticsResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public StatisticsDto? Statistics { get; set; }
+    }
+
+    public class StatisticsDto
+    {
+        public int TotalCourses { get; set; }
+        public int PublishedCourses { get; set; }
+        public int DraftCourses { get; set; }
+        public int ArchivedCourses { get; set; }
+        public int TotalEnrollments { get; set; }
+        public List<int> MonthlyNewEnrollments { get; set; }
+        public List<Course> Top5Courses{ get; set; }
     }
 
     public class ValidateCourseResponse

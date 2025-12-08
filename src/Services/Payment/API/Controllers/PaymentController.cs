@@ -308,5 +308,35 @@ namespace Codemy.Payment.API.Controllers
                 return this.InternalServerErrorResponse("Internal server error.");
             }
         }
+
+        [HttpPost("statistical")]
+        [RequireAction("PAYMENT_READ")]
+        public async Task<IActionResult> GetRevenueInstructor([FromBody] GetRevenueInstructorRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _paymentService.GetRevenueInstructorAsync(request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to retrieve revenue.");
+                }
+                return this.OkResponse(result.Revenue);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving revenue.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
     }
 }

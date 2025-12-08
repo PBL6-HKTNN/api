@@ -10,6 +10,7 @@ service EnrollmentService {
   rpc CheckEnrollments (CheckRequest) returns (CheckResponse);
   rpc GetLastDateCourse (GetLastDateCoureRequest) returns (GetLastDateCourseResponse);
   rpc GetListStudent (GetLastDateCoureRequest) returns (GetListStudentResponse);
+  rpc GetTotalEnrollmentsByCourseId (GetLastDateCoureRequest) returns (GetTotalEnrollmentsByCourseIdResponse);
 }
 
 // Request
@@ -55,6 +56,13 @@ message GetLastDateCourseResponse {
 	bool success = 1;
 	string message = 2;
 	string lastDate = 3;
+}
+
+message GetTotalEnrollmentsByCourseIdResponse{
+	bool success = 1;
+	string message = 2;
+	int32 totalEnrollments = 3;
+	repeated string enrollmentDate = 4;
 }
 
 message GetListStudentResponse {
