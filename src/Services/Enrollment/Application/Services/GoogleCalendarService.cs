@@ -41,7 +41,7 @@ namespace Codemy.Enrollment.Application.Services
                 _logger.LogError("Course not found with ID: {CourseId}", courseId);
                 throw new Exception("Course not found");
             }
-            // 2️⃣ Get Refresh Token from Identity
+            // Get Refresh Token from Identity
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null || !user.Identity?.IsAuthenticated == true)
             {
@@ -70,7 +70,7 @@ namespace Codemy.Enrollment.Application.Services
             var token = new TokenResponse { RefreshToken = refreshToken };
 
             var clientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
-
+            var clientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
             var credential = new UserCredential(
                 new GoogleAuthorizationCodeFlow(
                     new GoogleAuthorizationCodeFlow.Initializer
@@ -78,7 +78,7 @@ namespace Codemy.Enrollment.Application.Services
                         ClientSecrets = new ClientSecrets
                         {
                             ClientId = clientId,
-                            ClientSecret = _config["Google:ClientSecret"]
+                            ClientSecret = clientSecret
                         },
                         Scopes = new[] { CalendarService.Scope.Calendar }
                     }),
@@ -125,7 +125,11 @@ namespace Codemy.Enrollment.Application.Services
                 await service.Events.Insert(newEvent, "primary").ExecuteAsync();
             }
 
-            return true;
+            return new CalendarResponse
+            {
+                Success = true,
+                Message = "Course sessions added to Google Calendar successfully."
+            };
 
         }
     }

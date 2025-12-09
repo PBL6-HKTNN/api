@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using Action = Codemy.Identity.Domain.Entities.Action;
@@ -90,7 +91,7 @@ namespace Codemy.Identity.Application.Services
                     Email = payload.Email,
                     Name = payload.Name, 
                     Picture = payload.Picture,
-                    EmailVerified = payload.EmailVerified, 
+                    EmailVerified = payload.EmailVerified,
                 });
 
                 if (user == null)
@@ -100,7 +101,7 @@ namespace Codemy.Identity.Application.Services
                         Success = false,
                         Message = "Failed to create or retrieve user account"
                     };
-                }   
+                }
 
                 // Generate JWT token
                 var jwtToken = await GenerateJwtTokenAsync(user);
@@ -565,6 +566,33 @@ namespace Codemy.Identity.Application.Services
                 return null;
             }
             return _userRepository.GetByIdAsync(Guid.Parse(userId));
+        }
+
+        public object GenerateOAuthUrl(string? returnUrl)
+        {
+            var clientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+            var redirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
+
+            var baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+
+            var scope =
+                "openid email profile https://www.googleapis.com/auth/calendar";
+
+            var state = string.IsNullOrEmpty(returnUrl)
+                ? ""
+                : WebUtility.UrlEncode(returnUrl);
+
+            var url =
+                $"{baseUrl}" +
+                $"?response_type=code" +
+                $"&client_id={WebUtility.UrlEncode(clientId)}" +
+                $"&redirect_uri={WebUtility.UrlEncode(redirectUri)}" +
+                $"&scope={WebUtility.UrlEncode(scope)}" +
+                $"&access_type=offline" +   // ⬅️ needed for refresh_token
+                $"&prompt=consent" +        // ⬅️ force refresh_token every time
+                (string.IsNullOrEmpty(state) ? "" : $"&state={state}");
+
+            return new { Url = url };
         }
     }
 }

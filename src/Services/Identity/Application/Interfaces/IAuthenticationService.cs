@@ -17,6 +17,7 @@ namespace Codemy.Identity.Application.Interfaces
         Task<SendResetPasswordResult> ResetPassword(string email, string token, string newPassword);
         Task<SendResetPasswordResult> ChangePasswordAsync(Guid userId, ChangePasswordRequest request);
         Task<User?> GetUserById(string userId);
+        object GenerateOAuthUrl(string? returnUrl);
     }
 
     public class AuthenticationResult

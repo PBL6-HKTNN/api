@@ -1,10 +1,11 @@
-using System.Security.Claims;
-using Codemy.BuildingBlocks.Core;
+﻿using Codemy.BuildingBlocks.Core;
 using Codemy.Identity.API.DTOs; 
 using Codemy.Identity.Application.DTOs.Authentication;
 using Codemy.Identity.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc; 
+using System.Net;
+using System.Security.Claims;
 
 namespace API.Controllers
 {
@@ -56,6 +57,14 @@ namespace API.Controllers
                     ex.Message
                 );
             }
+        }
+
+        [HttpGet("oauth-url")]
+        [Authorize] // user must be logged in with your JWT
+        public IActionResult GetOAuthUrl([FromQuery] string? returnUrl = null)
+        {
+            var url = _authenticationService.GenerateOAuthUrl(returnUrl);
+            return this.OkResponse(url);
         }
 
         [HttpPost("register")]
