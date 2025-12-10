@@ -17,7 +17,7 @@ namespace Codemy.Enrollment.API.Controllers
         private readonly ILogger<EnrollmentController> _logger;
 
         public EnrollmentController(
-            IEnrollmentService enrollmentService, 
+            IEnrollmentService enrollmentService,
             IGoogleCalendarService googleCalendarService,
             ILogger<EnrollmentController> logger)
         {
@@ -260,4 +260,5 @@ namespace Codemy.Enrollment.API.Controllers
                 return this.InternalServerErrorResponse("Internal server error.");
             }
         }
+    }
 }

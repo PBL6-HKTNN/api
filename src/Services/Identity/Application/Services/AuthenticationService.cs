@@ -5,9 +5,11 @@ using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Domain.Entities;
 using Codemy.Identity.Domain.Enums;
 using Google.Apis.Auth;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -25,6 +27,7 @@ namespace Codemy.Identity.Application.Services
         private readonly IRepository<Permission> _permissionRepository;
         private readonly IRepository<PermissionGroup> _permissionGroupRepository;
         private readonly IRepository<Action> _actionRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUnitOfWork _unitOfWork;
         private readonly string _jwtSecret;
         private readonly string _jwtIssuer;
@@ -40,6 +43,7 @@ namespace Codemy.Identity.Application.Services
             IRepository<Permission> permissionRepository,
             IRepository<PermissionGroup> permissionGroupRepository,
             IRepository<Action> actionRepository,
+            IHttpContextAccessor httpContextAccessor,
             IUnitOfWork unitOfWork,
             EmailSender emailSender)
         { 
@@ -49,6 +53,7 @@ namespace Codemy.Identity.Application.Services
             _permissionRepository = permissionRepository;
             _permissionGroupRepository = permissionGroupRepository;
             _actionRepository = actionRepository;
+            _httpContextAccessor = httpContextAccessor;
             _unitOfWork = unitOfWork;
             _emailSender = emailSender;
 
@@ -593,6 +598,50 @@ namespace Codemy.Identity.Application.Services
                 (string.IsNullOrEmpty(state) ? "" : $"&state={state}");
 
             return new { Url = url };
+        }
+
+        public async Task<SendResetPasswordResult> ExchangeGoogleCodeAsync(string code)
+        {
+            var clientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+            var clientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+            var redirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
+
+            var payload = new Dictionary<string, string>
+            {
+                ["code"] = code,
+                ["client_id"] = clientId!,
+                ["client_secret"] = clientSecret!,
+                ["redirect_uri"] = redirectUri!,
+                ["grant_type"] = "authorization_code"
+            };
+
+            using var client = new HttpClient();
+            var response = await client.PostAsync("https://oauth2.googleapis.com/token",
+                new FormUrlEncodedContent(payload));
+
+            var json = await response.Content.ReadAsStringAsync();
+            var token = JObject.Parse(json);
+
+            var refreshToken = token["refresh_token"]?.ToString();
+            var accessToken = token["access_token"]?.ToString();
+
+            if (refreshToken == null)
+                throw new Exception("Google did not return refresh token. User must grant consent again.");
+
+            // SAVE refresh token to DB for logged-in user
+            var userId = Guid.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            user.refreshToken = refreshToken;
+
+            _userRepository.Update(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new SendResetPasswordResult
+            {
+                Success = true,
+                Message = "Google Calendar connected successfully"
+            };
         }
     }
 }

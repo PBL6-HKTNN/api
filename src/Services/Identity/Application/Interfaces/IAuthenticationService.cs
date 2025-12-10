@@ -18,6 +18,7 @@ namespace Codemy.Identity.Application.Interfaces
         Task<SendResetPasswordResult> ChangePasswordAsync(Guid userId, ChangePasswordRequest request);
         Task<User?> GetUserById(string userId);
         object GenerateOAuthUrl(string? returnUrl);
+        Task<SendResetPasswordResult> ExchangeGoogleCodeAsync(string code);
     }
 
     public class AuthenticationResult
