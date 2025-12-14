@@ -6,6 +6,7 @@ using Codemy.FileStorage.Infrastructure;
 using Codemy.FileStorage.Application;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Codemy.FileStorage.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,7 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.AddApplication();
 
 builder.Services.AddControllers();
+builder.Services.AddGrpc();
 
 // Add Swagger services
 
@@ -62,7 +64,7 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseAuthorization();
-
+app.MapGrpcService<FilesGrpcService>();
 app.MapControllers();
 
 app.Run();

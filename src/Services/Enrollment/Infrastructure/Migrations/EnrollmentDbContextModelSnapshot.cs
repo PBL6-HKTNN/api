@@ -17,7 +17,7 @@ namespace Codemy.Enrollment.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "9.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -51,6 +51,9 @@ namespace Codemy.Enrollment.Infrastructure.Migrations
 
                     b.Property<DateTime?>("certificateExpiryDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("certificatePublicId")
+                        .HasColumnType("text");
 
                     b.Property<string>("certificateUrl")
                         .HasColumnType("text");

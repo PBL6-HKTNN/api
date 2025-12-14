@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option csharp_namespace = "Codemy.FilesProto";
+
+package file;
+
+service FileUploader {
+  // Upload: client streaming
+  rpc UploadFile(stream UploadFileRequest) returns (UploadFileResponse);
+
+  // Download: server streaming
+  rpc DownloadFile(DownloadFileRequest) returns (DownloadFileResponse);
+}
+
+message UploadFileRequest {
+  bytes chunk_data = 1;   
+  string file_name = 2;   
+  string type = 3;   
+}
+
+message UploadFileResponse {
+  string file_url = 1;
+  string public_id = 2;
+  string message = 3;
+}
+
+// ----------------------
+// DOWNLOAD STRUCTURE
+// ----------------------
+
+message DownloadFileRequest {
+  string public_id = 1;
+  string version = 2;   
+}
+
+message DownloadFileResponse {
+  string download_url = 1;  
+}
