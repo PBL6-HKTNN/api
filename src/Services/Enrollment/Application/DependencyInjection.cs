@@ -1,6 +1,7 @@
 ﻿using Codemy.CoursesProto;
 using Codemy.Enrollment.Application.Interfaces;
 using Codemy.Enrollment.Application.Services;
+using Codemy.FilesProto;
 using Codemy.IdentityProto;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,7 @@ namespace Codemy.Enrollment.Application
             services.AddScoped<IEnrollmentService, EnrollmentService>();
             services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
 
+            services.AddScoped<ICertificateService, CertificateService>();
             services.AddGrpcClient<IdentityService.IdentityServiceClient>(options =>
             {
                 options.Address = new Uri(configuration["GrpcClients:Identity"]);
@@ -21,6 +23,10 @@ namespace Codemy.Enrollment.Application
             services.AddGrpcClient<CoursesService.CoursesServiceClient>(options =>
             {
                 options.Address = new Uri(configuration["GrpcClients:Courses"]);
+            });
+            services.AddGrpcClient<FileUploader.FileUploaderClient>(options =>
+            {
+                options.Address = new Uri(configuration["GrpcClients:FileStorage"]);
             });
             return services;
         }

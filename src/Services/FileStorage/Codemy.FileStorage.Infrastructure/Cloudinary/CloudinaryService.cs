@@ -124,10 +124,11 @@ namespace Codemy.FileStorage.Infrastructure.Cloudinary
 
             Console.WriteLine($"[CloudinaryService] Uploading document: {file.FileName}");
 
-            var uploadParams = new RawUploadParams
+            var uploadParams = new ImageUploadParams
             {
                 File = new FileDescription(file.FileName, file.OpenReadStream()),
-                Folder = "codemy/documents"
+                Folder = "codemy/documents",
+                Overwrite = true
             };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
