@@ -253,7 +253,7 @@ namespace Codemy.Enrollment.API.Controllers
                 {
                     return this.BadRequestResponse(result.Message ?? "Failed to add course to calendar.");
                 }
-                return this.OkResponse(result.CalendarLink);
+                return this.OkResponse(result.CalendarLinks);
             }
             catch (Exception ex)
             {

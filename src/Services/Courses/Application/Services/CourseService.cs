@@ -787,12 +787,14 @@ namespace Codemy.Courses.Application.Services
             if (!userId.HasValue)
             {
                 // Guest ⇒ hide all banned courses
+                _logger.LogInformation("Guest user accessing courses. Hiding all banned courses.");
                 result = result.Where(c => !c.isRequestedBanned).ToList();
             }
             else
             {
                 // Logged-in user rules:
                 // Hide only when (not enrolled) AND (isRequestedBanned = true)
+                _logger.LogInformation("Logged-in user accessing courses. Hiding banned courses only if not enrolled.");
                 result = result
                     .Where(c => !(c.isRequestedBanned && c.IsEnrolled == false))
                     .ToList();
@@ -809,6 +811,7 @@ namespace Codemy.Courses.Application.Services
                     return result;
                 }
             }
+            _logger.LogInformation("Filtering courses to show only published ones for students.");
             result = result.Where(c => c.status == (int)Status.Published).ToList();
 
             return result;
