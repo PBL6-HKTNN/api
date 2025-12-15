@@ -5,6 +5,7 @@ using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Domain.Entities;
 using Codemy.Identity.Domain.Enums;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
@@ -19,7 +20,7 @@ namespace Codemy.Identity.Application.Services
         private readonly IRepository<Permission> _permissionRepository;
         private readonly IRepository<PermissionGroup> _permissionGroupRepository;
         private readonly IRepository<Action> _actionRepository;
-
+        private readonly PasswordHasher<string> _hasher = new();
         private readonly ILogger<UserService> _logger;
         private readonly IFileStorageClient _fileStorageClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -333,6 +334,95 @@ namespace Codemy.Identity.Application.Services
                 Success = true,
                 Actions = actions.DistinctBy(a => a.Id).ToList()
             };
+        }
+
+        public async Task<UserResponse> CreateUserAsync(CreateUserRequest request)
+        {
+            var user = new User
+            {
+                email = request.Email,
+                name = request.Name,
+                googleId = "",
+                profilePicture = "",
+                role = request.Role,
+                status = UserStatus.Active,
+                emailVerified = true,
+                CreatedAt = DateTime.UtcNow,
+                passwordHash = HashPassword(request.Password),
+                totalCourses = 0
+            };
+
+            await _userRepository.AddAsync(user);
+            var result = await _unitOfWork.SaveChangesAsync();
+
+            if (result == 0)
+            {
+                return new UserResponse
+                {
+                    Success = false,
+                    Message = "Failed to create user."
+                };
+            }
+            _logger.LogInformation("Created new user account for: {Email}", user.email);
+            return new UserResponse
+            {
+                Success = true,
+                Message = "User created successfully.",
+                User = user
+            };
+        }
+
+        private string HashPassword(string password)
+        {
+            return _hasher.HashPassword("", password);
+        }
+
+        public async Task<UserResponse> UpdateUserAsync(UpdateUserRequest request)
+        {
+            var user = await _userRepository.GetByIdAsync(request.Id);
+            if (user == null || user.IsDeleted)
+            {
+                return new UserResponse
+                {
+                    Success = false,
+                    Message = "User not found."
+                };
+            }
+            if (request.Name != null)
+            {
+                user.name = request.Name;
+            }
+            if (request.Password != null)
+            {
+                user.passwordHash = HashPassword(request.Password);
+            }
+            if (request.IsActive.HasValue)
+            {
+                user.status = request.IsActive.Value ? UserStatus.Active : UserStatus.Inactive;
+            }
+            if (request.Role.HasValue)
+            {
+                user.role = request.Role.Value;
+            }
+            _userRepository.Update(user);
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result > 0)
+            {
+                return new UserResponse
+                {
+                    Success = true,
+                    Message = "User updated successfully.",
+                    User = user
+                };
+            }
+            else
+            {
+                return new UserResponse
+                {
+                    Success = false,
+                    Message = "Failed to update user."
+                };
+            }
         }
     }
 }

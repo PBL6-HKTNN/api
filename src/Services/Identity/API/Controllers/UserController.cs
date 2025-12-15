@@ -88,6 +88,30 @@ namespace Codemy.Identity.API.Controllers
             return this.OkResponse(user.Actions);
         }
 
+
+
+        [HttpPost("admin/edit")]
+        [RequireAction("USER_UPDATE")]
+        public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            var result = await _userService.UpdateUserAsync(request);
+            if (!result.Success)
+            {
+                return this.BadRequestResponse(result.Message ?? "Failed to update user", result.Message);
+            }
+            else return this.OkResponse(result.User);
+        }
+
         [Authorize]
         [HttpGet]
         [RequireAction("USER_READ")]

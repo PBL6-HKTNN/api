@@ -23,6 +23,8 @@ namespace Codemy.Identity.Application.Interfaces
         Task<UserResponse> EditInformationUser(EditInformationRequest request);
         Task<UserDTOResponse> GetUserInfoByIdAsync(Guid id);
         Task<ListActionResponse> GetListActionByUserIdAsync(Guid id);
+        Task<UserResponse> CreateUserAsync(CreateUserRequest request);
+        Task<UserResponse> UpdateUserAsync(UpdateUserRequest request);
     }
 
     public class ListActionResponse
