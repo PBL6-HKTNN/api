@@ -6,9 +6,13 @@ namespace Codemy.Enrollment.API.Services
     public class EnrollmentGrpcService : EnrollmentService.EnrollmentServiceBase
     {
         private readonly IEnrollmentService _enrollmentService;
-        public EnrollmentGrpcService(IEnrollmentService enrollmentService)
+        private readonly ILogger<EnrollmentGrpcService> _logger;
+        public EnrollmentGrpcService(
+            IEnrollmentService enrollmentService,
+            ILogger<EnrollmentGrpcService> logger)
         {
             _enrollmentService = enrollmentService;
+            _logger = logger;
         }
 
         public override async Task<CreateEnrollmentResponse> CreateEnrollment(CreateEnrollmentRequest request, Grpc.Core.ServerCallContext context)
@@ -24,6 +28,9 @@ namespace Codemy.Enrollment.API.Services
         public override async Task<GetCourseWithGrpcResponse> GetCourseWithGrpc(GetCourseWithGrpcRequest request, Grpc.Core.ServerCallContext context)
         {
             var result = await _enrollmentService.GetCourseWithGrpc(Guid.Parse(request.CourseId), Guid.Parse(request.UserId));
+            _logger.LogInformation("GetCourseWithGrpc called for CourseId: {CourseId}, UserId: {UserId}, Success: {Success}", request.CourseId, request.UserId, result.Success);
+            _logger.LogInformation("Enrollment Details: {Enrollment}", result.Enrollment);
+            _logger.LogInformation("LessonId: {LessonId}", result.Enrollment?.lessonId);
             return new GetCourseWithGrpcResponse
             {
                 Success = result.Success,

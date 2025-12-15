@@ -802,10 +802,15 @@ namespace Codemy.Courses.Application.Services
 
             // Only show PUBLISHED courses
             var user = _httpContextAccessor.HttpContext?.User;
-            if (user != null)
+            if (userId.HasValue)
             {
                 var role = user.FindFirst(ClaimTypes.Role)?.Value
                                ?? user.FindFirst("role")?.Value;
+                _logger.LogInformation("User role detected: {Role}", role);
+                if (role == "Instructor")
+                {
+                    result = result.Where(c => c.instructorId == userId.Value || c.status == (int)Status.Published).ToList();
+                }
                 if (role != "Student")
                 {
                     return result;
