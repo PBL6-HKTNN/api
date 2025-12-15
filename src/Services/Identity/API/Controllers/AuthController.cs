@@ -1,10 +1,10 @@
-using System.Security.Claims;
-using Codemy.BuildingBlocks.Core;
-using Codemy.Identity.API.DTOs; 
+﻿using Codemy.BuildingBlocks.Core;
+using Codemy.Identity.API.DTOs;
 using Codemy.Identity.Application.DTOs.Authentication;
 using Codemy.Identity.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace API.Controllers
 {
@@ -56,6 +56,33 @@ namespace API.Controllers
                     ex.Message
                 );
             }
+        }
+
+        [HttpGet("oauth-url")]
+        [Authorize] // user must be logged in with your JWT
+        public IActionResult GetOAuthUrl([FromQuery] string? returnUrl = null)
+        {
+            var url = _authenticationService.GenerateOAuthUrl(returnUrl);
+            return this.OkResponse(url);
+        }
+
+        [HttpPost("exchange")]
+        [EndpointDescription("Save refresh token")]
+        [Authorize]
+        public async Task<IActionResult> ExchangeCode([FromBody] GoogleCodeRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            var result = await _authenticationService.ExchangeGoogleCodeAsync(request.Code);
+            return this.OkResponse(result);
         }
 
         [HttpPost("register")]

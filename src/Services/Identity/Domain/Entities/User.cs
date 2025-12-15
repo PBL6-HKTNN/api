@@ -21,6 +21,7 @@ namespace Codemy.Identity.Domain.Entities
         public int? totalCourses { get; set; }
         public decimal? rating { get; set; }
         public int totalLoginFailures { get; set; }
+        public string? refreshToken { get; set; }
 
     }
 }

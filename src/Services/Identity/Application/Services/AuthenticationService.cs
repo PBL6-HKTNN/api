@@ -5,10 +5,13 @@ using Codemy.Identity.Application.Interfaces;
 using Codemy.Identity.Domain.Entities;
 using Codemy.Identity.Domain.Enums;
 using Google.Apis.Auth;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using Action = Codemy.Identity.Domain.Entities.Action;
@@ -24,6 +27,7 @@ namespace Codemy.Identity.Application.Services
         private readonly IRepository<Permission> _permissionRepository;
         private readonly IRepository<PermissionGroup> _permissionGroupRepository;
         private readonly IRepository<Action> _actionRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUnitOfWork _unitOfWork;
         private readonly string _jwtSecret;
         private readonly string _jwtIssuer;
@@ -39,6 +43,7 @@ namespace Codemy.Identity.Application.Services
             IRepository<Permission> permissionRepository,
             IRepository<PermissionGroup> permissionGroupRepository,
             IRepository<Action> actionRepository,
+            IHttpContextAccessor httpContextAccessor,
             IUnitOfWork unitOfWork,
             EmailSender emailSender)
         { 
@@ -48,6 +53,7 @@ namespace Codemy.Identity.Application.Services
             _permissionRepository = permissionRepository;
             _permissionGroupRepository = permissionGroupRepository;
             _actionRepository = actionRepository;
+            _httpContextAccessor = httpContextAccessor;
             _unitOfWork = unitOfWork;
             _emailSender = emailSender;
 
@@ -90,7 +96,7 @@ namespace Codemy.Identity.Application.Services
                     Email = payload.Email,
                     Name = payload.Name, 
                     Picture = payload.Picture,
-                    EmailVerified = payload.EmailVerified, 
+                    EmailVerified = payload.EmailVerified,
                 });
 
                 if (user == null)
@@ -100,7 +106,7 @@ namespace Codemy.Identity.Application.Services
                         Success = false,
                         Message = "Failed to create or retrieve user account"
                     };
-                }   
+                }
 
                 // Generate JWT token
                 var jwtToken = await GenerateJwtTokenAsync(user);
@@ -565,6 +571,88 @@ namespace Codemy.Identity.Application.Services
                 return null;
             }
             return _userRepository.GetByIdAsync(Guid.Parse(userId));
+        }
+
+        public object GenerateOAuthUrl(string? returnUrl)
+        {
+            var clientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+            var redirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
+
+            var baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+
+            var scope =
+                "openid email profile https://www.googleapis.com/auth/calendar";
+
+            var state = string.IsNullOrEmpty(returnUrl)
+                ? ""
+                : WebUtility.UrlEncode(returnUrl);
+
+            var url =
+                $"{baseUrl}" +
+                $"?response_type=code" +
+                $"&client_id={WebUtility.UrlEncode(clientId)}" +
+                $"&redirect_uri={WebUtility.UrlEncode(redirectUri)}" +
+                $"&scope={WebUtility.UrlEncode(scope)}" +
+                $"&access_type=offline" +   // ⬅️ needed for refresh_token
+                $"&prompt=consent" +        // ⬅️ force refresh_token every time
+                (string.IsNullOrEmpty(state) ? "" : $"&state={state}");
+
+            return url;
+        }
+
+        public async Task<SendResetPasswordResult> ExchangeGoogleCodeAsync(string code)
+        {
+            var clientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+            var clientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+            var redirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
+            _logger.LogInformation("Redirect URI: {Uri}", redirectUri);
+
+            var payload = new Dictionary<string, string>
+            {
+                ["code"] = code,
+                ["client_id"] = clientId!,
+                ["client_secret"] = clientSecret!,
+                ["redirect_uri"] = redirectUri!,
+                ["grant_type"] = "authorization_code"
+            };
+
+            using var client = new HttpClient();
+            var response = await client.PostAsync("https://oauth2.googleapis.com/token",
+                new FormUrlEncodedContent(payload));
+
+            _logger.LogInformation("Exchanging Google OAuth code for tokens. Response status: {StatusCode}", response.StatusCode);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Failed to exchange Google OAuth code. Response: {Response}", errorContent);
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "Failed to exchange Google OAuth code for tokens."
+                };
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("Successfully exchanged Google OAuth code for tokens.");
+
+            var token = JObject.Parse(json);
+
+            var refreshToken = token["refresh_token"]?.ToString();
+            var userId = Guid.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (refreshToken != null)
+            {
+                user.refreshToken = refreshToken;
+                _userRepository.Update(user);
+                await _unitOfWork.SaveChangesAsync();
+            }
+
+            return new SendResetPasswordResult
+            {
+                Success = true,
+                Message = "Google Calendar connected successfully"
+            };
         }
     }
 }
