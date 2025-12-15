@@ -605,6 +605,7 @@ namespace Codemy.Identity.Application.Services
             var clientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
             var clientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
             var redirectUri = Environment.GetEnvironmentVariable("REDIRECT_URI");
+            _logger.LogInformation("Redirect URI: {Uri}", redirectUri);
 
             var payload = new Dictionary<string, string>
             {
@@ -619,23 +620,39 @@ namespace Codemy.Identity.Application.Services
             var response = await client.PostAsync("https://oauth2.googleapis.com/token",
                 new FormUrlEncodedContent(payload));
 
+            _logger.LogInformation("Exchanging Google OAuth code for tokens. Response status: {StatusCode}", response.StatusCode);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Failed to exchange Google OAuth code. Response: {Response}", errorContent);
+                return new SendResetPasswordResult
+                {
+                    Success = false,
+                    Message = "Failed to exchange Google OAuth code for tokens."
+                };
+            }
+
             var json = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("Successfully exchanged Google OAuth code for tokens: {Content}.", json);
+
             var token = JObject.Parse(json);
 
             var refreshToken = token["refresh_token"]?.ToString();
             var accessToken = token["access_token"]?.ToString();
 
-            if (refreshToken == null)
-                throw new Exception("Google did not return refresh token. User must grant consent again.");
+            //if (refreshToken == null)
+            //    throw new Exception("Google did not return refresh token. User must grant consent again.");
 
             // SAVE refresh token to DB for logged-in user
             var userId = Guid.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
             var user = await _userRepository.GetByIdAsync(userId);
-            user.refreshToken = refreshToken;
-
-            _userRepository.Update(user);
-            await _unitOfWork.SaveChangesAsync();
+            if (refreshToken != null)
+            {
+                user.refreshToken = refreshToken;
+                _userRepository.Update(user);
+                await _unitOfWork.SaveChangesAsync();
+            }
 
             return new SendResetPasswordResult
             {

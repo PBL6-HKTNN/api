@@ -27,11 +27,13 @@ namespace Codemy.Enrollment.Application.Services
         public GoogleCalendarService(
             ILogger<GoogleCalendarService> logger,
             IHttpContextAccessor httpContextAccessor,
-            CoursesService.CoursesServiceClient courseClient)
+            CoursesService.CoursesServiceClient courseClient,
+            IdentityService.IdentityServiceClient identityClient)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _courseClient = courseClient;
+            _identityClient = identityClient;
             Env.Load();
         }
 
@@ -100,19 +102,24 @@ namespace Codemy.Enrollment.Application.Services
                 ApplicationName = "Codemy Scheduler"
             });
 
-            // 4️⃣ Create 3 events per week (Mon, Wed, Fri)
-            var today = DateTime.Today;
-            var sessionDates = new[]
+            // 4️⃣ Create events for 1 month (Mon, Wed, Fri)
+            var startDate = DateTime.Today;
+            var endDate = startDate.AddMonths(1);
+
+            var studyDays = new[]
             {
-            today.AddDays((int)DayOfWeek.Monday - (int)today.DayOfWeek),
-            today.AddDays((int)DayOfWeek.Wednesday - (int)today.DayOfWeek),
-            today.AddDays((int)DayOfWeek.Friday - (int)today.DayOfWeek),
-        };
+                DayOfWeek.Monday,
+                DayOfWeek.Wednesday,
+                DayOfWeek.Friday
+            };
 
             var links = new List<string>();
 
-            foreach (var date in sessionDates)
+            for (var date = startDate; date <= endDate; date = date.AddDays(1))
             {
+                if (!studyDays.Contains(date.DayOfWeek))
+                    continue;
+
                 var start = date.AddHours(19);
                 var end = start.AddHours(1);
 
@@ -120,15 +127,25 @@ namespace Codemy.Enrollment.Application.Services
                 {
                     Summary = $"Study: {course.Title}",
                     Description = course.Description,
-                    Start = new EventDateTime { DateTime = start, TimeZone = "Asia/Ho_Chi_Minh" },
-                    End = new EventDateTime { DateTime = end, TimeZone = "Asia/Ho_Chi_Minh" }
+                    Start = new EventDateTime
+                    {
+                        DateTime = start,
+                        TimeZone = "Asia/Ho_Chi_Minh"
+                    },
+                    End = new EventDateTime
+                    {
+                        DateTime = end,
+                        TimeZone = "Asia/Ho_Chi_Minh"
+                    }
                 };
 
-                var createdEvent = await service.Events.Insert(newEvent, "primary").ExecuteAsync();
+                var createdEvent = await service.Events
+                    .Insert(newEvent, "primary")
+                    .ExecuteAsync();
 
-                // 🔥 EVENT LINK HERE
                 links.Add(createdEvent.HtmlLink);
             }
+
 
 
             return new CalendarResponse
