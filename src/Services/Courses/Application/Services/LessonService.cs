@@ -471,6 +471,32 @@ namespace Codemy.Courses.Application.Services
                 };
             }
             //check progress
+            if(enrollment.LessonId == "")
+            {
+                var firstModule = await _moduleRepository
+                    .FindAsync(m => m.courseId == course.Id && m.order == 1 && !m.IsDeleted);
+                var firstLesson = await _lessonRepository.FindAsync(l => l.moduleId == firstModule.First().Id && l.orderIndex == 1 && !l.IsDeleted);
+                if (lesson.Id != firstLesson.First().Id)
+                {
+                    _logger.LogInformation("First Lesson: {FirstLessonId}, Requested Lesson: {RequestedLessonId}", firstLesson.First().Id, lesson.Id);
+                    return new LessonResponse
+                    {
+                        Success = false,
+                        Message = "Lesson is Locked"
+                    };
+                }
+                else
+                {
+                    return new LessonResponse
+                    {
+                        Success = true,
+                        Message = "Lesson is not Locked",
+                        Lesson = lesson
+                    };
+                }
+
+            }
+            _logger.LogInformation("Checking progress for User ID {UserId} in Course ID {CourseId}, Lesson {LessonId}.", userId, course.Id, enrollment.LessonId);
             var currentLesson = await _lessonRepository.GetByIdAsync(Guid.Parse(enrollment.LessonId));
             if (currentLesson == null)
             {
