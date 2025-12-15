@@ -597,7 +597,7 @@ namespace Codemy.Identity.Application.Services
                 $"&prompt=consent" +        // ⬅️ force refresh_token every time
                 (string.IsNullOrEmpty(state) ? "" : $"&state={state}");
 
-            return new { Url = url };
+            return url;
         }
 
         public async Task<SendResetPasswordResult> ExchangeGoogleCodeAsync(string code)
@@ -633,17 +633,11 @@ namespace Codemy.Identity.Application.Services
             }
 
             var json = await response.Content.ReadAsStringAsync();
-            _logger.LogInformation("Successfully exchanged Google OAuth code for tokens: {Content}.", json);
+            _logger.LogInformation("Successfully exchanged Google OAuth code for tokens.");
 
             var token = JObject.Parse(json);
 
             var refreshToken = token["refresh_token"]?.ToString();
-            var accessToken = token["access_token"]?.ToString();
-
-            //if (refreshToken == null)
-            //    throw new Exception("Google did not return refresh token. User must grant consent again.");
-
-            // SAVE refresh token to DB for logged-in user
             var userId = Guid.Parse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
             var user = await _userRepository.GetByIdAsync(userId);

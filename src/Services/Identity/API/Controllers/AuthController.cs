@@ -1,10 +1,9 @@
 ﻿using Codemy.BuildingBlocks.Core;
-using Codemy.Identity.API.DTOs; 
+using Codemy.Identity.API.DTOs;
 using Codemy.Identity.Application.DTOs.Authentication;
 using Codemy.Identity.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc; 
-using System.Net;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace API.Controllers
@@ -68,6 +67,7 @@ namespace API.Controllers
         }
 
         [HttpPost("exchange")]
+        [EndpointDescription("Save refresh token")]
         [Authorize]
         public async Task<IActionResult> ExchangeCode([FromBody] GoogleCodeRequest request)
         {

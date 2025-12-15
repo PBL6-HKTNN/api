@@ -242,6 +242,7 @@ namespace Codemy.Enrollment.API.Controllers
         }
 
         [HttpGet("add-calendar/{courseId}")]
+        [EndpointDescription("Add to calendar")]
         [RequireAction("ENROLLMENT_READ")]
         public async Task<IActionResult> AddCourseToCalendar(Guid courseId)
         {

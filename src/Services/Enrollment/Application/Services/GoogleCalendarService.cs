@@ -1,7 +1,5 @@
-﻿using Codemy.BuildingBlocks.Core;
-using Codemy.CoursesProto;
+﻿using Codemy.CoursesProto;
 using Codemy.Enrollment.Application.Interfaces;
-using Codemy.Identity.Domain.Entities;
 using Codemy.IdentityProto;
 using DotNetEnv;
 using Google.Apis.Auth.OAuth2;
@@ -12,8 +10,6 @@ using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
-using System;
 
 namespace Codemy.Enrollment.Application.Services
 {
@@ -146,13 +142,11 @@ namespace Codemy.Enrollment.Application.Services
                 links.Add(createdEvent.HtmlLink);
             }
 
-
-
             return new CalendarResponse
             {
                 Success = true,
                 Message = "Course sessions added to Google Calendar successfully.",
-                CalendarLink = links
+                CalendarLinks = links
             };
 
         }
