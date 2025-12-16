@@ -47,13 +47,13 @@ namespace Codemy.Identity.API.Controllers
         }
 
         [HttpGet("get-all")]
-        [EndpointDescription("Retrieves all requests with detailed information.")]
+        [EndpointDescription("Retrieves all requests with detailed information. (sort asc or desc")]
         [RequireAction("REQUEST_READ")]
-        public async Task<IActionResult> GetAllDetailRequests()
+        public async Task<IActionResult> GetAllDetailRequests([FromBody] GetAllDetailRequest request)
         {
             try
             {
-                var result = await _requestService.GetAllDetailRequestsAsync();
+                var result = await _requestService.GetAllDetailRequestsAsync(request);
                 if (!result.Success)
                 {
                     return this.BadRequestResponse(
@@ -61,7 +61,7 @@ namespace Codemy.Identity.API.Controllers
                         "Request retrieval failed due to business logic constraints."
                     );
                 }
-                return this.OkResponse(result.Data);
+                return this.OkResponse(result.requests);
             }
             catch (Exception ex)
             {

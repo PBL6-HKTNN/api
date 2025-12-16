@@ -245,45 +245,42 @@ namespace Codemy.Identity.Application.Services
             };
         }
 
-        public async Task<AllDetailResponse> GetAllDetailRequestsAsync()
+        public async Task<ListRequestResponse> GetAllDetailRequestsAsync(GetAllDetailRequest request)
         {
-            var upgradeRequestType = (await _requestTypeRepository.GetAllAsync(r => r.Type == RequestTypeEnum.UpgradeToInstructor && !r.IsDeleted)).FirstOrDefault(); ;
-            var publicCourseRequestType = (await _requestTypeRepository.GetAllAsync(r => r.Type == RequestTypeEnum.PublicCourseRequest && !r.IsDeleted)).FirstOrDefault(); ;
-            var hideCourseRequestType = (await _requestTypeRepository.GetAllAsync(r => r.Type == RequestTypeEnum.HideCourseRequest && !r.IsDeleted)).FirstOrDefault(); ;
-            var reportCourseRequestType = (await _requestTypeRepository.GetAllAsync(r => r.Type == RequestTypeEnum.ReportCourseRequest && !r.IsDeleted)).FirstOrDefault(); ;
-            var reportReviewRequestType = (await _requestTypeRepository.GetAllAsync(r => r.Type == RequestTypeEnum.ReportReviewRequest && !r.IsDeleted)).FirstOrDefault(); ;
-
-            if (upgradeRequestType == null || publicCourseRequestType == null || hideCourseRequestType == null || reportCourseRequestType == null || reportReviewRequestType == null)
+            var requestList = await _requestRepository.GetAllAsync(r => !r.IsDeleted);
+            if (request.RequestTypeId.HasValue)
             {
-                return new AllDetailResponse
-                {
-                    Success = false,
-                    Message = "One or more required request types are missing."
-                };
+                requestList = requestList.Where(r => r.RequestTypeId == request.RequestTypeId.Value).ToList();
             }
-            var upgradeRequest = await _requestRepository.GetAllAsync(r => r.RequestTypeId == upgradeRequestType.Id && !r.IsDeleted);   
-            var publicCourseRequest = await _requestRepository.GetAllAsync(r => r.RequestTypeId == publicCourseRequestType.Id && !r.IsDeleted);
-            var hideCourseRequest = await _requestRepository.GetAllAsync(r => r.RequestTypeId == hideCourseRequestType.Id && !r.IsDeleted);
-            var reportCourseRequest = await _requestRepository.GetAllAsync(r => r.RequestTypeId == reportCourseRequestType.Id && !r.IsDeleted);
-            var reportReviewRequest = await _requestRepository.GetAllAsync(r => r.RequestTypeId == reportReviewRequestType.Id && !r.IsDeleted);
-
-            int totalPendingRequest = (await _requestRepository.GetAllAsync(r => r.Status == RequestStatus.Reviewing && !r.IsDeleted)).Count();
-            int totalResolvedRequest = (await _requestRepository.GetAllAsync(r => (r.Status == RequestStatus.Approved || r.Status == RequestStatus.Rejected) && !r.IsDeleted)).Count();
-            return new AllDetailResponse
+            if (request.Status.HasValue)
+            {
+                requestList = requestList.Where(r => r.Status == request.Status.Value).ToList();
+            }
+            // Sorting
+            if (!string.IsNullOrEmpty(request.sort))
+            {
+                switch (request.sort.ToLower())
+                {
+                    case "asc":
+                        requestList = requestList.OrderBy(r => r.CreatedAt).ToList();
+                        break;
+                    case "desc":
+                        requestList = requestList.OrderByDescending(r => r.CreatedAt).ToList();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            // Pagination
+            int skip = (request.page - 1) * request.pageSize;
+            requestList = requestList.Skip(skip).Take(request.pageSize).ToList();
+            return new ListRequestResponse
             {
                 Success = true,
-                Message = "All detailed requests retrieved successfully.",
-                Data = new AllDetailDto
-                {
-                    TotalPendingRequest = totalPendingRequest,
-                    TotalResolvedRequest = totalResolvedRequest,
-                    UpgradeRequest = upgradeRequest.ToList(),
-                    PublicCourserequest = publicCourseRequest.ToList(),
-                    HideCourserequest = hideCourseRequest.ToList(),
-                    ReportCourserequest = reportCourseRequest.ToList(),
-                    ReportReviewrequest = reportReviewRequest.ToList()
-                }
+                Message = "Requests retrieved successfully.",
+                requests = requestList.ToList()
             };
+
         }
 
         public async Task<ListRequestResponse> GetMyRequestsAsync()
