@@ -9,7 +9,7 @@ namespace Codemy.Identity.Application.Interfaces
     {
         Task<RequestResponse> CreateRequestAsync(CreateRequestDTO createRequestDTO);
         Task<RequestResponse> DeleteRequestAsync(Guid requestId);
-        Task<AllDetailResponse> GetAllDetailRequestsAsync();
+        Task<ListRequestResponse> GetAllDetailRequestsAsync(GetAllDetailRequest request);
         Task<ListRequestResponse> GetMyRequestsAsync();
         Task<RequestResponse> GetRequestByIdAsync(Guid requestId);
         Task<ListRequestResponse> GetRequestsAsync();
