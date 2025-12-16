@@ -19,6 +19,7 @@ namespace Codemy.Courses.Application.Services
         private readonly IRepository<QuizAttempt> _quizAttemptRepository;
         private readonly IRepository<QuizQuestion> _quizQuestionRepository;
         private readonly IRepository<Lesson> _lessonRepository;
+        private readonly IRepository<VideoCheckpoint> _videoCheckpointRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IdentityService.IdentityServiceClient _client;
         private readonly IUnitOfWork _unitOfWork;
@@ -30,6 +31,7 @@ namespace Codemy.Courses.Application.Services
             IRepository<QuizAttempt> quizAttemptRepository,
             IRepository<Lesson> lessonRepository,
             IRepository<QuizQuestion> quizQuestionRepository,
+            IRepository<VideoCheckpoint> videoCheckpointRepository,
             IHttpContextAccessor httpContextAccessor,
             IdentityService.IdentityServiceClient client,
             IUnitOfWork unitOfWork)
@@ -40,6 +42,7 @@ namespace Codemy.Courses.Application.Services
             _quizRepository = quizRepository;
             _quizAttemptRepository = quizAttemptRepository;
             _quizQuestionRepository = quizQuestionRepository;
+            _videoCheckpointRepository = videoCheckpointRepository;
             _httpContextAccessor = httpContextAccessor;
             _lessonRepository = lessonRepository;
             _unitOfWork = unitOfWork;
@@ -168,6 +171,87 @@ namespace Codemy.Courses.Application.Services
                 Success = true,
                 Message = "Quiz created successfully",
                 Quiz = quiz
+            };
+        }
+
+        public async Task<QuizInVideoResponse> CreateQuizInLessonAsync(CreateQuizInLessonRequest request)
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
+            {
+                return new QuizInVideoResponse
+                {
+                    Success = false,
+                    Message = "User not authenticated or token missing."
+                };
+            }
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                           ?? user.FindFirst("sub")?.Value
+                           ?? user.FindFirst("userId")?.Value;
+
+            var userId = Guid.Parse(userIdClaim);
+            var userExists = await _client.GetUserByIdAsync(
+                new GetUserByIdRequest { UserId = userId.ToString() }
+            );
+
+            if (!userExists.Exists)
+            {
+                _logger.LogError("User with ID {UserId} does not exist.", userId);
+                return new QuizInVideoResponse
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                };
+            }
+
+            var lesson = await _lessonRepository.GetByIdAsync(request.lessonId);
+            if (lesson == null || lesson.IsDeleted)
+            {
+                return new QuizInVideoResponse
+                {
+                    Success = false,
+                    Message = "Lesson does not exist."
+                };
+            }
+
+            if (lesson.CreatedBy != userId)
+            {
+                return new QuizInVideoResponse
+                {
+                    Success = false,
+                    Message = "User not authorized to add quiz to this lesson."
+                };
+            }
+
+            var VideoCheckpoint = new VideoCheckpoint
+            {
+                Id = Guid.NewGuid(),
+                LessonId = request.lessonId,
+                Time = request.time,
+                Question = request.question,
+                Options = request.options,
+                CorrectAnswer = request.correctAnswer,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = userId,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = userId,
+            };
+            await _videoCheckpointRepository.AddAsync(VideoCheckpoint);
+            var result = await _unitOfWork.SaveChangesAsync();
+            if (result <= 0)
+            {
+                return new QuizInVideoResponse
+                {
+                    Success = false,
+                    Message = "Failed to create quiz in lesson"
+                };
+            }
+            return new QuizInVideoResponse
+            {
+                Success = true,
+                Message = "Quiz in lesson created successfully",
+                Quiz = VideoCheckpoint
             };
         }
 
@@ -689,6 +773,38 @@ namespace Codemy.Courses.Application.Services
                     UserAnswers = userAnswers
                 },
             };
+        }
+
+        public async Task<Response> SubmitQuizInVideoAsync(SubmitQuizInVideoRequest request)
+        {
+            var checkpoint = await _videoCheckpointRepository.GetByIdAsync(request.VideoCheckpointId);
+            if (checkpoint == null || checkpoint.IsDeleted)
+            {
+                return new Response
+                {
+                    Success = false,
+                    Message = "Video checkpoint not found."
+                };
+            }
+
+            var correctAnswer = checkpoint.CorrectAnswer?.Trim();
+            var userAnswer = request.Answer?.Trim();
+            if (string.Equals(correctAnswer, userAnswer, StringComparison.OrdinalIgnoreCase))
+            {
+                return new Response
+                {
+                    Success = true,
+                    Message = "Correct answer."
+                };
+            }
+            else
+            {
+                return new Response
+                {
+                    Success = false,
+                    Message = "Incorrect answer."
+                };
+            }
         }
 
         public async Task<QuizResponse> UpdateQuizAsync(Guid quizId, CreateQuizRequest request)
