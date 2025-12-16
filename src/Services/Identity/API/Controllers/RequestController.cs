@@ -46,7 +46,7 @@ namespace Codemy.Identity.API.Controllers
             }
         }
 
-        [HttpGet("get-all")]
+        [HttpPost("get-all")]
         [EndpointDescription("Retrieves all requests with detailed information. Supports filtering by RequestTypeId and Status, sorting by 'sort' (asc or desc), and pagination with 'page' and 'pageSize'.")]
         [RequireAction("REQUEST_READ")]
         public async Task<IActionResult> GetAllDetailRequests([FromBody] GetAllDetailRequest request)
