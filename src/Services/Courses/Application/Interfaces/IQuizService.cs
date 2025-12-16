@@ -11,6 +11,7 @@ namespace Codemy.Courses.Application.Interfaces
     public interface IQuizService
     {
         Task<QuizResponse> CreateQuizAsync(CreateQuizRequest request);
+        Task<QuizInVideoResponse> CreateQuizInLessonAsync(CreateQuizInLessonRequest request);
         Task<QuizResponse> DeleteQuizAsync(Guid quizId);
         Task<ListQuizResult> GetListQuizResultsAsync(Guid lessonId);
         Task<QuizAttemptDtoResponse> GetQuizAttemptsAsync(Guid quizId);
@@ -18,6 +19,7 @@ namespace Codemy.Courses.Application.Interfaces
         Task<QuizDtoResponse> GetQuizByLessonIdAsync(Guid lessonId);
         Task<QuizResult> GetQuizResultsAsync(Guid lessonId);
         Task<QuizResult> SubmitQuizAsync(SubmitQuizRequest request);
+        Task<Response> SubmitQuizInVideoAsync(SubmitQuizInVideoRequest request);
         Task<QuizResponse> UpdateQuizAsync(Guid quizId, CreateQuizRequest request);
     }
 
@@ -48,7 +50,14 @@ namespace Codemy.Courses.Application.Interfaces
         public bool Success { get; set; }
         public string? Message { get; set; }
         public Quiz? Quiz { get; set; }
-    } 
+    }
+
+    public class QuizInVideoResponse
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public VideoCheckpoint? Quiz { get; set; }
+    }
     public class QuizAttemptResponse
     {
         public bool Success { get; set; }

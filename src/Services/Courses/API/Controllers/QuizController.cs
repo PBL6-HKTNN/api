@@ -60,6 +60,75 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
+        [HttpPost("create-quiz")]
+        [EndpointDescription("Create quiz in a lesson video")]
+        [RequireAction("QUIZ_CREATE")]
+        public async Task<IActionResult> CreateQuizInLesson([FromBody] CreateQuizInLessonRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _quizService.CreateQuizInLessonAsync(request);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(
+                        result.Message ?? "Failed to create Quiz in lesson.",
+                        "Quiz creation in lesson failed due to business logic constraints."
+                    );
+                }
+                return this.CreatedResponse(
+                    result.Quiz,
+                    $"/quiz/get/{result.Quiz.Id}"
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating Quiz in lesson.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Quiz creation in lesson",
+                    ex.Message
+                );
+            }
+        }
+
+        [HttpPost("submit/quiz-in-video")]
+        [RequireAction("QUIZ_SUBMIT")]
+        public async Task<IActionResult> SubmitQuizInVideo([FromBody] SubmitQuizInVideoRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            try
+            {
+                var result = await _quizService.SubmitQuizInVideoAsync(request);
+                return this.OkResponse(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error submitting Quiz.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during Quiz submission",
+                    ex.Message
+                );
+            }
+        }
+
         [HttpGet("{id}")]
         [RequireAction("QUIZ_READ")]
         public async Task<IActionResult> GetQuizById(Guid id)
