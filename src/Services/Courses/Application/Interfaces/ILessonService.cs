@@ -15,11 +15,11 @@ namespace Codemy.Courses.Application.Interfaces
         Task<LessonResponse> DeleteLessonAsync(Guid lessonId);
         Task<LessonResponse> GetLessonById(Guid lessonId);
         Task<LessonListResponse> GetLessons();
-        Task<VideoCheckpointReponse> GetVideoCheckpoint(Guid lessonId);
+        Task<VideoCheckpointResponse> GetVideoCheckpoint(Guid lessonId);
         Task<LessonResponse> UpdateLessonAsync(Guid lessonId, CreateLessonRequest request);
     }
 
-    public class VideoCheckpointReponse
+    public class VideoCheckpointResponse
     {
         public bool Success { get; set; }
         public string? Message { get; set; }

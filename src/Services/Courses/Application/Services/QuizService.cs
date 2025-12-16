@@ -224,7 +224,42 @@ namespace Codemy.Courses.Application.Services
                 };
             }
 
-            var VideoCheckpoint = new VideoCheckpoint
+            var existingCheckpoint = await _videoCheckpointRepository.FindAsync(vc => vc.LessonId == request.lessonId && !vc.IsDeleted);
+            if (existingCheckpoint.Any())
+            {
+                return new QuizInVideoResponse
+                {
+                    Success = false,
+                    Message = "A quiz in video for this lesson already exists."
+                };
+            }
+
+            bool hasAnswer = false;
+            foreach (var option in request.options)
+            {
+                if (string.IsNullOrWhiteSpace(option))
+                {
+                    return new QuizInVideoResponse
+                    {
+                        Success = false,
+                        Message = "Options cannot contain empty or whitespace strings."
+                    };
+                }
+                if (option.Trim().Equals(request.correctAnswer.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    hasAnswer = true;
+                }
+            }
+            if (!hasAnswer)
+            {
+                return new QuizInVideoResponse
+                {
+                    Success = false,
+                    Message = "Correct answer must be one of the options."
+                };
+            }
+
+            var videoCheckpoint = new VideoCheckpoint
             {
                 Id = Guid.NewGuid(),
                 LessonId = request.lessonId,
@@ -237,7 +272,7 @@ namespace Codemy.Courses.Application.Services
                 UpdatedAt = DateTime.UtcNow,
                 UpdatedBy = userId,
             };
-            await _videoCheckpointRepository.AddAsync(VideoCheckpoint);
+            await _videoCheckpointRepository.AddAsync(videoCheckpoint);
             var result = await _unitOfWork.SaveChangesAsync();
             if (result <= 0)
             {
@@ -251,7 +286,7 @@ namespace Codemy.Courses.Application.Services
             {
                 Success = true,
                 Message = "Quiz in lesson created successfully",
-                Quiz = VideoCheckpoint
+                Quiz = videoCheckpoint
             };
         }
 

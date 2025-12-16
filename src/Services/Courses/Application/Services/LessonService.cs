@@ -550,12 +550,12 @@ namespace Codemy.Courses.Application.Services
             };
         }
 
-        public async Task<VideoCheckpointReponse> GetVideoCheckpoint(Guid lessonId)
+        public async Task<VideoCheckpointResponse> GetVideoCheckpoint(Guid lessonId)
         {
             var lesson = await _lessonRepository.GetByIdAsync(lessonId);
             if (lesson == null || lesson.IsDeleted)
             {
-                return new VideoCheckpointReponse
+                return new VideoCheckpointResponse
                 {
                     Success = false,
                     Message = "Lesson not found."
@@ -565,7 +565,7 @@ namespace Codemy.Courses.Application.Services
             var videoCheckpoint = await _videoCheckpointRepository.FindAsync(vc => vc.LessonId == lessonId && !vc.IsDeleted);
             if (!videoCheckpoint.Any())
             {
-                return new VideoCheckpointReponse
+                return new VideoCheckpointResponse
                 {
                     Success = false,
                     Message = "Video checkpoint not found."
@@ -579,7 +579,7 @@ namespace Codemy.Courses.Application.Services
                 Question = videoCheckpoint.First().Question,
                 Options = videoCheckpoint.First().Options
             };
-            return new VideoCheckpointReponse
+            return new VideoCheckpointResponse
             {
                 Success = true,
                 Message = "Video checkpoint retrieved successfully.",
