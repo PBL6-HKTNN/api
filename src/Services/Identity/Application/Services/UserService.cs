@@ -338,6 +338,17 @@ namespace Codemy.Identity.Application.Services
 
         public async Task<UserResponse> CreateUserAsync(CreateUserRequest request)
         {
+            var userExist = await _userRepository.FindAsync(u => u.email == request.Email);
+            if (userExist.Any())
+            {
+                var isNotDeleted = userExist.Select(u => !u.IsDeleted);
+                if (isNotDeleted.Any())
+                    return new UserResponse
+                {
+                    Success = false,
+                    Message = "User with this email already exists."
+                };
+            }
             var user = new User
             {
                 email = request.Email,
