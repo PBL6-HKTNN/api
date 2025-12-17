@@ -20,6 +20,9 @@ namespace Codemy.Enrollment.Infrastructure.Persistence
         } 
         public DbSet<WishlistItem> WishlistItems { get; set; }
         public DbSet<EnrollmentEntity> Enrollments { get; set; }
+        public DbSet<Roadmap> Roadmaps { get; set; } = null!;
+        public DbSet<RoadmapItem> RoadmapItems { get; set; } = null!; 
+        public DbSet<UserRoadmap> UserRoadmaps { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

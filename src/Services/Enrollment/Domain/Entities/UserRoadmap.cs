@@ -2,7 +2,7 @@
 
 namespace Codemy.Enrollment.Domain.Entities
 {
-    internal class UserRoadmap : BaseEntity
+    public class UserRoadmap : BaseEntity
     {
         public Guid userId { get; set; }
         public Guid roadmapId { get; set; }

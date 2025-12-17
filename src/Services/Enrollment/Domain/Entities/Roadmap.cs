@@ -2,7 +2,7 @@
 
 namespace Codemy.Enrollment.Domain.Entities
 {
-    internal class Roadmap : BaseEntity
+    public class Roadmap : BaseEntity
     {
         public Guid ownerId { get; set; }
         public string title { get; set; }
