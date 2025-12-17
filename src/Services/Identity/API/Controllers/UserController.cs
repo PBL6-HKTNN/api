@@ -88,7 +88,27 @@ namespace Codemy.Identity.API.Controllers
             return this.OkResponse(user.Actions);
         }
 
-
+        [HttpPost("admin/create")]
+        [RequireAction("USER_CREATE")]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var validationErrors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return this.ValidationErrorResponse(validationErrors);
+            }
+            var result = await _userService.CreateUserAsync(request);
+            if (!result.Success)
+            {
+                return this.BadRequestResponse(result.Message ?? "Failed to create user", result.Message);
+            }
+            else return this.OkResponse(result.User);
+        }
 
         [HttpPost("admin/edit")]
         [RequireAction("USER_UPDATE")]
