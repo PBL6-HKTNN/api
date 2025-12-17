@@ -13,6 +13,7 @@ namespace Codemy.Enrollment.Application
             services.AddScoped<IWishlistService, WishlistService>();
             services.AddScoped<IEnrollmentService, EnrollmentService>();
             services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
+            services.AddScoped<IRoadmapService, RoadmapService>();
 
             services.AddGrpcClient<IdentityService.IdentityServiceClient>(options =>
             {
