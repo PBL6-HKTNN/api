@@ -5,7 +5,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "courses-service",
+          "Host": "courses.codemy.internal",
           "Port": 5079
         }
       ],
@@ -17,7 +17,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "courses-service",
+          "Host": "courses.codemy.internal",
           "Port": 5079
         }
       ],
@@ -29,7 +29,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "courses-service",
+          "Host": "courses.codemy.internal",
           "Port": 5079
         }
       ],
@@ -41,7 +41,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "courses-service",
+          "Host": "courses.codemy.internal",
           "Port": 5079
         }
       ],
@@ -53,7 +53,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "courses-service",
+          "Host": "courses.codemy.internal",
           "Port": 5079
         }
       ],
@@ -65,7 +65,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "enrollment-service",
+          "Host": "enrollment.codemy.internal",
           "Port": 5178
         }
       ],
@@ -77,7 +77,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "enrollment-service",
+          "Host": "enrollment.codemy.internal",
           "Port": 5178
         }
       ],
@@ -89,7 +89,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "enrollment-service",
+          "Host": "enrollment.codemy.internal",
           "Port": 5178
         }
       ],
@@ -101,7 +101,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "enrollment-service",
+          "Host": "enrollment.codemy.internal",
           "Port": 5178
         }
       ],
@@ -113,7 +113,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "identity-service",
+          "Host": "identity.codemy.internal",
           "Port": 5197
         }
       ],
@@ -125,7 +125,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "identity-service",
+          "Host": "identity.codemy.internal",
           "Port": 5197
         }
       ],
@@ -137,7 +137,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "identity-service",
+          "Host": "identity.codemy.internal",
           "Port": 5197
         }
       ],
@@ -149,7 +149,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "identity-service",
+          "Host": "identity.codemy.internal",
           "Port": 5197
         }
       ],
@@ -161,7 +161,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "notification-service",
+          "Host": "notification.codemy.internal",
           "Port": 5180
         }
       ],
@@ -173,7 +173,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "payment-service",
+          "Host": "payment.codemy.internal",
           "Port": 5299
         }
       ],
@@ -185,7 +185,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "review-service",
+          "Host": "review.codemy.internal",
           "Port": 5041
         }
       ],
@@ -197,7 +197,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "file-service",
+          "Host": "filestorage.codemy.internal",
           "Port": 5043
         }
       ],
@@ -209,7 +209,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "search-service",
+          "Host": "search.codemy.internal",
           "Port": 5004
         }
       ],
