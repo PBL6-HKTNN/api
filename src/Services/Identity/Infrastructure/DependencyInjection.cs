@@ -40,7 +40,7 @@ namespace Codemy.Identity.Infrastructure
             {
                 // Configure the base address and other settings
                 client.BaseAddress = new Uri(configuration["Services:FileStorage:BaseUrl"]
-                    ?? "http://localhost:5164");
+                    ?? "http://localhost:5044");
                 client.Timeout = TimeSpan.FromMinutes(10);
             });
 
