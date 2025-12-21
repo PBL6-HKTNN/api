@@ -17,7 +17,7 @@ namespace Codemy.Enrollment.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "9.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -51,6 +51,9 @@ namespace Codemy.Enrollment.Infrastructure.Migrations
 
                     b.Property<DateTime?>("certificateExpiryDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("certificatePublicId")
+                        .HasColumnType("text");
 
                     b.Property<string>("certificateUrl")
                         .HasColumnType("text");
@@ -88,6 +91,137 @@ namespace Codemy.Enrollment.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Enrollments");
+                });
+
+            modelBuilder.Entity("Codemy.Enrollment.Domain.Entities.Roadmap", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ownerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Roadmaps");
+                });
+
+            modelBuilder.Entity("Codemy.Enrollment.Domain.Entities.RoadmapItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("courseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("order")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("roadmapId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RoadmapItems");
+                });
+
+            modelBuilder.Entity("Codemy.Enrollment.Domain.Entities.UserRoadmap", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("completedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("enrolledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("progress")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("roadmapId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("userId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserRoadmaps");
                 });
 
             modelBuilder.Entity("Codemy.Enrollment.Domain.Entities.WishlistItem", b =>

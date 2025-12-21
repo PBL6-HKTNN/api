@@ -482,6 +482,15 @@ namespace Codemy.Identity.Infrastructure.Migrations
                         },
                         new
                         {
+                            Id = new Guid("44444444-4444-4444-4444-444444444686"),
+                            Code = "REVIEW_REPLY",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Reply review",
+                            IsDeleted = false,
+                            Name = "REVIEW_REPLY"
+                        },
+                        new
+                        {
                             Id = new Guid("44444444-4444-4444-4444-444444444579"),
                             Code = "PERMISSION_CREATE",
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -524,6 +533,51 @@ namespace Codemy.Identity.Infrastructure.Migrations
                             Description = "Delete permission",
                             IsDeleted = false,
                             Name = "PERMISSION_DELETE"
+                        },
+                        new
+                        {
+                            Id = new Guid("14444444-4444-4444-4444-444444444582"),
+                            Code = "ROADMAP_CREATE",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Create roadmap",
+                            IsDeleted = false,
+                            Name = "ROADMAP_CREATE"
+                        },
+                        new
+                        {
+                            Id = new Guid("14444444-4444-4444-4444-444444444583"),
+                            Code = "ROADMAP_READ",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Read roadmap",
+                            IsDeleted = false,
+                            Name = "ROADMAP_READ"
+                        },
+                        new
+                        {
+                            Id = new Guid("14444444-4444-4444-4444-444444444584"),
+                            Code = "ROADMAP_UPDATE",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Update roadmap",
+                            IsDeleted = false,
+                            Name = "ROADMAP_UPDATE"
+                        },
+                        new
+                        {
+                            Id = new Guid("14444444-4444-4444-4444-444444444585"),
+                            Code = "ROADMAP_JOIN",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Join roadmap",
+                            IsDeleted = false,
+                            Name = "ROADMAP_JOIN"
+                        },
+                        new
+                        {
+                            Id = new Guid("14444444-4444-4444-4444-444444444586"),
+                            Code = "ROADMAP_DELETE",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Delete roadmap",
+                            IsDeleted = false,
+                            Name = "ROADMAP_DELETE"
                         });
                 });
 
@@ -695,6 +749,13 @@ namespace Codemy.Identity.Infrastructure.Migrations
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsDeleted = false,
                             permissionName = "Other permission of Moderator"
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444445567"),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            permissionName = "Roadmap Permission"
                         });
                 });
 
@@ -1394,6 +1455,14 @@ namespace Codemy.Identity.Infrastructure.Migrations
                         },
                         new
                         {
+                            Id = new Guid("44444444-4444-4454-5444-444444444571"),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            actionId = new Guid("44444444-4444-4444-4444-444444444686"),
+                            permissionId = new Guid("44444444-4444-4444-4444-444444444562")
+                        },
+                        new
+                        {
                             Id = new Guid("44444444-4444-4444-4444-444444444572"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsDeleted = false,
@@ -1447,6 +1516,46 @@ namespace Codemy.Identity.Infrastructure.Migrations
                             IsDeleted = false,
                             actionId = new Guid("44444444-4444-4444-4444-644444444583"),
                             permissionId = new Guid("44444444-4444-4444-4444-444444444563")
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-5444-444444444580"),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            actionId = new Guid("14444444-4444-4444-4444-444444444582"),
+                            permissionId = new Guid("44444444-4444-4444-4444-444444445567")
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-5444-444444444581"),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            actionId = new Guid("14444444-4444-4444-4444-444444444583"),
+                            permissionId = new Guid("44444444-4444-4444-4444-444444445567")
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-5444-444444444582"),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            actionId = new Guid("14444444-4444-4444-4444-444444444584"),
+                            permissionId = new Guid("44444444-4444-4444-4444-444444445567")
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-5444-444444444583"),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            actionId = new Guid("14444444-4444-4444-4444-444444444585"),
+                            permissionId = new Guid("44444444-4444-4444-4444-444444445567")
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-5444-444444444584"),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            actionId = new Guid("14444444-4444-4444-4444-444444444586"),
+                            permissionId = new Guid("44444444-4444-4444-4444-444444445567")
                         });
                 });
 
@@ -1641,6 +1750,9 @@ namespace Codemy.Identity.Infrastructure.Migrations
 
                     b.Property<decimal?>("rating")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("refreshToken")
+                        .HasColumnType("text");
 
                     b.Property<string>("resetPasswordToken")
                         .HasColumnType("text");
@@ -2112,6 +2224,14 @@ namespace Codemy.Identity.Infrastructure.Migrations
                         },
                         new
                         {
+                            Id = new Guid("44444444-4444-4444-4444-444444444186"),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            PermissionId = new Guid("44444444-4444-4444-4444-444444445567"),
+                            RoleId = 2
+                        },
+                        new
+                        {
                             Id = new Guid("44444444-4444-4444-4444-444444444192"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsDeleted = false,
@@ -2132,6 +2252,14 @@ namespace Codemy.Identity.Infrastructure.Migrations
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsDeleted = false,
                             PermissionId = new Guid("44444444-4444-4444-4444-444444444576"),
+                            RoleId = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444444195"),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            PermissionId = new Guid("44444444-4444-4444-4444-444444445567"),
                             RoleId = 3
                         });
                 });

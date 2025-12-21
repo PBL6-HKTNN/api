@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Apis.Calendar.v3" Version="1.72.0.3953" />
     <PackageReference Include="Google.Protobuf" Version="3.33.0" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
@@ -15,6 +16,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.18" />
+    <PackageReference Include="QuestPDF" Version="2025.7.4" />
+    <PackageReference Include="SkiaSharp" Version="3.119.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,5 +29,6 @@
 	<ItemGroup>
 		<Protobuf Include="..\..\Identity\API\Protos\identity.proto" GrpcServices="Client" />
 	  <Protobuf Include="..\..\Courses\API\Protos\courses.proto" GrpcServices="Client" />
+    <Protobuf Include="..\..\FileStorage\Codemy.FileStorage.API\Protos\upload.proto" GrpcServices="Client" />
 	</ItemGroup>
 </Project>

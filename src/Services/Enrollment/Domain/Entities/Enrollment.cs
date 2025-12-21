@@ -16,6 +16,7 @@ namespace Codemy.Enrollment.Domain.Entities
         public DateTime expectedEndDate { get; set; }
         public DateTime? completionDate { get; set; }
         public string? certificateUrl { get; set; }
+        public string? certificatePublicId { get; set; }
         public DateTime? certificateExpiryDate { get; set; }
     } 
 }

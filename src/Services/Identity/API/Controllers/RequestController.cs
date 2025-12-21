@@ -46,14 +46,14 @@ namespace Codemy.Identity.API.Controllers
             }
         }
 
-        [HttpGet("get-all")]
-        [EndpointDescription("Retrieves all requests with detailed information.")]
+        [HttpPost("get-all")]
+        [EndpointDescription("Retrieves all requests with detailed information. Supports filtering by RequestTypeId and Status, sorting by 'sort' (asc or desc), and pagination with 'page' and 'pageSize'.")]
         [RequireAction("REQUEST_READ")]
-        public async Task<IActionResult> GetAllDetailRequests()
+        public async Task<IActionResult> GetAllDetailRequests([FromBody] GetAllDetailRequest request)
         {
             try
             {
-                var result = await _requestService.GetAllDetailRequestsAsync();
+                var result = await _requestService.GetAllDetailRequestsAsync(request);
                 if (!result.Success)
                 {
                     return this.BadRequestResponse(
@@ -61,7 +61,7 @@ namespace Codemy.Identity.API.Controllers
                         "Request retrieval failed due to business logic constraints."
                     );
                 }
-                return this.OkResponse(result.Data);
+                return this.OkResponse(result.requests);
             }
             catch (Exception ex)
             {

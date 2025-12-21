@@ -17,6 +17,7 @@ namespace Codemy.Courses.Application.Services
         private readonly IRepository<Lesson> _lessonRepository;
         private readonly IRepository<Module> _moduleRepository;
         private readonly IRepository<Course> _courseRepository;
+        private readonly IRepository<VideoCheckpoint> _videoCheckpointRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IdentityService.IdentityServiceClient _client;
         private readonly EnrollmentService.EnrollmentServiceClient _enrollmentClient;
@@ -28,6 +29,7 @@ namespace Codemy.Courses.Application.Services
             IRepository<Lesson> lessonRepository,
             IRepository<Module> moduleRepository,
             IRepository<Course> courseRepository,
+            IRepository<VideoCheckpoint> videoCheckpointRepository,
             IdentityService.IdentityServiceClient client,
             EnrollmentService.EnrollmentServiceClient enrollmentServiceClient,
             IUnitOfWork unitOfWork)
@@ -36,6 +38,7 @@ namespace Codemy.Courses.Application.Services
             _lessonRepository = lessonRepository;
             _moduleRepository = moduleRepository;
             _courseRepository = courseRepository;
+            _videoCheckpointRepository = videoCheckpointRepository;
             _unitOfWork = unitOfWork;
             _client = client;
             _enrollmentClient = enrollmentServiceClient;
@@ -471,6 +474,32 @@ namespace Codemy.Courses.Application.Services
                 };
             }
             //check progress
+            if(enrollment.LessonId == "")
+            {
+                var firstModule = await _moduleRepository
+                    .FindAsync(m => m.courseId == course.Id && m.order == 1 && !m.IsDeleted);
+                var firstLesson = await _lessonRepository.FindAsync(l => l.moduleId == firstModule.First().Id && l.orderIndex == 1 && !l.IsDeleted);
+                if (lesson.Id != firstLesson.First().Id)
+                {
+                    _logger.LogInformation("First Lesson: {FirstLessonId}, Requested Lesson: {RequestedLessonId}", firstLesson.First().Id, lesson.Id);
+                    return new LessonResponse
+                    {
+                        Success = false,
+                        Message = "Lesson is Locked"
+                    };
+                }
+                else
+                {
+                    return new LessonResponse
+                    {
+                        Success = true,
+                        Message = "Lesson is not Locked",
+                        Lesson = lesson
+                    };
+                }
+
+            }
+            _logger.LogInformation("Checking progress for User ID {UserId} in Course ID {CourseId}, Lesson {LessonId}.", userId, course.Id, enrollment.LessonId);
             var currentLesson = await _lessonRepository.GetByIdAsync(Guid.Parse(enrollment.LessonId));
             if (currentLesson == null)
             {
@@ -518,6 +547,43 @@ namespace Codemy.Courses.Application.Services
                 Success = true,
                 Message = "Lesson is not Locked",
                 Lesson = lesson
+            };
+        }
+
+        public async Task<VideoCheckpointResponse> GetVideoCheckpoint(Guid lessonId)
+        {
+            var lesson = await _lessonRepository.GetByIdAsync(lessonId);
+            if (lesson == null || lesson.IsDeleted)
+            {
+                return new VideoCheckpointResponse
+                {
+                    Success = false,
+                    Message = "Lesson not found."
+                };
+            }
+
+            var videoCheckpoint = await _videoCheckpointRepository.FindAsync(vc => vc.LessonId == lessonId && !vc.IsDeleted);
+            if (!videoCheckpoint.Any())
+            {
+                return new VideoCheckpointResponse
+                {
+                    Success = false,
+                    Message = "Video checkpoint not found."
+                };
+            }
+            VideoCheckpointDTO videoCheckpointDTO = new VideoCheckpointDTO
+            {
+                Id = videoCheckpoint.First().Id,
+                LessonId = videoCheckpoint.First().LessonId,
+                Time = videoCheckpoint.First().Time,
+                Question = videoCheckpoint.First().Question,
+                Options = videoCheckpoint.First().Options
+            };
+            return new VideoCheckpointResponse
+            {
+                Success = true,
+                Message = "Video checkpoint retrieved successfully.",
+                VideoCheckpoint = videoCheckpointDTO
             };
         }
     }

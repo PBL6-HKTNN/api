@@ -13,11 +13,16 @@ namespace Codemy.Enrollment.API.Controllers
     public class EnrollmentController : ControllerBase
     {
         private readonly IEnrollmentService _enrollmentService;
+        private readonly IGoogleCalendarService _googleCalendarService;
         private readonly ILogger<EnrollmentController> _logger;
 
-        public EnrollmentController(IEnrollmentService enrollmentService, ILogger<EnrollmentController> logger)
+        public EnrollmentController(
+            IEnrollmentService enrollmentService,
+            IGoogleCalendarService googleCalendarService,
+            ILogger<EnrollmentController> logger)
         {
             _enrollmentService = enrollmentService;
+            _googleCalendarService = googleCalendarService;
             _logger = logger;
         }
 
@@ -232,6 +237,27 @@ namespace Codemy.Enrollment.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting total enrollments by course ID.");
+                return this.InternalServerErrorResponse("Internal server error.");
+            }
+        }
+
+        [HttpGet("add-calendar/{courseId}")]
+        [EndpointDescription("Add to calendar")]
+        [RequireAction("ENROLLMENT_READ")]
+        public async Task<IActionResult> AddCourseToCalendar(Guid courseId)
+        {
+            try
+            {
+                var result = await _googleCalendarService.AddCourseToCalendarAsync(courseId);
+                if (!result.Success)
+                {
+                    return this.BadRequestResponse(result.Message ?? "Failed to add course to calendar.");
+                }
+                return this.OkResponse(result.CalendarLinks);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding course to calendar.");
                 return this.InternalServerErrorResponse("Internal server error.");
             }
         }

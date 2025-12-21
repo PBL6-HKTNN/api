@@ -60,6 +60,32 @@ namespace Codemy.Courses.API.Controllers
             }
         }
 
+        [HttpGet("{lessonId}/video-checkpoint")]
+        [RequireAction("LESSON_READ")]
+        public async Task<IActionResult> GetVideoCheckpoint(Guid lessonId)
+        {
+            try
+            {
+                var result = await _lessonService.GetVideoCheckpoint(lessonId);
+                if (!result.Success)
+                {
+                    return this.NotFoundResponse(
+                        result.Message ?? "Video checkpoint not found.",
+                        result.Message
+                    );
+                }
+                return this.OkResponse(result.VideoCheckpoint);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving video checkpoint.");
+                return this.InternalServerErrorResponse(
+                    "Internal server error occurred during video checkpoint retrieval",
+                    ex.Message
+                );
+            }
+        }
+
         [HttpGet("check-locked/{lessonId}")]
         [RequireAction("LESSON_READ")]
         public async Task<IActionResult> CheckLessonLocked(Guid lessonId)

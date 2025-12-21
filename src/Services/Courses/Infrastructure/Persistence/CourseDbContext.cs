@@ -28,6 +28,7 @@ namespace Codemy.Courses.Infrastructure.Persistence
         public DbSet<QuizQuestion> QuizQuestions { get; set; }
         public DbSet<QuizAttempt> QuizAttempts { get; set; }
         public DbSet<UserAnswer> UserAnswers { get; set; }
+        public DbSet<VideoCheckpoint> VideoCheckpoints { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

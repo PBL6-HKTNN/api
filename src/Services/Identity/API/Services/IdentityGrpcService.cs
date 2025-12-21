@@ -27,7 +27,8 @@ namespace Codemy.Identity.API.Services
                 Exists = true,
                 UserId = result.Id.ToString(),
                 Email = result.email,
-                Name = result.name
+                Name = result.name,
+                RefreshToken = result.refreshToken ?? string.Empty
             };
         }
     }
