@@ -14,10 +14,10 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(5299, o => o.Protocols = HttpProtocols.Http1); // HTTP
     options.ListenAnyIP(5298, o => o.Protocols = HttpProtocols.Http2);  // gRPC
-    options.ListenAnyIP(7099, listenOptions =>
+    if (builder.Environment.IsDevelopment())
     {
-        listenOptions.UseHttps();
-    });
+        options.ListenAnyIP(7099, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
+    }
 });
 builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddControllers();

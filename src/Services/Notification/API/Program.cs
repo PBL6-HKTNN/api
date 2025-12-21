@@ -8,7 +8,10 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(5180, o => o.Protocols = HttpProtocols.Http1);
     options.ListenAnyIP(5181, o => o.Protocols = HttpProtocols.Http2);
-    options.ListenAnyIP(7187, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
+    if (builder.Environment.IsDevelopment())
+    {
+        options.ListenAnyIP(7187, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
+    }
 });
 // Add services to the container. 
 builder.Services.AddApplication();
