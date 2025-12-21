@@ -85,6 +85,30 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
+      "DownstreamPathTemplate": "/Roadmap/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "enrollment-service",
+          "Port": 5178
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/Roadmap/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/Certificate/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "enrollment-service",
+          "Port": 5178
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/Certificate/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
       "DownstreamPathTemplate": "/Auth/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
@@ -106,6 +130,30 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/User/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/Permission/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "identity-service",
+          "Port": 5197
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/Permission/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/Request/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "identity-service",
+          "Port": 5197
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/Request/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
@@ -149,7 +197,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "file-searvice",
+          "Host": "file-service",
           "Port": 5043
         }
       ],
