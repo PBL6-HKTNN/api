@@ -108,7 +108,10 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(5004, o => o.Protocols = HttpProtocols.Http1); // HTTP
     options.ListenAnyIP(5005, o => o.Protocols = HttpProtocols.Http2); // gRPC
-    options.ListenAnyIP(7180, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2); // HTTPS + gRPC
+    if (builder.Environment.IsDevelopment())
+    {
+        options.ListenAnyIP(7180, o => o.UseHttps().Protocols = HttpProtocols.Http1AndHttp2);
+    }
 });
 
 var app = builder.Build();
@@ -123,7 +126,7 @@ if (app.Environment.IsDevelopment())
     app.UseCors("AllowAll");
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthentication();
